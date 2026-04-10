@@ -5,6 +5,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CartToast from "@/components/CartToast";
 
@@ -19,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cars E-Commerce",
-  description: "Modern e-commerce for car enthusiasts",
+  title: "L7it - Automotive Art Gallery",
+  description: "Exclusive automotive wall art for car enthusiasts",
 };
 
 export default function RootLayout({
@@ -38,9 +39,10 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <Navbar />
-              <main className="flex-1 flex flex-col pt-16">
+              <main className="flex-1 flex flex-col pt-0">
                 {children}
               </main>
+              <Footer />
               <CartToast />
               <FloatingWhatsApp />
             </CartProvider>

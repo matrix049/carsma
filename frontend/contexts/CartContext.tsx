@@ -27,7 +27,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('carsma-cart');
+    const savedCart = localStorage.getItem('l7it-cart');
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
@@ -41,7 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (isInitialized) {
-      localStorage.setItem('carsma-cart', JSON.stringify(cart));
+      localStorage.setItem('l7it-cart', JSON.stringify(cart));
     }
   }, [cart, isInitialized]);
 

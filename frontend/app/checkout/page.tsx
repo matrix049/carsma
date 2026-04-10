@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [orderSummary, setOrderSummary] = useState<{ items: any[], subtotal: number, finalTotal: number } | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -54,10 +55,17 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setOrderError(null);
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setOrderError(t('invalidEmail'));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Concatenate the address fields into the single expected 'address' backend string
       const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip} | Email: ${formData.email} | Notes: ${formData.notes}`;
 
       const customerPayload: Customer = {
@@ -81,12 +89,16 @@ export default function CheckoutPage() {
 
       await createOrder(orderData);
       
+      setOrderSummary({
+        items: [...cart],
+        subtotal: subtotal,
+        finalTotal: finalTotal
+      });
       setSuccess(true);
       clearCart();
     } catch (err: any) {
       console.error('Checkout failed', err);
-      // Fallback translation for error
-      setOrderError(err.message || (language === 'ar' ? 'فشلت معالجة الطلب. يرجى المحاولة مرة أخرى' : 'Failed to process order. Please try again.'));
+      setOrderError(err.message || t('orderFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -94,19 +106,61 @@ export default function CheckoutPage() {
 
   if (success) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-24 sm:px-6 text-center text-zinc-900 dark:text-zinc-50">
+      <div className="container mx-auto max-w-2xl px-4 py-24 sm:px-6 text-center text-zinc-900 dark:text-zinc-50 flex flex-col items-center">
         <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
           <svg className="h-10 w-10 text-green-600 dark:text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Order Confirmed!</h1>
-        <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-          Thank you for your purchase {formData.firstName}. We have received your order and will begin processing it shortly.
+        <h1 className="text-3xl font-bold tracking-tight mb-2">{t('orderConfirmed')}</h1>
+        <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-12">
+          {t('orderSuccessDesc')}
         </p>
+
+        {/* Order Resume */}
+        {orderSummary && (
+          <div className="w-full text-left rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h2 className="text-lg font-black uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 dark:border-zinc-900 pb-4">
+              {language === 'ar' ? 'ملخص الطلب' : language === 'fr' ? 'Résumé de la commande' : 'Order Summary'}
+            </h2>
+            
+            <div className="space-y-6 mb-8">
+              {orderSummary.items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="h-16 w-16 flex-none rounded-xl bg-zinc-100 overflow-hidden dark:bg-zinc-900">
+                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{item.name}</h3>
+                    <p className="text-xs text-zinc-500">{item.quantity} x {item.price} MAD</p>
+                  </div>
+                  <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">
+                    {item.price * item.quantity} MAD
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 pt-6 border-t border-zinc-100 dark:border-zinc-900">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">{t('subtotal')}</span>
+                <span className="font-bold">{orderSummary.subtotal} MAD</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">{t('shipping')}</span>
+                <span className="font-bold text-blue-600">+30 MAD</span>
+              </div>
+              <div className="flex justify-between text-xl font-black pt-3 border-t border-zinc-100 dark:border-zinc-900">
+                <span>{t('total')}</span>
+                <span className="text-blue-600">{orderSummary.finalTotal} MAD</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <Link
           href="/"
-          className="mt-8 inline-flex items-center justify-center rounded-full bg-black px-8 py-3.5 font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          className="inline-flex items-center justify-center rounded-full bg-black px-12 py-4 font-bold text-white transition-all hover:bg-zinc-800 hover:scale-105 active:scale-95 shadow-xl dark:bg-white dark:text-black dark:hover:bg-zinc-200"
         >
           {t('home')}
         </Link>
@@ -128,8 +182,10 @@ export default function CheckoutPage() {
       <h1 className="mb-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t('checkout')}</h1>
       <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/30">
         <p className="text-blue-800 dark:text-blue-400 flex items-center">
-          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <strong>Note:</strong> {t('shippingNote')}
+          <svg className="w-5 h-5 mr-3 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span className="flex-1">
+            <strong className="font-bold">{language === 'en' ? 'Note:' : language === 'fr' ? 'Note :' : 'ملاحظة:'}</strong> {t('shippingNote')}
+          </span>
         </p>
       </div>
 
@@ -222,7 +278,6 @@ export default function CheckoutPage() {
                 </svg>
               </div>
             </div>
-
           </form>
 
           {orderError && (

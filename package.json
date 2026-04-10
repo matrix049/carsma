@@ -13,5 +13,8 @@
     "build:backend": "cd backend && npm run build",
     "start:frontend": "cd frontend && npm start",
     "start:backend": "cd backend && npm start"
+  },
+  "dependencies": {
+    "mongodb": "^7.1.1"
   }
 }

@@ -8,6 +8,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
+import customOrderRoutes from './routes/customOrders';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.get('/health', (req, res) => {
 app.use('/api/admin', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/custom-orders', customOrderRoutes);
 
 // 404 handler for undefined routes (must be after all routes)
 app.use(notFoundHandler);

@@ -81,6 +81,36 @@ export interface UpdateOrderStatusResponse {
   order: Order;
 }
 
+export interface CustomOrder {
+  _id: string;
+  customer: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+  };
+  carDetails: {
+    carName: string;
+    model: string;
+    year: string;
+  };
+  status: 'pending' | 'reviewed' | 'contacted' | 'completed' | 'cancelled';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCustomOrderRequest {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  carName: string;
+  model: string;
+  year: string;
+  notes?: string;
+}
+
 // ============================================================================
 // Public API Functions
 // ============================================================================
@@ -172,4 +202,54 @@ export async function updateOrderStatus(
     true // Requires authentication
   );
   return response.order;
+}
+
+/**
+ * Submit a request for a custom wall art design
+ * @param data - Custom car details and customer contact info
+ */
+export async function createCustomOrder(
+  data: CreateCustomOrderRequest
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    '/api/custom-orders',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+    false
+  );
+}
+
+/**
+ * Fetch all custom design requests (Admin only)
+ * @returns Array of custom orders
+ */
+export async function fetchCustomOrders(): Promise<CustomOrder[]> {
+  const response = await apiRequest<{ customOrders: CustomOrder[] }>(
+    '/api/custom-orders',
+    { method: 'GET' },
+    true
+  );
+  return response.customOrders;
+}
+
+/**
+ * Update custom order status (Admin only)
+ * @param id - Request ID
+ * @param status - New status
+ */
+export async function updateCustomOrderStatus(
+  id: string,
+  status: CustomOrder['status']
+): Promise<CustomOrder> {
+  const response = await apiRequest<{ success: boolean; customOrder: CustomOrder }>(
+    `/api/custom-orders/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    },
+    true
+  );
+  return response.customOrder;
 }
