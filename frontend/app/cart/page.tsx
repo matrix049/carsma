@@ -4,103 +4,187 @@ import React from 'react';
 import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, calculateTotal } = useCart();
   const { t } = useLanguage();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-16 sm:px-6">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t('shoppingCart')}</h1>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-500">
+      <div className="container mx-auto max-w-7xl px-6 py-32 sm:px-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-20 space-y-4"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600">Your Selection</span>
+          <h1 className="text-6xl sm:text-8xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase font-jakarta">
+            {t('shoppingCart')}
+          </h1>
+          <div className="h-2 w-32 bg-blue-600 rounded-full" />
+        </motion.div>
 
-      {cart.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 py-16 text-center dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">{t('emptyCart')}</h2>
-          <Link
-            href="/"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-black px-6 py-3 font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        {cart.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-[4rem] border-2 border-dashed border-zinc-100 bg-zinc-50 py-32 text-center dark:border-zinc-900 dark:bg-[#0d0d0d] shadow-2xl"
           >
-            {t('continueShopping')}
-          </Link>
-        </div>
-      ) : (
-        <div className="flex flex-col lg:flex-row lg:items-start gap-12">
-          {/* Cart Items */}
-          <div className="flex-1 space-y-6">
-            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {cart.map((item) => (
-                <li key={item._id} className="flex py-6">
-                  <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
-                    <img
-                      src={item.image || 'https://via.placeholder.com/150'}
-                      alt={item.name}
-                      className="h-full w-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="ml-4 flex flex-1 flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between text-base font-medium text-zinc-900 dark:text-zinc-100">
-                        <h3>{item.name}</h3>
-                        <p className="ml-4 rtl:mr-4 rtl:ml-0 font-bold text-blue-600">{(item.price * item.quantity).toFixed(0)} MAD</p>
-                      </div>
-                      <p className="mt-1 text-sm text-zinc-500 uppercase">{item.category}</p>
+            <div className="mb-10 flex justify-center">
+              <div className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-8">
+                <svg className="h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-8">{t('emptyCart')}</h2>
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-10 py-5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-blue-500 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95 shadow-xl"
+            >
+              {t('continueShopping')}
+            </Link>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+            {/* Cart Items */}
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ staggerChildren: 0.1 }}
+              className="lg:col-span-8 space-y-8"
+            >
+              <AnimatePresence>
+                {cart.map((item) => (
+                  <motion.div 
+                    key={item._id} 
+                    variants={itemVariants}
+                    transition={{ duration: 0.6 }}
+                    layout
+                    exit={{ opacity: 0, scale: 0.9, x: -50 }}
+                    className="group relative flex flex-col sm:flex-row items-center gap-8 p-8 rounded-[3rem] bg-zinc-50 dark:bg-[#0d0d0d] border border-zinc-100 dark:border-zinc-900 hover:border-blue-500/30 transition-all duration-500 shadow-xl"
+                  >
+                    <div className="h-40 w-full sm:w-40 flex-shrink-0 overflow-hidden rounded-[2rem] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 group-hover:border-blue-500/40 transition-colors">
+                      <img
+                        src={item.image || 'https://via.placeholder.com/400x400?text=L7IT'}
+                        alt={item.name}
+                        className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                      />
                     </div>
-                    <div className="flex flex-1 items-end justify-between text-sm">
-                      <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    
+                    <div className="flex flex-1 flex-col justify-between w-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">{item.category}</p>
+                          <h3 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 uppercase font-jakarta">{item.name}</h3>
+                        </div>
+                        <p className="text-2xl font-black text-zinc-900 dark:text-white font-serif">
+                          {(item.price * item.quantity).toFixed(0)} <span className="text-[10px] text-zinc-500 uppercase">MAD</span>
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-8">
+                        <div className="flex items-center gap-2 bg-white dark:bg-black rounded-2xl border border-zinc-100 dark:border-zinc-900 p-1.5 shadow-sm">
+                          <button
+                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            className="h-10 w-10 flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" /></svg>
+                          </button>
+                          <span className="w-8 text-center text-sm font-black text-zinc-900 dark:text-zinc-100">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            className="h-10 w-10 flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                          </button>
+                        </div>
+                        
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                          className="px-3 py-1 text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 rounded-s-lg"
+                          onClick={() => removeFromCart(item._id)}
+                          className="flex items-center gap-2 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-300 group/remove"
                         >
-                          -
-                        </button>
-                        <span className="px-3 py-1 font-medium text-zinc-900 dark:text-zinc-100">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                          className="px-3 py-1 text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 rounded-e-lg"
-                        >
-                          +
+                          <svg className="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          {t('remove')}
                         </button>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item._id)}
-                        className="font-medium text-red-600 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400 transition-colors rtl:mr-auto rtl:ml-0"
-                      >
-                        {t('remove')}
-                      </button>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
 
-          {/* Cart Summary */}
-          <div className="w-full lg:w-80 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-950/50 sticky top-32">
-            <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{t('orderSummary')}</h2>
-            <div className="mt-6 flex justify-between text-base font-medium text-zinc-900 dark:text-zinc-100">
-              <p>{t('subtotal')}</p>
-              <p>{calculateTotal().toFixed(0)} MAD</p>
-            </div>
-            <div className="mt-6">
-              <Link
-                href="/checkout"
-                className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-base font-medium text-white shadow-sm hover:bg-blue-500 transition-all font-bold"
-              >
-                {t('proceedToCheckout')}
-              </Link>
-            </div>
-            <div className="mt-6 flex justify-center text-center text-sm text-zinc-500">
-              <p>
-                <Link href="/" className="font-medium text-blue-600 hover:text-blue-500 inline-block transition-colors">
-                  &larr; {t('continueShopping')}
-                </Link>
-              </p>
-            </div>
+            {/* Cart Summary */}
+            <motion.aside 
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="lg:col-span-4 sticky top-32"
+            >
+              <div className="rounded-[3rem] border border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0d0d0d] p-10 shadow-3xl overflow-hidden relative group">
+                {/* Decorative Pattern */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-blue-600/5 blur-3xl" />
+                
+                <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-10 font-jakarta">{t('orderSummary')}</h2>
+                
+                <div className="space-y-6 mb-10">
+                  <div className="flex justify-between items-center text-zinc-500">
+                    <span className="text-[10px] font-black uppercase tracking-widest">{t('subtotal')}</span>
+                    <span className="text-lg font-black font-serif text-zinc-900 dark:text-zinc-100">{calculateTotal().toFixed(0)} <span className="text-[8px] uppercase">MAD</span></span>
+                  </div>
+                  <div className="flex justify-between items-center text-zinc-500">
+                     <span className="text-[10px] font-black uppercase tracking-widest">{t('shipping')}</span>
+                     <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Calculated at Settlement</span>
+                  </div>
+                  <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-end">
+                    <span className="text-[12px] font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white">{t('total')}</span>
+                    <div className="text-right">
+                       <p className="text-4xl font-black text-blue-600 font-serif leading-none">{calculateTotal().toFixed(0)}</p>
+                       <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-2">MAD (Order Total)</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <Link
+                    href="/checkout"
+                    className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-blue-600 px-8 py-6 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-xl hover:bg-blue-500 hover:shadow-2xl hover:shadow-blue-500/30 transition-all active:scale-95 group/check"
+                  >
+                    {t('proceedToCheckout')}
+                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  </Link>
+                  
+                  <Link 
+                    href="/shop" 
+                    className="flex w-full items-center justify-center py-4 text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+                  >
+                    &larr; {t('continueShopping')}
+                  </Link>
+                </div>
+                
+                <div className="mt-12 p-6 rounded-3xl bg-blue-600/5 border border-blue-500/10">
+                   <p className="text-[9px] font-black uppercase leading-relaxed text-blue-500/80 tracking-widest text-center">
+                     Gallery pieces are archived securely and dispatched within 48 hours. Secure Settlement via Cash on Delivery.
+                   </p>
+                </div>
+              </div>
+            </motion.aside>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

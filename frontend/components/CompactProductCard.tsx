@@ -29,14 +29,22 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           <img
             src={imageUrl}
             alt={product.name}
-            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Image+Unavailable';
             }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <div className="absolute top-4 left-4 z-10 transition-transform duration-500 group-hover:-translate-y-1">
+             <span className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[8px] font-black tracking-widest text-white uppercase shadow-xl">
+               Limited Edition
+             </span>
+          </div>
+
           {!product.inStock && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-               <span className="rounded-full bg-red-600 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase shadow-lg">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[4px] z-20">
+               <span className="rounded-full bg-red-600 px-4 py-1.5 text-[9px] font-black tracking-widest text-white uppercase shadow-2xl">
                 {t('outOfStock')}
               </span>
             </div>
@@ -45,15 +53,20 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
         
         <div className="flex flex-col p-4 flex-1">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100 line-clamp-1 group-hover:text-blue-600 transition-colors">
+            <h3 className="text-sm font-black tracking-tight text-zinc-900 dark:text-zinc-100 line-clamp-1 group-hover:text-blue-600 transition-colors font-jakarta uppercase">
               {product.name}
             </h3>
-            <span className="text-sm font-black text-blue-600 shrink-0">
-              {product.price} <span className="text-[10px]">MAD</span>
-            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50 leading-none">
+                {Math.ceil(product.price * 1.5)}<span className="text-[7px] ml-0.5">MAD</span>
+              </span>
+              <span className="text-sm font-black text-blue-600 shrink-0 font-jakarta leading-none mt-1">
+                {product.price}<span className="text-[9px] ml-0.5">MAD</span>
+              </span>
+            </div>
           </div>
           
-          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-3">
+          <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-4">
              {product.category}
           </p>
           

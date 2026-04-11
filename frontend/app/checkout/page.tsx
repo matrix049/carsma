@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MOROCCO_STATES = [
   'Tanger-Tétouan-Al Hoceïma',
@@ -29,7 +30,6 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
-  const [orderSummary, setOrderSummary] = useState<{ items: any[], subtotal: number, finalTotal: number } | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -48,33 +48,28 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const SHIPPING_COST = 30;
-  const subtotal = calculateTotal();
+  const SHIPPING_COST = 25;
+  const subtotal = Math.round(calculateTotal());
   const finalTotal = subtotal + SHIPPING_COST;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setOrderError(null);
-
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setOrderError(t('invalidEmail'));
       return;
     }
-
     setIsSubmitting(true);
 
     try {
-      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip} | Email: ${formData.email} | Notes: ${formData.notes}`;
-
+      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`;
       const customerPayload: Customer = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
         address: fullAddress
       };
-
       const orderData = {
         customer: customerPayload,
         products: cart.map(item => ({
@@ -86,82 +81,46 @@ export default function CheckoutPage() {
         totalPrice: finalTotal,
         paymentMethod: 'cod' 
       };
-
       await createOrder(orderData);
-      
-      setOrderSummary({
-        items: [...cart],
-        subtotal: subtotal,
-        finalTotal: finalTotal
-      });
       setSuccess(true);
       clearCart();
     } catch (err: any) {
-      console.error('Checkout failed', err);
       setOrderError(err.message || t('orderFailed'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8 }
+    }
+  };
+
   if (success) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-24 sm:px-6 text-center text-zinc-900 dark:text-zinc-50 flex flex-col items-center">
-        <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-          <svg className="h-10 w-10 text-green-600 dark:text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+      <div className="container mx-auto max-w-2xl px-6 py-48 text-center bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center">
+        <motion.div 
+          initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }}
+          className="mb-12 inline-flex h-32 w-32 items-center justify-center rounded-full bg-blue-600/20 text-blue-500 border border-blue-500/30 shadow-[0_0_50px_rgba(37,99,235,0.2)]">
+          <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
           </svg>
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">{t('orderConfirmed')}</h1>
-        <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-12">
-          {t('orderSuccessDesc')}
-        </p>
-
-        {/* Order Resume */}
-        {orderSummary && (
-          <div className="w-full text-left rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-lg font-black uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 dark:border-zinc-900 pb-4">
-              {language === 'ar' ? 'ملخص الطلب' : language === 'fr' ? 'Résumé de la commande' : 'Order Summary'}
-            </h2>
-            
-            <div className="space-y-6 mb-8">
-              {orderSummary.items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="h-16 w-16 flex-none rounded-xl bg-zinc-100 overflow-hidden dark:bg-zinc-900">
-                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{item.name}</h3>
-                    <p className="text-xs text-zinc-500">{item.quantity} x {item.price} MAD</p>
-                  </div>
-                  <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">
-                    {item.price * item.quantity} MAD
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3 pt-6 border-t border-zinc-100 dark:border-zinc-900">
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-500">{t('subtotal')}</span>
-                <span className="font-bold">{orderSummary.subtotal} MAD</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-500">{t('shipping')}</span>
-                <span className="font-bold text-blue-600">+30 MAD</span>
-              </div>
-              <div className="flex justify-between text-xl font-black pt-3 border-t border-zinc-100 dark:border-zinc-900">
-                <span>{t('total')}</span>
-                <span className="text-blue-600">{orderSummary.finalTotal} MAD</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center rounded-full bg-black px-12 py-4 font-bold text-white transition-all hover:bg-zinc-800 hover:scale-105 active:scale-95 shadow-xl dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-        >
+        </motion.div>
+        <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase font-jakarta text-white">{t('orderConfirmed')}</h1>
+        <p className="text-zinc-500 text-xl font-medium mb-16 max-w-lg">{t('orderSuccessDesc')}</p>
+        <Link href="/" className="inline-flex items-center justify-center rounded-2xl bg-white text-black px-16 py-6 font-black uppercase tracking-[0.2em] transform transition-all hover:scale-105 active:scale-95 shadow-4xl text-xs">
           {t('home')}
         </Link>
       </div>
@@ -170,169 +129,183 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-24 sm:px-6 text-center pt-24">
-         <h1 className="text-2xl font-bold">{t('emptyCart')}</h1>
-         <Link href="/" className="mt-6 font-medium text-blue-600 hover:text-blue-500">{t('continueShopping')}</Link>
+      <div className="container mx-auto px-6 py-48 text-center bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center">
+         <h1 className="text-6xl font-black uppercase tracking-tighter mb-8 font-jakarta text-white">{t('emptyCart')}</h1>
+         <Link href="/shop" className="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px] hover:underline underline-offset-8 transition-all">{t('continueShopping')}</Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-16 sm:px-6">
-      <h1 className="mb-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t('checkout')}</h1>
-      <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/30">
-        <p className="text-blue-800 dark:text-blue-400 flex items-center">
-          <svg className="w-5 h-5 mr-3 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span className="flex-1">
-            <strong className="font-bold">{language === 'en' ? 'Note:' : language === 'fr' ? 'Note :' : 'ملاحظة:'}</strong> {t('shippingNote')}
-          </span>
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#0a0a0a] text-white pt-32 pb-48">
+      <div className="container mx-auto px-6 md:px-10 max-w-7xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="mb-24 space-y-4"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.6em] text-blue-600">Secure Protocol</span>
+          <h1 className="text-6xl md:text-9xl font-black tracking-tighter font-jakarta uppercase leading-none">
+            Gallery<span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"> Checkout</span>
+          </h1>
+        </motion.div>
 
-      <div className="flex flex-col lg:flex-row gap-12">
-        {/* Checkout Form */}
-        <div className="flex-1">
-          <h2 className="text-xl font-semibold mb-6">{t('shippingInfo')}</h2>
-          <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('firstName')}</label>
-                <div className="mt-1">
-                  <input required type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-start">
+          {/* Form Side */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-7 space-y-20"
+          >
+            {/* Identity & Logistics Section */}
+            <motion.section variants={itemVariants} className="space-y-12">
+              <div className="flex items-center gap-6">
+                <div className="h-0.5 w-12 bg-blue-600" />
+                <h2 className="text-2xl font-black uppercase tracking-tight font-jakarta">01. Identity & Logistics</h2>
               </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('lastName')}</label>
-                <div className="mt-1">
-                  <input required type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              <div className="sm:col-span-1">
-                <label htmlFor="email" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('email')}</label>
-                <div className="mt-1">
-                  <input required type="email" id="email" name="email" value={formData.email} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              <div className="sm:col-span-1">
-                <label htmlFor="phone" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('phone')}</label>
-                <div className="mt-1">
-                  <input required type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('address')}</label>
-                <div className="mt-1">
-                  <input required type="text" id="address" name="address" value={formData.address} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('state')}</label>
-                <div className="mt-1">
-                  <select required id="state" name="state" value={formData.state} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border">
-                    <option value="" disabled>---</option>
-                    {MOROCCO_STATES.map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('city')}</label>
-                <div className="mt-1">
-                  <input required type="text" id="city" name="city" value={formData.city} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="zip" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('zip')}</label>
-                <div className="mt-1">
-                  <input type="text" id="zip" name="zip" value={formData.zip} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="notes" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('orderNotes')}</label>
-                <div className="mt-1">
-                  <textarea id="notes" name="notes" rows={3} value={formData.notes} onChange={handleChange}
-                    className="block w-full rounded-xl border-zinc-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white px-4 py-3 border" />
-                </div>
-              </div>
-            </div>
 
-            <div className="mt-8 border-t border-zinc-200 dark:border-zinc-800 pt-8">
-              <h2 className="text-xl font-semibold mb-6">{t('paymentMethod')}</h2>
-              <div className="rounded-xl border border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 p-4 flex items-center">
-                <input id="cod" type="radio" checked readOnly className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-zinc-300" />
-                <label htmlFor="cod" className="ml-3 block font-medium text-zinc-900 dark:text-zinc-100 flex-1 cursor-pointer">
-                  {t('cod')}
-                </label>
-                <svg className="h-6 w-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-          </form>
-
-          {orderError && (
-            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
-              <p className="text-sm text-red-800 dark:text-red-400">{orderError}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Order Summary side panel */}
-        <div className="w-full lg:w-96">
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-950/50 sticky top-32">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{t('orderSummary')}</h2>
-            
-            <ul className="mb-6 space-y-4 divide-y divide-zinc-200 dark:divide-zinc-800">
-              {cart.map((item) => (
-                <li key={item._id} className="pt-4 flex justify-between text-sm">
-                  <div className="flex-1 pr-4 text-zinc-600 dark:text-zinc-400">
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{item.quantity}x</span> {item.name}
+              <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Full Name</label>
+                  <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Phone Number</label>
+                  <input required type="tel" name="phone" placeholder="+212 6 00 00 00 00" value={formData.phone} onChange={handleChange}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                </div>
+                <div className="md:col-span-2 space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Shipping Address</label>
+                  <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">City</label>
+                  <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Region / Province</label>
+                  <div className="relative">
+                    <select required name="state" value={formData.state} onChange={handleChange}
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all appearance-none cursor-pointer text-zinc-400">
+                      <option value="" disabled>Select Region</option>
+                      {MOROCCO_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-700">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
                   </div>
-                  <div className="text-zinc-900 dark:text-zinc-100 font-medium">
-                    {(item.price * item.quantity).toFixed(0)} MAD
-                  </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <div className="md:col-span-2 space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Electronic Correspondence (Email)</label>
+                  <input required type="email" name="email" placeholder="khalid@alami.ma" value={formData.email} onChange={handleChange}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                </div>
+              </form>
+            </motion.section>
 
-            <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 flex justify-between text-base text-zinc-600 dark:text-zinc-400 mb-2">
-              <p>{t('subtotal')}</p>
-              <p>{subtotal.toFixed(0)} MAD</p>
-            </div>
-            
-            <div className="flex justify-between text-base text-blue-600 dark:text-blue-400 mb-4">
-              <p>{t('shipping')}</p>
-              <p>+30 MAD</p>
-            </div>
+            {/* Payment Section */}
+            <motion.section variants={itemVariants} className="space-y-12">
+              <div className="flex items-center gap-6">
+                <div className="h-0.5 w-12 bg-blue-600" />
+                <h2 className="text-2xl font-black uppercase tracking-tight font-jakarta">02. Settlement</h2>
+              </div>
 
-            <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 flex justify-between text-xl font-black text-zinc-900 dark:text-zinc-100">
-              <p>{t('total')}</p>
-              <p>{finalTotal.toFixed(0)} MAD</p>
-            </div>
+              <div className="relative p-10 rounded-[2.5rem] border-2 border-blue-600 bg-blue-600/5 flex items-center gap-10 shadow-[0_0_40px_rgba(37,99,235,0.1)]">
+                <div className="flex-none h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-3xl shadow-blue-500/40 outline outline-4 outline-blue-600/20">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div className="flex-1">
+                   <h4 className="text-xl font-black uppercase tracking-tight text-white mb-2">Cash on Delivery (COD)</h4>
+                   <p className="text-sm text-zinc-500 font-medium">Authentic physical tender upon arrival. No upfront digital transaction required.</p>
+                </div>
+                <div className="hidden sm:block opacity-10">
+                   <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h5a1 1 0 011 1v10a1 1 0 01-1 1h-1m-4 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+                </div>
+              </div>
+            </motion.section>
+          </motion.div>
 
-            <button
-              form="checkout-form"
-              type="submit"
-              disabled={isSubmitting}
-              className={`mt-8 w-full rounded-xl flex items-center justify-center py-4 font-semibold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 ${
-                isSubmitting ? 'bg-blue-400 cursor-not-allowed shadow-none hover:-translate-y-0' : 'bg-black dark:bg-white dark:text-black'
-              }`}
+          {/* Summary Side */}
+          <div className="lg:col-span-5">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ delay: 0.4 }}
+              className="rounded-[4rem] bg-zinc-900 border border-zinc-800 p-12 shadow-4xl sticky top-32 overflow-hidden"
             >
-              {isSubmitting ? t('processing') : t('placeOrder')}
-            </button>
+              {/* Subtle background glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[80px] rounded-full" />
+
+              <h2 className="text-xs font-black uppercase tracking-[0.5em] text-zinc-500 mb-12">Manifesto & Total</h2>
+              
+              <div className="space-y-10 mb-16 max-h-[40vh] overflow-y-auto pr-4 no-scrollbar">
+                {cart.map((item) => (
+                  <div key={item._id} className="flex gap-8 items-center group">
+                    <div className="h-24 w-24 flex-none rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 transition-transform group-hover:scale-105 duration-500">
+                      <img src={item.image} alt={item.name} className="h-full w-full object-cover scale-110" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-white leading-tight">{item.name}</h4>
+                      <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">{item.category} • X{item.quantity}</p>
+                    </div>
+                    <div className="text-sm font-black text-white whitespace-nowrap">
+                      {item.price * item.quantity} <span className="text-[9px] text-zinc-600 italic">MAD</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-6 pt-12 border-t border-zinc-800 text-zinc-500">
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                  <span>Valuation</span>
+                  <span className="text-white">{subtotal} MAD</span>
+                </div>
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                  <div className="flex items-center gap-3">
+                    Transit (Morocco)
+                    <div className="h-4 w-4 rounded-full border border-zinc-800 flex items-center justify-center text-[8px] font-bold">!</div>
+                  </div>
+                  <span className="text-white">25 MAD</span>
+                </div>
+                <div className="flex justify-between items-end text-5xl font-black text-white pt-10 mt-10 border-t border-zinc-800 font-jakarta">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.6em] text-blue-600 block">Total Liability</span>
+                    <span>{finalTotal}</span>
+                  </div>
+                  <span className="text-xl mb-1.5 opacity-50">MAD</span>
+                </div>
+              </div>
+
+              {orderError && <p className="mt-8 text-red-500 text-[10px] font-black uppercase text-center tracking-widest">{orderError}</p>}
+
+              <button
+                form="checkout-form"
+                type="submit"
+                disabled={isSubmitting}
+                className={`mt-16 w-full rounded-[2rem] flex items-center justify-center py-8 text-[11px] font-black uppercase tracking-[0.4em] text-white transition-all shadow-4xl active:scale-[0.98] ${
+                  isSubmitting ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20'
+                }`}
+              >
+                {isSubmitting ? t('processing') : (
+                  <span className="flex items-center gap-4">
+                    Finalize Order
+                    <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  </span>
+                )}
+              </button>
+              
+              <p className="mt-10 text-[9px] text-center text-zinc-600 leading-relaxed font-black uppercase tracking-widest">
+                Verification required upon arrival. Physical tender only.
+              </p>
+            </motion.div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

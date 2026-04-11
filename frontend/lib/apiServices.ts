@@ -111,25 +111,23 @@ export interface CreateCustomOrderRequest {
   notes?: string;
 }
 
+export interface DashboardStats {
+  totalRevenue: number;
+  orderCount: number;
+  pendingOrders: number;
+}
+
 // ============================================================================
 // Public API Functions
 // ============================================================================
 
-/**
- * Fetch all products from the backend
- * @returns Array of products
- */
 export async function fetchProducts(): Promise<Product[]> {
   const response = await apiRequest<{ products: Product[] }>(
     '/api/products',
     { method: 'GET' },
     false
   );
-  // Enforce pricing rule: all prices are 100
-  return response.products.map(product => ({
-    ...product,
-    price: 100
-  }));
+  return response.products;
 }
 
 /**
@@ -180,6 +178,24 @@ export async function fetchOrders(): Promise<Order[]> {
     true // Requires authentication
   );
   return response.orders;
+}
+
+/**
+ * Fetch dashboard analytics/stats
+ * @returns DashboardStats object
+ */
+export async function fetchStats(): Promise<DashboardStats> {
+  const orders = await fetchOrders();
+  const totalRevenue = orders
+    .filter(o => o.status === 'confirmed' || o.status === 'delivered')
+    .reduce((acc, order) => acc + order.totalPrice, 0);
+  const pendingOrders = orders.filter(o => o.status === 'pending').length;
+  
+  return {
+    totalRevenue,
+    orderCount: orders.length,
+    pendingOrders
+  };
 }
 
 /**

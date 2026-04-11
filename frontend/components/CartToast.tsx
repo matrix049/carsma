@@ -2,22 +2,31 @@
 
 import React from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CartToast() {
   const { toastMessage } = useCart();
 
-  if (!toastMessage) return null;
-
   return (
-    <div className="fixed bottom-24 right-4 z-[60] animate-in slide-in-from-bottom-5 fade-in duration-300 sm:bottom-4 sm:right-4">
-      <div className="flex items-center gap-3 rounded-2xl bg-black/90 px-6 py-4 shadow-xl backdrop-blur-md dark:bg-white/90 border border-zinc-800 dark:border-zinc-200">
-        <svg className="h-6 w-6 text-green-400 dark:text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span className="font-medium text-white dark:text-black">
-          {toastMessage}
-        </span>
-      </div>
-    </div>
+    <AnimatePresence>
+      {toastMessage && (
+        <motion.div 
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          className="fixed bottom-32 sm:bottom-12 right-6 sm:right-12 z-[100]"
+        >
+          <div className="flex items-center gap-5 rounded-[2rem] bg-black/90 px-8 py-5 shadow-4xl backdrop-blur-2xl border border-white/10">
+            <div className="relative">
+              <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse shadow-[0_0_15px_rgba(37,99,235,1)]" />
+              <div className="absolute inset-0 h-3 w-3 rounded-full bg-blue-600 animate-ping opacity-40" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+              {toastMessage}
+            </span>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
