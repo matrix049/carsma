@@ -117,6 +117,24 @@ export interface DashboardStats {
   pendingOrders: number;
 }
 
+export interface ContactMessage {
+  _id: string;
+  customer: {
+    name: string;
+    email: string;
+  };
+  message: string;
+  status: 'unread' | 'read' | 'resolved' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateContactMessageRequest {
+  name: string;
+  email: string;
+  message: string;
+}
+
 // ============================================================================
 // Public API Functions
 // ============================================================================
@@ -268,4 +286,58 @@ export async function updateCustomOrderStatus(
     true
   );
   return response.customOrder;
+}
+
+/**
+ * Submit a contact message from the public contact form
+ * @param data - Contact message data with name, email, and message
+ * @returns Success response
+ */
+export async function createContactMessage(
+  data: CreateContactMessageRequest
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    '/api/contact',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+    false // Public endpoint
+  );
+}
+
+/**
+ * Fetch all contact messages (Admin only)
+ * Requires authentication token
+ * @returns Array of contact messages sorted by creation date (newest first)
+ */
+export async function fetchContactMessages(): Promise<ContactMessage[]> {
+  const response = await apiRequest<{ contactMessages: ContactMessage[] }>(
+    '/api/contact',
+    { method: 'GET' },
+    true // Requires authentication
+  );
+  return response.contactMessages;
+}
+
+/**
+ * Update contact message status (Admin only)
+ * Requires authentication token
+ * @param id - ID of the contact message to update
+ * @param status - New status value
+ * @returns Updated contact message
+ */
+export async function updateContactMessageStatus(
+  id: string,
+  status: ContactMessage['status']
+): Promise<ContactMessage> {
+  const response = await apiRequest<{ success: boolean; contactMessage: ContactMessage }>(
+    `/api/contact/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    },
+    true // Requires authentication
+  );
+  return response.contactMessage;
 }

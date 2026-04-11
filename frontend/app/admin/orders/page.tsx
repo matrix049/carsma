@@ -1,0 +1,608 @@
+'use client';
+
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminSidebar from '@/components/AdminSidebar';
+import { fetchOrders, updateOrderStatus, Order } from '@/lib/apiServices';
+import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import WheelLoader from '@/components/WheelLoader';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const STATUS_OPTIONS = ['pending', 'confirmed', 'delivered', 'cancelled'] as const;
+type Status = (typeof STATUS_OPTIONS)[number];
+
+function statusStyle(status: string) {
+  switch (status.toLowerCase()) {
+    case 'delivered': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+    case 'confirmed': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    case 'pending':   return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    case 'cancelled': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+    default:          return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+  }
+}
+
+function exportCSV(orders: Order[]) {
+  const rows = [
+    ['Order ID', 'Date', 'Customer', 'Phone', 'Address', 'Products', 'Total (MAD)', 'Payment', 'Status'],
+    ...orders.map((o) => [
+      `#L7-${o._id.slice(-6).toUpperCase()}`,
+      new Date(o.createdAt).toLocaleString(),
+      `${o.customer.firstName} ${o.customer.lastName}`,
+      o.customer.phone,
+      `"${o.customer.address.replace(/"/g, '""')}"`,
+      `"${o.products.map((p) => `${p.quantity}x ${p.name}`).join(', ')}"`,
+      o.totalPrice.toFixed(0),
+      o.paymentMethod.toUpperCase(),
+      o.status,
+    ]),
+  ];
+  const csv = rows.map((r) => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `l7it-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Main Page ────────────────────────────────────────────────────────────────
+export default function AdminOrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState<Status | 'all'>('all');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const { logout } = useAuth();
+
+  const loadOrders = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchOrders();
+      setOrders([...data].reverse());
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to load orders:', err);
+      setError(err.message || 'Failed to load orders');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadOrders(); }, [loadOrders]);
+
+  const handleStatusChange = async (orderId: string, newStatus: Status) => {
+    setUpdatingId(orderId);
+    try {
+      await updateOrderStatus(orderId, newStatus);
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
+      );
+    } catch {
+      alert('Failed to update order status. Please try again.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return orders.filter((o) => {
+      const matchSearch =
+        !q ||
+        o._id.toLowerCase().includes(q) ||
+        o.customer.firstName.toLowerCase().includes(q) ||
+        o.customer.lastName.toLowerCase().includes(q) ||
+        o.customer.phone.includes(q);
+      const matchStatus = filterStatus === 'all' || o.status === filterStatus;
+      return matchSearch && matchStatus;
+    });
+  }, [orders, search, filterStatus]);
+
+  const stats = useMemo(
+    () => ({
+      pending: orders.filter((o) => o.status === 'pending').length,
+      confirmed: orders.filter((o) => o.status === 'confirmed').length,
+      delivered: orders.filter((o) => o.status === 'delivered').length,
+      cancelled: orders.filter((o) => o.status === 'cancelled').length,
+    }),
+    [orders]
+  );
+
+  const kpiCards: { label: string; count: number; activeClass: string; filter: Status }[] = [
+    { label: 'Pending',   count: stats.pending,   activeClass: 'border-amber-500/40 bg-amber-500/10',     filter: 'pending' },
+    { label: 'Confirmed', count: stats.confirmed, activeClass: 'border-blue-500/40 bg-blue-500/10',       filter: 'confirmed' },
+    { label: 'Delivered', count: stats.delivered, activeClass: 'border-emerald-500/40 bg-emerald-500/10', filter: 'delivered' },
+    { label: 'Cancelled', count: stats.cancelled, activeClass: 'border-rose-500/40 bg-rose-500/10',       filter: 'cancelled' },
+  ];
+
+  return (
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-black text-white font-inter">
+        <AdminSidebar onLogout={logout} />
+
+        <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-14">
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 md:mb-16">
+            <div>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
+                Order <span className="text-zinc-800">Control</span>
+              </h1>
+              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
+                <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                {orders.length} total orders loaded
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => exportCSV(filtered)}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] whitespace-nowrap"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export CSV
+              </button>
+              <button
+                onClick={loadOrders}
+                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          {/* KPI mini-cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
+            {kpiCards.map((k) => (
+              <motion.button
+                key={k.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setFilterStatus(filterStatus === k.filter ? 'all' : k.filter)}
+                className={`rounded-2xl md:rounded-3xl border p-5 md:p-8 text-left transition-all ${
+                  filterStatus === k.filter
+                    ? k.activeClass
+                    : 'border-zinc-900 bg-zinc-900/30 hover:border-zinc-700'
+                }`}
+              >
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-3 md:mb-4">
+                  {k.label}
+                </p>
+                <p className="text-3xl md:text-4xl font-black tracking-tighter font-jakarta">{k.count}</p>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Search + Status Filter bar */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-8 md:mb-10">
+            <div className="relative flex-1">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, phone or order ID…"
+                className="w-full bg-zinc-900 border border-zinc-900 rounded-2xl pl-11 pr-5 py-3.5 text-[11px] font-semibold focus:outline-none focus:border-blue-600 transition-all text-white placeholder-zinc-700"
+              />
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="bg-zinc-900 border border-zinc-900 rounded-2xl px-5 py-3.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
+            >
+              <option value="all">All Statuses</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-8 rounded-2xl border border-rose-900/50 bg-rose-950/20 p-6">
+              <p className="text-rose-400 text-sm font-bold">Error: {error}</p>
+            </div>
+          )}
+
+          {/* Loading */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-32">
+              <WheelLoader size="lg" className="text-blue-600" />
+              <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600">
+                Loading Orders...
+              </p>
+            </div>
+          )}
+
+          {/* Orders – Desktop Table */}
+          {!isLoading && !error && (
+            <>
+              {filtered.length === 0 ? (
+                <div className="py-24 text-center">
+                  <p className="text-zinc-600 text-sm font-black uppercase tracking-widest">
+                    No orders match your filters
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop table */}
+                  <div className="hidden lg:block rounded-[2.5rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-zinc-900 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-700">
+                          <th className="px-8 py-7">Order Ref</th>
+                          <th className="px-8 py-7">Date</th>
+                          <th className="px-8 py-7">Customer</th>
+                          <th className="px-8 py-7">Items</th>
+                          <th className="px-8 py-7 text-right">Total</th>
+                          <th className="px-8 py-7 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-900/60">
+                        {filtered.map((order, idx) => (
+                          <motion.tr
+                            key={order._id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            onClick={() => setSelectedOrder(order)}
+                            className="hover:bg-zinc-800/10 transition-colors align-top cursor-pointer"
+                          >
+                            <td className="px-8 py-7">
+                              <span className="text-[11px] font-black text-blue-500">
+                                #L7-{order._id.slice(-6).toUpperCase()}
+                              </span>
+                              {order.paymentMethod === 'cod' && (
+                                <span className="ml-2 px-2 py-0.5 rounded bg-zinc-800 text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                                  COD
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-8 py-7">
+                              <p className="text-[10px] font-bold text-zinc-400">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </p>
+                              <p className="text-[9px] text-zinc-700 mt-0.5">
+                                {new Date(order.createdAt).toLocaleTimeString()}
+                              </p>
+                            </td>
+                            <td className="px-8 py-7">
+                              <p className="text-[11px] font-black uppercase tracking-tight text-white">
+                                {order.customer.firstName} {order.customer.lastName}
+                              </p>
+                              <p className="text-[10px] text-zinc-500 font-bold mt-1">{order.customer.phone}</p>
+                              <p className="text-[9px] text-zinc-700 mt-1 max-w-[200px] leading-relaxed">
+                                {order.customer.address.split('| Notes:')[0].trim()}
+                              </p>
+                              {order.customer.address.includes('| Notes:') && (
+                                <p className="text-[9px] text-amber-600/80 mt-1 italic max-w-[200px]">
+                                  Note: {order.customer.address.split('| Notes:')[1]?.trim()}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-8 py-7">
+                              <div className="space-y-1.5">
+                                {order.products.map((p, i) => (
+                                  <p key={i} className="text-[10px] text-zinc-400 font-medium">
+                                    <span className="text-zinc-600 font-black">{p.quantity}×</span>{' '}
+                                    {p.name}
+                                  </p>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-8 py-7 text-right">
+                              <span className="text-[13px] font-black text-white">
+                                {order.totalPrice.toFixed(0)}
+                              </span>
+                              <span className="text-[9px] text-zinc-700 ml-1">MAD</span>
+                            </td>
+                            <td className="px-8 py-7">
+                              <div className="flex flex-col items-center gap-3">
+                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusStyle(order.status)}`}>
+                                  {order.status}
+                                </span>
+                                <select
+                                  value={order.status}
+                                  disabled={updatingId === order._id}
+                                  onChange={(e) => handleStatusChange(order._id, e.target.value as Status)}
+                                  className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer text-center ${
+                                    updatingId === order._id ? 'opacity-40 cursor-not-allowed' : ''
+                                  }`}
+                                >
+                                  {STATUS_OPTIONS.map((s) => (
+                                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                                  ))}
+                                </select>
+                                {updatingId === order._id && (
+                                  <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
+                                )}
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile / tablet cards */}
+                  <div className="lg:hidden space-y-4">
+                    {filtered.map((order, idx) => (
+                      <motion.div
+                        key={order._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.04 }}
+                        onClick={() => setSelectedOrder(order)}
+                        className="rounded-2xl border border-zinc-900 bg-zinc-900/30 p-5 cursor-pointer hover:bg-zinc-800/30 transition-colors"
+                      >
+                        {/* Top row: ref + status badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[12px] font-black text-blue-500">
+                              #L7-{order._id.slice(-6).toUpperCase()}
+                            </span>
+                            {order.paymentMethod === 'cod' && (
+                              <span className="px-2 py-0.5 rounded bg-zinc-800 text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                                COD
+                              </span>
+                            )}
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${statusStyle(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+
+                        {/* Customer info */}
+                        <p className="text-[13px] font-black uppercase tracking-tight text-white">
+                          {order.customer.firstName} {order.customer.lastName}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
+                        <p className="text-[10px] text-zinc-700 mt-1 leading-relaxed">
+                          {order.customer.address.split('| Notes:')[0].trim()}
+                        </p>
+                        {order.customer.address.includes('| Notes:') && (
+                          <p className="text-[10px] text-amber-600/80 mt-1 italic">
+                            Note: {order.customer.address.split('| Notes:')[1]?.trim()}
+                          </p>
+                        )}
+
+                        {/* Date + items */}
+                        <div className="mt-3 pt-3 border-t border-zinc-900/60">
+                          <p className="text-[9px] text-zinc-700 font-bold mb-2">
+                            {new Date(order.createdAt).toLocaleString()}
+                          </p>
+                          <div className="space-y-1">
+                            {order.products.map((p, i) => (
+                              <p key={i} className="text-[11px] text-zinc-400">
+                                <span className="text-zinc-600 font-black">{p.quantity}×</span> {p.name}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Total + status changer */}
+                        <div className="mt-4 pt-4 border-t border-zinc-900/60 flex items-center justify-between gap-4">
+                          <div>
+                            <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest mb-1">Total</p>
+                            <span className="text-[18px] font-black text-white">{order.totalPrice.toFixed(0)}</span>
+                            <span className="text-[10px] text-zinc-600 ml-1">MAD</span>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <select
+                              value={order.status}
+                              disabled={updatingId === order._id}
+                              onChange={(e) => handleStatusChange(order._id, e.target.value as Status)}
+                              className={`bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-[11px] font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer ${
+                                updatingId === order._id ? 'opacity-40 cursor-not-allowed' : ''
+                              }`}
+                            >
+                              {STATUS_OPTIONS.map((s) => (
+                                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                              ))}
+                            </select>
+                            {updatingId === order._id && (
+                              <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </main>
+
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSelectedOrder(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border border-zinc-800 bg-zinc-950 shadow-2xl"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="absolute top-8 right-8 h-12 w-12 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="p-10 md:p-14">
+                {/* Header */}
+                <div className="mb-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter font-jakarta uppercase">
+                      Order Details
+                    </h2>
+                    <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusStyle(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                  <p className="text-blue-500 text-xl font-black">
+                    #L7-{selectedOrder._id.slice(-6).toUpperCase()}
+                  </p>
+                  <p className="text-zinc-600 text-sm font-bold mt-2">
+                    {new Date(selectedOrder.createdAt).toLocaleString()}
+                  </p>
+                </div>
+
+                {/* Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                  {/* Customer Information */}
+                  <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                      Customer Information
+                    </h3>
+                    <div className="space-y-5">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Name</p>
+                        <p className="text-lg font-black text-white">
+                          {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Phone</p>
+                        <p className="text-base font-bold text-zinc-300">{selectedOrder.customer.phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Delivery Address</p>
+                        <p className="text-sm font-medium text-zinc-400 leading-relaxed">
+                          {selectedOrder.customer.address.split('| Notes:')[0].trim()}
+                        </p>
+                      </div>
+                      {selectedOrder.customer.address.includes('| Notes:') && (
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-2">Customer Notes</p>
+                          <p className="text-sm font-medium text-amber-500/80 leading-relaxed italic">
+                            {selectedOrder.customer.address.split('| Notes:')[1]?.trim()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Information */}
+                  <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                      Order Information
+                    </h3>
+                    <div className="space-y-5">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Payment Method</p>
+                        <p className="text-base font-black text-white uppercase">
+                          {selectedOrder.paymentMethod === 'cod' ? 'Cash on Delivery' : selectedOrder.paymentMethod}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Order Date</p>
+                        <p className="text-base font-bold text-zinc-300">
+                          {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </p>
+                        <p className="text-sm text-zinc-600 mt-1">
+                          {new Date(selectedOrder.createdAt).toLocaleTimeString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Order ID</p>
+                        <p className="text-xs font-mono text-zinc-500 break-all">{selectedOrder._id}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Products */}
+                <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8 mb-10">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                    Ordered Items
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedOrder.products.map((product, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex items-center justify-between p-5 rounded-2xl bg-zinc-950 border border-zinc-900"
+                      >
+                        <div className="flex items-center gap-5">
+                          <div className="h-14 w-14 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                            <span className="text-xl font-black text-blue-500">{product.quantity}</span>
+                          </div>
+                          <div>
+                            <p className="text-base font-black text-white">{product.name}</p>
+                            <p className="text-sm text-zinc-600 font-bold mt-1">Quantity: {product.quantity}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-black text-white">
+                            {(product.price * product.quantity).toFixed(0)}
+                          </p>
+                          <p className="text-xs text-zinc-600 font-bold">MAD</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="rounded-3xl border-2 border-blue-600/30 bg-blue-950/20 p-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-2">
+                        Total Amount
+                      </p>
+                      <p className="text-4xl md:text-5xl font-black text-white">
+                        {selectedOrder.totalPrice.toFixed(0)}
+                        <span className="text-xl text-zinc-600 ml-2">MAD</span>
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">Update Status</p>
+                      <select
+                        value={selectedOrder.status}
+                        disabled={updatingId === selectedOrder._id}
+                        onChange={(e) => {
+                          handleStatusChange(selectedOrder._id, e.target.value as Status);
+                          setSelectedOrder({ ...selectedOrder, status: e.target.value as any });
+                        }}
+                        className={`bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3 text-sm font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer ${
+                          updatingId === selectedOrder._id ? 'opacity-40 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                        ))}
+                      </select>
+                      {updatingId === selectedOrder._id && (
+                        <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
+  );
+}

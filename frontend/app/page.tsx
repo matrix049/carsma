@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { motion } from 'framer-motion';
+import MovingCarsBackground from '@/components/MovingCarsBackground';
+import WheelLoader from '@/components/WheelLoader';
+import WheelButton from '@/components/WheelButton';
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -16,7 +20,6 @@ export default function Home() {
     async function loadProducts() {
       try {
         const data = await fetchProducts();
-        // Just take the first 4 for the home page teaser
         setFeaturedProducts(data.slice(0, 4));
       } catch (err: any) {
         console.error('Failed to load products:', err);
@@ -25,150 +28,222 @@ export default function Home() {
         setIsLoading(false);
       }
     }
-
     loadProducts();
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
+  };
+
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col bg-white dark:bg-[#0a0a0a] relative">
+      {/* Moving Cars Background */}
+      <MovingCarsBackground />
+      
       {/* Immersive Hero Section */}
-      <section className="relative h-[90vh] w-full overflow-hidden flex items-center justify-center text-center px-4">
+      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center px-4">
         {/* Background Image with Overlay */}
-        <div className="absolute inset-0 z-0">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute inset-0 z-0"
+        >
           <img 
             src="/hero_premium.png" 
             alt="Premium Automotive Art" 
             className="h-full w-full object-cover grayscale-[0.2] brightness-[0.4]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-[#0a0a0a]" />
+        </motion.div>
         
-        <div className="z-10 max-w-5xl mx-auto space-y-10">
-          <div className="space-y-4">
-            <span className="inline-block rounded-full bg-blue-600/20 px-4 py-1.5 text-[10px] font-bold tracking-[0.3em] text-blue-400 uppercase backdrop-blur-md border border-blue-500/30">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
+          className="z-10 max-w-5xl mx-auto space-y-12"
+        >
+          <div className="space-y-6">
+            <motion.span 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+              className="inline-block rounded-full bg-blue-600/10 px-6 py-2 text-[10px] font-black tracking-[0.4em] text-blue-500 uppercase backdrop-blur-md border border-blue-500/20"
+            >
               {t('exclusiveTitle')}
-            </span>
-            <h1 className="text-5xl font-black tracking-tight text-white sm:text-7xl lg:text-8xl uppercase">
-              {t('premiumWall')} <span className="text-blue-500">{t('wallCollection')}</span>
+            </motion.span>
+            <h1 className="text-6xl font-black tracking-tighter text-white sm:text-8xl lg:text-[10rem] uppercase font-jakarta leading-[0.85]">
+              {t('premiumWall')}<br /><span className="text-blue-600 drop-shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all hover:drop-shadow-[0_0_50px_rgba(37,99,235,0.6)]">{t('wallCollection')}</span>
             </h1>
           </div>
-          <p className="mx-auto max-w-2xl text-xl text-zinc-300 font-medium leading-relaxed">
+          <p className="mx-auto max-w-2xl text-xl text-zinc-400 font-medium leading-relaxed">
             {t('heroDesc')}
           </p>
-          <div className="flex flex-wrap justify-center gap-6 pt-4 text-center">
-            <Link
-              href="/shop"
-              className="group relative rounded-full bg-blue-600 px-10 py-5 text-sm font-bold text-white shadow-2xl transition-all hover:bg-blue-500 hover:scale-105 active:scale-95 flex items-center gap-2"
-            >
+          <div className="flex flex-wrap justify-center gap-6 pt-8">
+            <WheelButton href="/shop" variant="primary">
               {t('exploreGallery')}
-              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </Link>
-            <Link
-              href="/customize"
-              className="rounded-full bg-white/10 backdrop-blur-xl border border-white/20 px-10 py-5 text-sm font-bold text-white shadow-xl transition-all hover:bg-white/20 hover:scale-105 active:scale-95"
-            >
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </WheelButton>
+            <WheelButton href="/customize" variant="secondary">
               {t('customizeYourDesign')}
-            </Link>
+            </WheelButton>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-30">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7-7-7m14-8l-7 7-7-7" /></svg>
-        </div>
+        <motion.div 
+          animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 opacity-20"
+        >
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7-7-7m14-8l-7 7-7-7" /></svg>
+        </motion.div>
       </section>
 
-      {/* Trust Features Section */}
-      <section className="bg-white dark:bg-black py-24 border-b border-zinc-100 dark:border-zinc-900">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div className="flex flex-col items-center text-center space-y-6 group">
-              <div className="h-20 w-20 rounded-3xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm">
-                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" /></svg>
-              </div>
-              <h3 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{t('qualityTitle')}</h3>
-              <p className="text-base text-zinc-500 dark:text-zinc-400 max-w-[280px] leading-relaxed font-medium">{t('qualityDesc')}</p>
-            </div>
-            
-            <div className="flex flex-col items-center text-center space-y-6 group">
-              <div className="h-20 w-20 rounded-3xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm">
-                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-              <h3 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{t('deliveryTitle')}</h3>
-              <p className="text-base text-zinc-500 dark:text-zinc-400 max-w-[280px] leading-relaxed font-medium">{t('deliveryDesc')}</p>
-            </div>
-            
-            <div className="flex flex-col items-center text-center space-y-6 group">
-              <div className="h-20 w-20 rounded-3xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm">
-                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 0 002-2v-7" /></svg>
-              </div>
-              <h3 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{t('exclusiveTitle')}</h3>
-              <p className="text-base text-zinc-500 dark:text-zinc-400 max-w-[280px] leading-relaxed font-medium">{t('exclusiveDesc')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Selection Teaser */}
-      <section className="container mx-auto px-4 py-32 sm:px-6 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-6xl uppercase">
+      {/* Featured Selection Header */}
+      <section className="container mx-auto px-6 py-32 max-w-7xl">
+        <motion.div 
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8"
+        >
+          <motion.div variants={itemVariants} className="space-y-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600">Noir Selection</span>
+            <h2 className="text-5xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 sm:text-8xl uppercase font-jakarta">
               {t('featuredSelection')}
             </h2>
-            <div className="h-2 w-24 bg-blue-600 rounded-full" />
-          </div>
-          <Link 
-            href="/shop" 
-            className="group inline-flex items-center gap-2 text-lg font-black text-blue-600 hover:text-blue-500 transition-colors uppercase tracking-widest"
-          >
-            {t('exploreGallery')}
-            <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-          </Link>
-        </div>
+            <div className="h-1.5 w-24 bg-blue-600 rounded-full" />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Link 
+              href="/shop" 
+              className="group inline-flex items-center gap-3 text-xs font-black text-blue-600 hover:text-blue-500 transition-all uppercase tracking-widest"
+            >
+              {t('exploreGallery')}
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </Link>
+          </motion.div>
+        </motion.div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[4/3] rounded-[2rem] bg-zinc-100 dark:bg-zinc-900 animate-pulse" />
-             ))}
+          <div className="flex flex-col items-center justify-center py-32">
+            <WheelLoader size="lg" />
+            <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600">
+              Loading Premium Collection...
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12"
+          >
             {featuredProducts.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <motion.div key={product._id} variants={itemVariants}>
+                <ProductCard product={product} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </section>
 
-      {/* Custom Design CTA Section */}
-      <section className="container mx-auto px-4 py-24 sm:px-6 max-w-7xl pb-32">
-        <div className="relative overflow-hidden rounded-[4rem] bg-zinc-950 px-8 py-24 sm:px-16 sm:py-32 text-left shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] border border-zinc-800/50">
-          <div className="absolute inset-0 z-0 opacity-40">
-            <div className="h-full w-full bg-[radial-gradient(circle_at_70%_50%,#3b82f6_0%,transparent_60%)] opacity-30"></div>
-            <div className="h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]"></div>
-          </div>
-          
-          <div className="relative z-10 max-w-3xl space-y-10">
-            <h2 className="text-4xl font-black tracking-tight text-white sm:text-7xl leading-tight uppercase">
-              {t('customDesignTitle')}
-            </h2>
-            <p className="text-xl text-zinc-400 font-medium leading-relaxed max-w-xl">
-              {t('customDesignDesc')}
-            </p>
-            <div className="pt-6">
-              <Link
-                href="/customize"
-                className="group inline-flex items-center justify-center rounded-full bg-white px-12 py-5 text-lg font-bold text-black transition-all hover:bg-zinc-200 hover:scale-105 active:scale-95 shadow-2xl"
-              >
-                {t('contactUsNow')}
-                <svg className="ml-3 w-6 h-6 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                </svg>
-              </Link>
+      {/* Museum Quality Section */}
+      <section className="container mx-auto px-6 py-40 max-w-7xl border-t border-zinc-100 dark:border-zinc-900">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1 }}
+            className="space-y-16"
+          >
+            <div className="space-y-8">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 leading-none">{t('qualityTitle')}</span>
+              <h2 className="text-5xl font-black tracking-tighter text-zinc-900 dark:text-white sm:text-8xl uppercase font-jakarta leading-[0.9]">
+                Museum Grade<br /><span className="text-zinc-400">Precision</span>
+              </h2>
+              <p className="text-xl text-zinc-500 dark:text-zinc-500 font-medium leading-relaxed max-w-lg">
+                Every print is a masterpiece of automotive fidelity. We utilize the highest industry standards to synthesize engineering with artistic expression.
+              </p>
             </div>
+            
+            <div className="grid grid-cols-1 gap-12">
+              {[
+                { title: 'Satin Architecture', desc: 'Satin-finish heavy archive paper' },
+                { title: 'Precision Shell', desc: 'Hand-crafted sustainable frames' },
+                { title: 'Optical Clarity', desc: 'Anti-reflective protective glazing' }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-8 group">
+                  <div className="flex-none h-14 w-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-blue-500 font-black text-xs transition-all group-hover:scale-110 group-hover:border-blue-500/30">
+                    0{i + 1}
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black uppercase tracking-tight text-white mb-2">{item.title}</h4>
+                    <p className="text-sm font-bold text-zinc-600 uppercase tracking-widest">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          
+          <div className="grid grid-cols-2 gap-8 relative">
+             <div className="space-y-8 pt-20">
+               <motion.div 
+                 whileHover={{ y: -10 }} transition={{ duration: 0.5 }}
+                 className="aspect-[3/4] rounded-[3rem] bg-zinc-900 overflow-hidden shadow-3xl border border-zinc-800"
+               >
+                 <img src="/m1.png" className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-110" />
+               </motion.div>
+               <motion.div 
+                 whileHover={{ y: -10 }} transition={{ duration: 0.5 }}
+                 className="aspect-square rounded-[3rem] bg-zinc-900 overflow-hidden shadow-3xl border border-zinc-800"
+               >
+                 <img src="/m2.png" className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-110" />
+               </motion.div>
+             </div>
+             <div className="space-y-8">
+               <motion.div 
+                 whileHover={{ y: -10 }} transition={{ duration: 0.5 }}
+                 className="aspect-square rounded-[3rem] bg-zinc-900 overflow-hidden shadow-3xl border border-zinc-800"
+               >
+                 <img src="/m3.png" className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-110" />
+               </motion.div>
+               <motion.div 
+                 whileHover={{ y: -10 }} transition={{ duration: 0.5 }}
+                 className="aspect-[3/4] rounded-[3rem] bg-zinc-900 overflow-hidden shadow-3xl border border-zinc-800"
+               >
+                 <img src="/m4.png" className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-110" />
+               </motion.div>
+             </div>
+             <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-600/10 blur-[150px] rounded-full" />
           </div>
         </div>
+      </section>
+
+      {/* Custom Design CTA Section */}
+      <section className="container mx-auto px-6 py-40 max-w-7xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1 }}
+          className="relative overflow-hidden rounded-[4rem] bg-zinc-950 px-12 py-32 text-left shadow-4xl border border-zinc-900"
+        >
+          <div className="absolute inset-0 z-0 opacity-40">
+            <div className="h-full w-full bg-[radial-gradient(circle_at_70%_50%,#2563eb_0%,transparent_60%)] opacity-20"></div>
+          </div>
+          
+          <div className="relative z-10 max-w-3xl space-y-12">
+            <h2 className="text-5xl font-black tracking-tighter text-white sm:text-8xl leading-[0.9] uppercase font-jakarta">
+              {t('customDesignTitle')}
+            </h2>
+            <p className="text-xl text-zinc-500 font-medium leading-relaxed max-w-xl">
+              {t('customDesignDesc')}
+            </p>
+            <div className="pt-8">
+              <WheelButton href="/customize" variant="primary">
+                {t('contactUsNow')}
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+              </WheelButton>
+            </div>
+          </div>
+        </motion.div>
       </section>
     </div>
   );

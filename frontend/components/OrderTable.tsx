@@ -51,11 +51,11 @@ export default function OrderTable({ orders, onOrderUpdated }: OrderTableProps) 
       <table className="w-full text-left text-sm text-zinc-600 dark:text-zinc-400">
         <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300">
           <tr>
-            <th className="px-6 py-4 font-semibold">{t('orderId') || 'Order ID'}</th>
-            <th className="px-6 py-4 font-semibold">{t('customerDetails') || 'Customer'}</th>
-            <th className="px-6 py-4 font-semibold">{t('shoppingCart')}</th>
-            <th className="px-6 py-4 font-semibold">{t('total')}</th>
-            <th className="px-6 py-4 font-semibold">{t('status')} / {t('actions') || 'Actions'}</th>
+            <th className="px-6 py-4 font-semibold">Order ID</th>
+            <th className="px-6 py-4 font-semibold">Customer</th>
+            <th className="px-6 py-4 font-semibold">Items</th>
+            <th className="px-6 py-4 font-semibold">Total</th>
+            <th className="px-6 py-4 font-semibold">Status / Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">

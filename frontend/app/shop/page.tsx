@@ -5,6 +5,7 @@ import { fetchProducts, Product } from '@/lib/apiServices';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CompactProductCard from '@/components/CompactProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import WheelLoader from '@/components/WheelLoader';
 
 export default function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -190,17 +191,12 @@ export default function ShopPage() {
                 <motion.div 
                   key="loading"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-12"
+                  className="flex flex-col items-center justify-center py-32"
                 >
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="flex flex-col space-y-8 animate-pulse">
-                      <div className="aspect-[4/5] w-full rounded-[3rem] bg-zinc-100 dark:bg-zinc-900" />
-                      <div className="space-y-4">
-                         <div className="h-6 w-3/4 rounded-full bg-zinc-100 dark:bg-zinc-900" />
-                         <div className="h-4 w-1/2 rounded-full bg-zinc-50 dark:bg-zinc-900/50" />
-                      </div>
-                    </div>
-                  ))}
+                  <WheelLoader size="lg" />
+                  <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-600">
+                    Loading Collection...
+                  </p>
                 </motion.div>
               ) : (
                 <motion.div 

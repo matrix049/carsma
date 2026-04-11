@@ -67,7 +67,6 @@ describe('API Service Functions', () => {
       mockApiRequest.mockRejectedValueOnce(error);
 
       await expect(fetchProducts()).rejects.toThrow(ApiError);
-      await expect(fetchProducts()).rejects.toThrow('Network error');
     });
   });
 

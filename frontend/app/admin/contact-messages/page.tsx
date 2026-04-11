@@ -3,38 +3,38 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
-import CustomOrderTable from '@/components/CustomOrderTable';
-import { fetchCustomOrders, CustomOrder } from '@/lib/apiServices';
+import ContactMessageTable from '@/components/ContactMessageTable';
+import { fetchContactMessages, ContactMessage } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function AdminCustomOrders() {
-  const [orders, setOrders] = useState<CustomOrder[]>([]);
+export default function AdminContactMessages() {
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { logout } = useAuth();
 
-  const loadOrders = useCallback(async () => {
+  const loadMessages = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await fetchCustomOrders();
-      setOrders(data);
+      const data = await fetchContactMessages();
+      setMessages(data);
       setError(null);
     } catch (err: any) {
-      console.error('Failed to load custom orders:', err);
-      setError(err.message || 'Failed to load custom orders');
+      console.error('Failed to load contact messages:', err);
+      setError(err.message || 'Failed to load contact messages');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
+  useEffect(() => { loadMessages(); }, [loadMessages]);
 
-  const pendingRequests   = orders.filter((o) => o.status === 'pending').length;
-  const reviewedRequests  = orders.filter((o) => o.status === 'reviewed').length;
-  const contactedRequests = orders.filter((o) => o.status === 'contacted').length;
-  const completedRequests = orders.filter((o) => o.status === 'completed').length;
+  const unreadMessages   = messages.filter((m) => m.status === 'unread').length;
+  const readMessages     = messages.filter((m) => m.status === 'read').length;
+  const resolvedMessages = messages.filter((m) => m.status === 'resolved').length;
+  const archivedMessages = messages.filter((m) => m.status === 'archived').length;
 
   return (
     <ProtectedRoute>
@@ -46,15 +46,15 @@ export default function AdminCustomOrders() {
           <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 md:mb-16">
             <div>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
-                Custom <span className="text-zinc-800">Requests</span>
+                Contact <span className="text-zinc-800">Messages</span>
               </h1>
               <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
                 <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                Personalized wall art design requests
+                Customer inquiries and support requests
               </p>
             </div>
             <button
-              onClick={loadOrders}
+              onClick={loadMessages}
               className="self-start sm:self-auto h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,10 +67,10 @@ export default function AdminCustomOrders() {
           {!isLoading && !error && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
               {[
-                { label: 'Pending',      count: pendingRequests,   color: 'amber' },
-                { label: 'Under Review', count: reviewedRequests,  color: 'blue' },
-                { label: 'Contacted',    count: contactedRequests, color: 'purple' },
-                { label: 'Completed',    count: completedRequests, color: 'emerald' },
+                { label: 'Unread',   count: unreadMessages,   color: 'amber' },
+                { label: 'Read',     count: readMessages,     color: 'blue' },
+                { label: 'Resolved', count: resolvedMessages, color: 'emerald' },
+                { label: 'Archived', count: archivedMessages, color: 'zinc' },
               ].map((k, idx) => (
                 <motion.div
                   key={k.label}
@@ -102,7 +102,7 @@ export default function AdminCustomOrders() {
             </div>
           ) : (
             <div className="rounded-[2rem] md:rounded-[2.5rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
-              <CustomOrderTable orders={orders} onOrderUpdated={loadOrders} />
+              <ContactMessageTable messages={messages} onStatusUpdate={loadMessages} />
             </div>
           )}
         </main>

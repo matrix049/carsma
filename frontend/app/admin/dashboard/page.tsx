@@ -2,108 +2,263 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import OrderTable from '@/components/OrderTable';
-import { fetchOrders, Order } from '@/lib/apiServices';
+import AdminSidebar from '@/components/AdminSidebar';
+import { fetchOrders, fetchStats, Order, DashboardStats } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
+// ── CSV Export ───────────────────────────────────────────────────────────────
+function exportCSV(orders: Order[]) {
+  const rows = [
+    ['Order ID', 'Date', 'Customer', 'Phone', 'Address', 'Products', 'Total (MAD)', 'Payment', 'Status'],
+    ...orders.map((o) => [
+      `#L7-${o._id.slice(-6).toUpperCase()}`,
+      new Date(o.createdAt).toLocaleString(),
+      `${o.customer.firstName} ${o.customer.lastName}`,
+      o.customer.phone,
+      `"${o.customer.address.replace(/"/g, '""')}"`,
+      `"${o.products.map((p) => `${p.quantity}x ${p.name}`).join(', ')}"`,
+      o.totalPrice.toFixed(0),
+      o.paymentMethod.toUpperCase(),
+      o.status,
+    ]),
+  ];
+  const csv = rows.map((r) => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `l7it-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Status style ─────────────────────────────────────────────────────────────
+const getStatusStyle = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'delivered': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+    case 'confirmed': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+    case 'pending':   return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+    case 'cancelled': return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
+    default:          return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20';
+  }
+};
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { admin, logout } = useAuth();
+  const { logout } = useAuth();
 
-  const loadOrders = useCallback(async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await fetchOrders();
-      setOrders(data);
+      const [ordersData, statsData] = await Promise.all([fetchOrders(), fetchStats()]);
+      setOrders([...ordersData].reverse());
+      setStats(statsData);
       setError(null);
     } catch (err: any) {
-      console.error('Failed to load orders:', err);
-      setError(err.message || 'Failed to load orders');
+      console.error('Failed to load admin data:', err);
+      setError(err.message || 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+    loadData();
+  }, [loadData]);
 
-  // Compute KPIs
-  const totalOrders = orders.filter(o => o.status !== 'cancelled').length;
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  // Revenue calculation mapping correctly to MAD explicitly
-  const totalRevenueMAD = orders
-    .filter(o => o.status === 'confirmed' || o.status === 'delivered')
-    .reduce((acc, order) => acc + order.totalPrice, 0);
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-black items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8 sm:py-12 sm:px-6 max-w-7xl">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800">
+      <div className="flex min-h-screen bg-black text-white font-inter">
+        <AdminSidebar onLogout={logout} />
+
+        {/* Main Workspace */}
+        <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-16">
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10 md:mb-20">
+            <div>
+              <h1 className="text-3xl md:text-6xl font-black tracking-tighter font-jakarta uppercase leading-tight">
+                Commercial <span className="text-zinc-800">Intelligence</span>
+              </h1>
+              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
+                <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                Live Hub Status: Optimized
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={loadData}
+                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-800 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          {/* KPI Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-10 mb-10 md:mb-20">
+            {[
+              { label: 'Total Revenue', value: stats?.totalRevenue || 0, format: 'currency', sub: 'Confirmed + Delivered', trend: 'up', color: 'blue' },
+              { label: 'Pending Orders', value: stats?.pendingOrders || 0, format: 'number', sub: 'Immediate Action Required', trend: 'alert', color: 'amber' },
+              { label: 'Total Volume', value: stats?.orderCount || 0, format: 'number', sub: 'All-time Orders', trend: 'ok', color: 'zinc' },
+            ].map((kpi, idx) => (
+              <motion.div
+                key={kpi.label}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="rounded-[2rem] md:rounded-[3rem] bg-zinc-900/40 border border-zinc-900 p-7 md:p-10 shadow-3xl hover:border-zinc-800 transition-all"
+              >
+                <div className="flex justify-between items-start mb-6 md:mb-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">{kpi.label}</p>
+                  <div
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      kpi.trend === 'up'
+                        ? 'bg-blue-500 shadow-[0_0_12px_rgba(37,99,235,0.8)]'
+                        : kpi.trend === 'alert'
+                        ? 'bg-amber-500 animate-ping'
+                        : 'bg-zinc-700'
+                    }`}
+                  />
+                </div>
+                <h3 className="text-4xl md:text-5xl font-black tracking-tighter mb-3 font-jakarta">
+                  {kpi.value.toLocaleString()}
+                  {kpi.format === 'currency' && (
+                    <span className="text-[10px] text-zinc-600 ml-2">MAD</span>
+                  )}
+                </h3>
+                <p
+                  className={`text-[9px] font-black uppercase tracking-widest ${
+                    kpi.color === 'blue'
+                      ? 'text-blue-500'
+                      : kpi.color === 'amber'
+                      ? 'text-amber-500'
+                      : 'text-zinc-600'
+                  }`}
+                >
+                  {kpi.sub}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Recent Transactions */}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Admin Dashboard</h1>
-            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-              Welcome back, {admin?.email || 'admin'}. Here is your business overview.
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex gap-4">
-            <button
-              onClick={loadOrders}
-              className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 border border-zinc-200 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh Data
-            </button>
-            <button
-              onClick={logout}
-              className="inline-flex items-center justify-center rounded-xl bg-black text-white px-4 py-2 border border-black text-sm font-medium shadow-sm hover:bg-zinc-800 transition-colors dark:bg-white dark:text-black dark:border-white dark:hover:bg-zinc-200"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        {/* Dashboard KPIs */}
-        {!isLoading && !error && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-10">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Active Orders</span>
-              <p className="mt-3 flex items-baseline text-4xl font-extrabold text-zinc-900 dark:text-white">
-                {totalOrders}
-              </p>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 md:mb-12">
+              <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight font-jakarta">
+                Recent Transactions
+              </h2>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => exportCSV(orders)}
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-[9px] font-black uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)]"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  CSV Export
+                </button>
+                <Link
+                  href="/admin/orders"
+                  className="px-5 py-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all"
+                >
+                  View All →
+                </Link>
+              </div>
             </div>
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm dark:border-blue-900/30 dark:bg-blue-950/20">
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">Pending Orders</span>
-              <p className="mt-3 flex items-baseline text-4xl font-extrabold text-blue-900 dark:text-blue-300">
-                {pendingOrders}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-green-200 bg-green-50/50 p-6 shadow-sm dark:border-green-900/30 dark:bg-green-950/20">
-              <span className="text-sm font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">Total Revenue</span>
-              <p className="mt-3 flex items-baseline text-4xl font-extrabold text-green-900 dark:text-green-300 gap-2">
-                {totalRevenueMAD.toFixed(0)} <span className="text-lg font-bold text-green-600">MAD</span>
-              </p>
-            </div>
-          </div>
-        )}
 
-        {error && (
-          <div className="mb-8 rounded-xl border border-red-200 bg-red-50 p-6 dark:border-red-900/50 dark:bg-red-950/20">
-            <p className="text-red-800 dark:text-red-400 font-medium">Error loading dashboard: {error}</p>
-          </div>
-        )}
+            {error && (
+              <div className="mb-8 rounded-2xl border border-rose-900/50 bg-rose-950/20 p-6">
+                <p className="text-rose-400 text-sm font-bold">Error: {error}</p>
+              </div>
+            )}
 
-        {isLoading ? (
-          <div className="flex justify-center p-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+            {/* Desktop table */}
+            <div className="hidden md:block rounded-[3rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-zinc-900 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-700">
+                    <th className="px-10 py-8">Reference</th>
+                    <th className="px-10 py-8">Customer</th>
+                    <th className="px-10 py-8">Status</th>
+                    <th className="px-10 py-8 text-right">Value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-900/50">
+                  {orders.slice(0, 10).map((order) => (
+                    <tr key={order._id} className="hover:bg-zinc-800/10 transition-colors">
+                      <td className="px-10 py-8 text-[11px] font-black text-blue-600">
+                        #L7-{order._id.slice(-6).toUpperCase()}
+                      </td>
+                      <td className="px-10 py-8">
+                        <p className="text-[11px] font-black uppercase tracking-tight text-white">
+                          {order.customer.firstName} {order.customer.lastName}
+                        </p>
+                        <p className="text-[9px] text-zinc-700 font-bold mt-1">{order.customer.phone}</p>
+                      </td>
+                      <td className="px-10 py-8">
+                        <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-10 py-8 text-right text-[11px] font-black text-white">
+                        {order.totalPrice.toLocaleString()}{' '}
+                        <span className="text-[8px] text-zinc-700 ml-1">MAD</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {orders.slice(0, 10).map((order, idx) => (
+                <motion.div
+                  key={order._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04 }}
+                  className="rounded-2xl border border-zinc-900 bg-zinc-900/30 p-5"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-[11px] font-black text-blue-500">
+                      #L7-{order._id.slice(-6).toUpperCase()}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <p className="text-[12px] font-black uppercase tracking-tight text-white">
+                    {order.customer.firstName} {order.customer.lastName}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
+                  <div className="mt-3 pt-3 border-t border-zinc-900 flex items-center justify-between">
+                    <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Total</span>
+                    <span className="text-[13px] font-black text-white">
+                      {order.totalPrice.toLocaleString()} <span className="text-[9px] text-zinc-600">MAD</span>
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <OrderTable orders={orders} onOrderUpdated={loadOrders} />
-        )}
+        </main>
       </div>
     </ProtectedRoute>
   );
