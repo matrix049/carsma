@@ -15,7 +15,7 @@ import contactRoutes from './routes/contact';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000', 10);
 
 // Middleware stack (order matters!)
 // 1. Security headers
@@ -50,8 +50,13 @@ app.use(express.json());
 // 4. Request logging
 app.use(requestLogger);
 
-// Basic health check route
-app.get('/health', (req, res) => {
+// Root route - API is alive check
+app.get('/', (_req, res) => {
+  res.send('API is Alive');
+});
+
+// Health check route
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
@@ -75,9 +80,10 @@ const startServer = async () => {
     const db = new DatabaseConnection();
     await db.connect();
 
-    // Start server
-    app.listen(PORT, () => {
+    // Start server - bind to 0.0.0.0 for Railway/Docker compatibility
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log(`Listening on 0.0.0.0:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
