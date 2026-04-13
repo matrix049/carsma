@@ -52,7 +52,7 @@ app.use(requestLogger);
 
 // Root route - API is alive check
 app.get('/', (_req, res) => {
-  res.send('API is Alive');
+  res.status(200).send('Art Store API is Live');
 });
 
 // Health check route
@@ -75,20 +75,33 @@ app.use(errorHandler);
 
 // Initialize database and start server
 const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    const db = new DatabaseConnection();
-    await db.connect();
+  // Start server FIRST - don't wait for MongoDB
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✓ Server is running on port ${PORT}`);
+    console.log(`✓ Listening on 0.0.0.0:${PORT}`);
+    console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
 
-    // Start server - bind to 0.0.0.0 for Railway/Docker compatibility
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Listening on 0.0.0.0:${PORT}`);
+  // Connect to MongoDB in the background (non-blocking)
+  const db = new DatabaseConnection();
+  db.connect()
+    .then(() => {
+      console.log('✓ MongoDB connected successfully');
+    })
+    .catch((error) => {
+      console.error('✗ MongoDB connection failed:', error.message);
+      console.error('⚠ Server is running but database operations will fail');
+      // Don't exit - let the server stay up for debugging
     });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
 };
 
 startServer();
