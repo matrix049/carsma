@@ -94,7 +94,6 @@ const dictionary: Translations = {
   },
   sendMessage: { en: 'Send Message', fr: 'Envoyer', ar: 'صيفط الميساج' },
   messageLabel: { en: 'Message', fr: 'Message', ar: 'الميساج' },
-  address: { en: 'Address', fr: 'Adresse', ar: 'العنوان' },
   
   // Feature Section
   qualityTitle: { en: 'Gallery Quality', fr: 'Qualité Galerie', ar: 'جودة عالية' },
