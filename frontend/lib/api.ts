@@ -34,10 +34,15 @@ export async function apiRequest<T>(
 ): Promise<T> {
   try {
     // Build headers
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
     };
+
+    // Merge existing headers
+    if (options.headers) {
+      const existingHeaders = options.headers as Record<string, string>;
+      Object.assign(headers, existingHeaders);
+    }
 
     // Add authorization header for authenticated requests
     if (requiresAuth) {
