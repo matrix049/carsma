@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import Order from '../models/Order';
 import { AuthRequest } from '../middleware/auth';
+import { notifyNewOrder } from '../services/notificationService';
 
 /**
  * Create new order
@@ -51,6 +52,14 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     });
 
     await order.save();
+
+    // Send notification to admin
+    await notifyNewOrder({
+      orderId: order._id.toString(),
+      customerName: `${customer.firstName} ${customer.lastName}`,
+      totalPrice,
+      itemCount: products.length,
+    });
 
     // Return success response with orderId
     res.status(201).json({

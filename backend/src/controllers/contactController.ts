@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import ContactMessage from '../models/ContactMessage';
+import { notifyNewContactMessage } from '../services/notificationService';
 
 /**
  * Create a new contact message
@@ -23,6 +24,13 @@ export async function createContactMessage(req: Request, res: Response): Promise
       customer: { name, email },
       message,
       status: 'unread'
+    });
+
+    // Send notification to admin
+    await notifyNewContactMessage({
+      customerName: name,
+      email,
+      messagePreview: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
     });
 
     res.status(201).json({

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import CustomOrder from '../models/CustomOrder';
+import { notifyNewCustomOrder } from '../services/notificationService';
 
 /**
  * Submit a new custom order request
@@ -13,6 +14,14 @@ export async function createCustomOrder(req: Request, res: Response): Promise<vo
       customer: { firstName, lastName, phone, email },
       carDetails: { carName, model, year },
       notes
+    });
+
+    // Send notification to admin
+    await notifyNewCustomOrder({
+      customerName: `${firstName} ${lastName}`,
+      carName,
+      model,
+      year,
     });
 
     res.status(201).json({

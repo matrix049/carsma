@@ -43,6 +43,10 @@ JWT_EXPIRES_IN=7d
 FRONTEND_URL=https://your-frontend-url.vercel.app
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-this-secure-password
+
+# Optional: Push Notifications (see NTFY_SETUP_GUIDE.md)
+NTFY_TOPIC=your-unique-topic-name
+NTFY_SERVER=https://ntfy.sh
 ```
 
 ### Generate Secure JWT Secret
