@@ -1,16 +1,14 @@
 # 🚂 Railway Build Configuration - CORRECT SETTINGS
 
-## ❌ Common Mistake
+## 🎯 The Issue
 
-**DON'T use:** `npm run build`
-
-This fails because dependencies aren't installed yet!
+Railway detected your monorepo workspace and is running commands from the ROOT directory, not the backend folder!
 
 ---
 
-## ✅ CORRECT Configuration
+## ✅ SOLUTION 1: Use Root Directory Setting (RECOMMENDED)
 
-### For Backend Service:
+### Backend Service Settings:
 
 **Root Directory:**
 ```
@@ -27,10 +25,37 @@ npm install && npm run build
 npm start
 ```
 
-**Install Command:** (leave empty or use default)
+This tells Railway to work INSIDE the backend folder, not the root.
+
+---
+
+## ✅ SOLUTION 2: Use Workspace Commands (Alternative)
+
+If Railway ignores Root Directory setting, use workspace commands:
+
+**Root Directory:** (leave empty or set to `.`)
+
+**Build Command:**
 ```
-npm install
+npm install && npm run build --workspace=backend
 ```
+
+**Start Command:**
+```
+npm run start --workspace=backend
+```
+
+---
+
+## 🔧 How to Set Root Directory in Railway
+
+1. Go to your backend service
+2. Click **Settings** tab
+3. Scroll to **Build & Deploy** section
+4. Find **Root Directory** field
+5. Enter: `backend`
+6. Click **Save**
+7. Redeploy
 
 ---
 
