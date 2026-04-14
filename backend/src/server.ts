@@ -10,6 +10,7 @@ import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
 import customOrderRoutes from './routes/customOrders';
 import contactRoutes from './routes/contact';
+import seedRoutes from './routes/seed';
 
 // Load environment variables
 dotenv.config();
@@ -66,6 +67,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/custom-orders', customOrderRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api', seedRoutes);
 
 // 404 handler for undefined routes (must be after all routes)
 app.use(notFoundHandler);
