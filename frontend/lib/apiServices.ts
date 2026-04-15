@@ -149,6 +149,82 @@ export async function fetchProducts(): Promise<Product[]> {
 }
 
 /**
+ * Fetch single product by ID
+ * @param id - Product ID
+ * @returns Single product
+ */
+export async function fetchProductById(id: string): Promise<Product> {
+  const response = await apiRequest<{ product: Product }>(
+    `/api/products/${id}`,
+    { method: 'GET' },
+    false
+  );
+  return response.product;
+}
+
+/**
+ * Create new product (admin only)
+ * @param productData - Product information
+ * @returns Created product
+ */
+export async function createProduct(productData: {
+  name: string;
+  price: number;
+  image: string;
+  description?: string;
+  category: string;
+  inStock?: boolean;
+}): Promise<Product> {
+  const response = await apiRequest<{ product: Product }>(
+    '/api/products',
+    {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    },
+    true // Requires authentication
+  );
+  return response.product;
+}
+
+/**
+ * Update existing product (admin only)
+ * @param id - Product ID
+ * @param productData - Updated product information
+ * @returns Updated product
+ */
+export async function updateProduct(id: string, productData: {
+  name?: string;
+  price?: number;
+  image?: string;
+  description?: string;
+  category?: string;
+  inStock?: boolean;
+}): Promise<Product> {
+  const response = await apiRequest<{ product: Product }>(
+    `/api/products/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    },
+    true // Requires authentication
+  );
+  return response.product;
+}
+
+/**
+ * Delete product (admin only)
+ * @param id - Product ID
+ * @returns Success response
+ */
+export async function deleteProduct(id: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/api/products/${id}`,
+    { method: 'DELETE' },
+    true // Requires authentication
+  );
+}
+
+/**
  * Create a new order from customer checkout
  * @param orderData - Order information including customer details and products
  * @returns Order creation response with orderId
