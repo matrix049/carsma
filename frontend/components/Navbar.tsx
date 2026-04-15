@@ -7,7 +7,6 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,12 +16,6 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  // Ensure component is mounted (for portal)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,8 +67,12 @@ export default function Navbar() {
   // Highlight active links with a subtle dot or glow
   const isActive = (path: string) => pathname === path;
 
-  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const toggleMenu = () => {
+    console.log('Toggle menu clicked, current state:', isMobileMenuOpen);
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
   const closeMenu = () => {
+    console.log('Close menu called');
     setIsMobileMenuOpen(false);
     setIsLangOpen(false);
   };
@@ -188,7 +185,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Fullscreen Overlay */}
       <AnimatePresence>
-        {isMobileMenuOpen && mounted && createPortal(
+        {isMobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
@@ -203,6 +200,11 @@ export default function Navbar() {
               height: '100vh'
             }}
           >
+            {/* Debug indicator */}
+            <div className="absolute top-4 left-4 text-white text-sm bg-red-600 px-2 py-1 rounded">
+              Menu Open: {isMobileMenuOpen ? 'YES' : 'NO'}
+            </div>
+
             {/* Close Button */}
             <button 
               onClick={closeMenu}
@@ -242,10 +244,14 @@ export default function Navbar() {
                 </motion.div>
               ))}
             </div>
-          </motion.div>,
-          document.body
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Debug indicator outside menu */}
+      <div className="fixed bottom-4 left-4 text-white text-xs bg-blue-600 px-2 py-1 rounded z-[10000] md:hidden">
+        Menu State: {isMobileMenuOpen ? 'OPEN' : 'CLOSED'}
+      </div>
     </header>
   );
 }
