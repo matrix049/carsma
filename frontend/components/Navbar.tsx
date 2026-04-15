@@ -67,12 +67,8 @@ export default function Navbar() {
   // Highlight active links with a subtle dot or glow
   const isActive = (path: string) => pathname === path;
 
-  const toggleMenu = () => {
-    console.log('Toggle menu clicked, current state:', isMobileMenuOpen);
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMenu = () => {
-    console.log('Close menu called');
     setIsMobileMenuOpen(false);
     setIsLangOpen(false);
   };
@@ -200,11 +196,6 @@ export default function Navbar() {
               height: '100vh'
             }}
           >
-            {/* Debug indicator */}
-            <div className="absolute top-4 left-4 text-white text-sm bg-red-600 px-2 py-1 rounded">
-              Menu Open: {isMobileMenuOpen ? 'YES' : 'NO'}
-            </div>
-
             {/* Close Button */}
             <button 
               onClick={closeMenu}
@@ -247,11 +238,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Debug indicator outside menu */}
-      <div className="fixed bottom-4 left-4 text-white text-xs bg-blue-600 px-2 py-1 rounded z-[10000] md:hidden">
-        Menu State: {isMobileMenuOpen ? 'OPEN' : 'CLOSED'}
-      </div>
     </header>
   );
 }
