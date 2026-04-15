@@ -88,12 +88,12 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-6">
-          {/* Language Selector */}
-          <div className="relative lang-dropdown hidden lg:block">
+          {/* Language Selector - Desktop & Mobile */}
+          <div className="relative lang-dropdown">
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-3 rounded-full border border-zinc-800 bg-zinc-900/50 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:text-white hover:border-zinc-700 hover:bg-zinc-800"
+              className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:text-white hover:border-zinc-700 hover:bg-zinc-800"
             >
               {language}
               <svg className={`w-3 h-3 transition-transform duration-500 ${isLangOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
@@ -105,7 +105,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  className="absolute right-0 mt-4 w-48 origin-top-right overflow-hidden rounded-[2rem] border border-zinc-800 bg-black p-2 shadow-3xl backdrop-blur-2xl"
+                  className="absolute right-0 mt-4 w-48 origin-top-right overflow-hidden rounded-[2rem] border border-zinc-800 bg-black p-2 shadow-3xl backdrop-blur-2xl z-50"
                 >
                   {(['en', 'fr', 'ar'] as const).map(l => (
                     <button
@@ -122,7 +122,7 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <Link href="/cart" className="relative p-2 text-zinc-500 hover:text-white transition-all hover:scale-110">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
@@ -157,9 +157,9 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/90 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-12"
+            className="fixed inset-0 z-40 bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
           >
-            <div className="flex flex-col gap-12 text-center w-full">
+            <div className="flex flex-col gap-8 text-center w-full">
               {navLinks.map((link, idx) => (
                 <motion.div
                   key={link.path}
@@ -167,35 +167,12 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Link href={link.path} onClick={closeMenu} className={`text-5xl font-black tracking-tighter font-jakarta uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
+                  <Link href={link.path} onClick={closeMenu} className={`text-3xl font-black tracking-tight font-jakarta uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
                     {link.name}
                   </Link>
                 </motion.div>
               ))}
             </div>
-            
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-              className="mt-24 pt-12 border-t border-zinc-900 w-full"
-            >
-              <p className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase mb-6">{t('selectLanguage')}</p>
-              <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
-                {(['en', 'fr', 'ar'] as const).map(l => (
-                  <button 
-                    key={l}
-                    onClick={() => { setLanguage(l); closeMenu(); }}
-                    className={`flex items-center justify-between py-4 px-6 text-sm font-bold rounded-2xl transition-all border ${language === l ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' : 'border-zinc-800 bg-zinc-900 text-zinc-400'}`}
-                  >
-                    {l === 'en' && 'English'}
-                    {l === 'fr' && 'Français'}
-                    {l === 'ar' && 'Darija / العربية'}
-                    {language === l && (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
