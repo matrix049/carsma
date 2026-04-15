@@ -102,8 +102,18 @@ export default function AdminProductsPage() {
       // Upload new image if file is selected
       if (selectedFile) {
         setIsUploading(true);
-        const uploadResult = await uploadProductImage(selectedFile);
-        imageUrl = uploadResult.imageUrl;
+        try {
+          const uploadResult = await uploadProductImage(selectedFile);
+          imageUrl = uploadResult.imageUrl;
+        } catch (uploadError: any) {
+          setIsUploading(false);
+          if (uploadError.message.includes('Authentication required') || uploadError.message.includes('Invalid token')) {
+            alert('Your session has expired. Please log in again.');
+            logout();
+            return;
+          }
+          throw uploadError;
+        }
         setIsUploading(false);
       }
 
@@ -126,6 +136,14 @@ export default function AdminProductsPage() {
       handleCloseModal();
     } catch (err: any) {
       console.error('Failed to save product:', err);
+      
+      // Handle authentication errors
+      if (err.message.includes('Invalid token') || err.message.includes('Authentication required') || err.statusCode === 401) {
+        alert('Your session has expired. Please log in again.');
+        logout();
+        return;
+      }
+      
       alert(err.message || 'Failed to save product');
     } finally {
       setIsSubmitting(false);

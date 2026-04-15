@@ -366,12 +366,18 @@ export async function uploadProductImage(imageFile: File): Promise<{ success: bo
   const formData = new FormData();
   formData.append('image', imageFile);
 
+  // Get token from localStorage (same key as AuthContext)
+  const token = localStorage.getItem('wall-decoration-auth-token');
+  if (!token) {
+    throw new Error('Authentication required. Please log in again.');
+  }
+
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+      'Authorization': `Bearer ${token}`
     },
-    body: formData
+    body: formData // Don't set Content-Type for FormData, let browser set it
   });
 
   if (!response.ok) {
