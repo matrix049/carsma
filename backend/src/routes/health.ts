@@ -14,6 +14,9 @@ router.get('/health', async (req: Request, res: Response) => {
       database: {
         connected: mongoose.connection.readyState === 1,
         state: getConnectionState(mongoose.connection.readyState),
+        productCount: undefined as number | undefined,
+        canQuery: undefined as boolean | undefined,
+        error: undefined as string | undefined
       },
       mongodb: {
         hasUri: !!process.env.MONGODB_URI,
@@ -24,17 +27,11 @@ router.get('/health', async (req: Request, res: Response) => {
     // Try to count products
     try {
       const productCount = await Product.countDocuments();
-      health.database = {
-        ...health.database,
-        productCount,
-        canQuery: true
-      };
+      health.database.productCount = productCount;
+      health.database.canQuery = true;
     } catch (dbError: any) {
-      health.database = {
-        ...health.database,
-        canQuery: false,
-        error: dbError.message
-      };
+      health.database.canQuery = false;
+      health.database.error = dbError.message;
     }
 
     const statusCode = health.database.connected ? 200 : 503;
