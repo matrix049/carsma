@@ -159,6 +159,31 @@ export default function Navbar() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
           >
+            {/* Close Button */}
+            <button 
+              onClick={closeMenu}
+              className="absolute top-8 right-6 p-2 text-zinc-400 hover:text-white transition-all"
+              aria-label="Close menu"
+            >
+              <div className="space-y-1.5">
+                <motion.div 
+                  initial={{ rotate: 0, y: 0 }}
+                  animate={{ rotate: 45, y: 7 }}
+                  className="h-0.5 w-6 bg-current origin-center" 
+                />
+                <motion.div 
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  className="h-0.5 w-6 bg-current" 
+                />
+                <motion.div 
+                  initial={{ rotate: 0, y: 0 }}
+                  animate={{ rotate: -45, y: -7 }}
+                  className="h-0.5 w-6 bg-current origin-center" 
+                />
+              </div>
+            </button>
+
             <div className="flex flex-col gap-8 text-center w-full">
               {navLinks.map((link, idx) => (
                 <motion.div
