@@ -54,7 +54,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500 ${scrolled ? 'bg-black/80 backdrop-blur-2xl py-2 border-b border-zinc-900 shadow-2xl' : 'bg-transparent py-6 border-b border-transparent'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-[60] w-full transition-all duration-500 ${scrolled ? 'bg-black/80 backdrop-blur-2xl py-2 border-b border-zinc-900 shadow-2xl' : 'bg-transparent py-6 border-b border-transparent'}`}>
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <Link href="/" onClick={closeMenu} className="inline-block font-black text-4xl tracking-tighter text-white font-jakarta group">
@@ -157,7 +157,7 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
           >
             <div className="flex flex-col gap-8 text-center w-full">
               {navLinks.map((link, idx) => (

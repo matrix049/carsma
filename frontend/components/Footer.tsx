@@ -51,7 +51,7 @@ export default function Footer() {
             © {year} L7it STUDIO. {language === 'en' ? 'All rights reserved.' : language === 'fr' ? 'Tous droits réservés.' : 'جميع الحقوق محفوظة.'}
           </p>
           <div className="flex gap-8">
-             <span className="text-zinc-600 text-[10px] font-black tracking-tighter uppercase">Rabat / Casablanca / Morocco</span>
+             <span className="text-zinc-600 text-[10px] font-black tracking-tighter uppercase">Rabat</span>
           </div>
         </div>
       </div>
