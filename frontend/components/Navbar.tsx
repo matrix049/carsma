@@ -152,7 +152,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Backdrop */}
+      {/* Mobile Menu Fullscreen Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
@@ -167,7 +167,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Link href={link.path} onClick={closeMenu} className={`text-6xl font-black tracking-tighter font-jakarta uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
+                  <Link href={link.path} onClick={closeMenu} className={`text-5xl font-black tracking-tighter font-jakarta uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
                     {link.name}
                   </Link>
                 </motion.div>
@@ -176,66 +176,29 @@ export default function Navbar() {
             
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-              className="mt-24 pt-12 border-t border-zinc-900 w-full text-center"
+              className="mt-24 pt-12 border-t border-zinc-900 w-full"
             >
-               <div className="flex justify-center gap-8">
-                  {(['en', 'fr', 'ar'] as const).map(l => (
-                    <button key={l} onClick={() => { setLanguage(l); closeMenu(); }} className={`text-xs font-black uppercase tracking-widest ${language === l ? 'text-blue-500 underline underline-offset-8' : 'text-zinc-500 hover:text-white'}`}>
-                      {l}
-                    </button>
-                  ))}
-               </div>
+              <p className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase mb-6">{t('selectLanguage')}</p>
+              <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
+                {(['en', 'fr', 'ar'] as const).map(l => (
+                  <button 
+                    key={l}
+                    onClick={() => { setLanguage(l); closeMenu(); }}
+                    className={`flex items-center justify-between py-4 px-6 text-sm font-bold rounded-2xl transition-all border ${language === l ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' : 'border-zinc-800 bg-zinc-900 text-zinc-400'}`}
+                  >
+                    {l === 'en' && 'English'}
+                    {l === 'fr' && 'Français'}
+                    {l === 'ar' && 'Darija / العربية'}
+                    {language === l && (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-black shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-b border-zinc-200 dark:border-zinc-800 px-4 py-12 flex flex-col gap-10 animate-in slide-in-from-top duration-300">
-          <div className="flex flex-col gap-8">
-            <Link href="/" onClick={closeMenu} className={`text-4xl font-black tracking-tighter transition-colors font-jakarta ${pathname === '/' ? 'text-blue-600' : 'text-zinc-900 dark:text-white'}`}>
-              {t('home')}
-            </Link>
-            <Link href="/shop" onClick={closeMenu} className={`text-4xl font-black tracking-tighter transition-colors font-jakarta ${pathname === '/shop' ? 'text-blue-600' : 'text-zinc-900 dark:text-white'}`}>
-              {t('shop')}
-            </Link>
-            <Link href="/contact" onClick={closeMenu} className={`text-4xl font-black tracking-tighter transition-colors font-jakarta ${pathname === '/contact' ? 'text-blue-600' : 'text-zinc-900 dark:text-white'}`}>
-              {t('contact')}
-            </Link>
-            {isAuthenticated && (
-              <>
-                <Link href="/admin/dashboard" onClick={closeMenu} className={`text-4xl font-black tracking-tighter transition-colors font-jakarta ${pathname === '/admin/dashboard' ? 'text-blue-600' : 'text-zinc-900 dark:text-white'}`}>
-                  {t('adminDashboard')}
-                </Link>
-                <Link href="/admin/custom-orders" onClick={closeMenu} className={`text-4xl font-black tracking-tighter transition-colors font-jakarta ${pathname === '/admin/custom-orders' ? 'text-blue-600' : 'text-zinc-900 dark:text-white'}`}>
-                  {t('adminCustomOrders')}
-                </Link>
-              </>
-            )}
-          </div>
-          
-          <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 space-y-5">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">{t('selectLanguage')}</p>
-            <div className="grid grid-cols-1 gap-2">
-              {(['en', 'fr', 'ar'] as const).map(l => (
-                <button 
-                  key={l}
-                  onClick={() => { setLanguage(l); closeMenu(); }}
-                  className={`flex items-center justify-between py-4 px-6 text-sm font-bold rounded-2xl transition-all border ${language === l ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' : 'border-zinc-100 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400'}`}
-                >
-                  {l === 'en' && 'English'}
-                  {l === 'fr' && 'Français'}
-                  {l === 'ar' && 'Darija / العربية'}
-                  {language === l && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

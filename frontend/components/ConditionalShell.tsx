@@ -2,13 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import BottomNav from '@/components/BottomNav';
 import Footer from '@/components/Footer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import CartToast from '@/components/CartToast';
 
 /**
- * Renders the public storefront shell (Navbar, Footer, BottomNav, etc.)
+ * Renders the public storefront shell (Navbar, Footer, etc.)
  * only for non-admin routes. Admin pages get a clean, bare layout.
  */
 export default function ConditionalShell({
@@ -28,7 +27,6 @@ export default function ConditionalShell({
       <Navbar />
       <main className="flex-1 flex flex-col pt-0">{children}</main>
       <Footer />
-      <BottomNav />
       <CartToast />
       <FloatingWhatsApp />
     </>
