@@ -341,3 +341,44 @@ export async function updateContactMessageStatus(
   );
   return response.contactMessage;
 }
+
+/**
+ * Create a new product (Admin only)
+ * Requires authentication token
+ * @param productData - Product information including name, price, image, description, category
+ * @returns Created product
+ */
+export async function createProduct(productData: {
+  name: string;
+  price: number;
+  image: string;
+  description?: string;
+  category: string;
+  inStock?: boolean;
+}): Promise<Product> {
+  const response = await apiRequest<{ success: boolean; product: Product }>(
+    '/api/products',
+    {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    },
+    true // Requires authentication
+  );
+  return response.product;
+}
+
+/**
+ * Delete a product (Admin only)
+ * Requires authentication token
+ * @param productId - ID of the product to delete
+ * @returns Success response
+ */
+export async function deleteProduct(productId: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/api/products/${productId}`,
+    {
+      method: 'DELETE',
+    },
+    true // Requires authentication
+  );
+}
