@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -16,6 +17,12 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted (for portal)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +43,33 @@ export default function Navbar() {
       window.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isLangOpen]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.dataset.scrollY = scrollY.toString();
+    } else {
+      // Restore scroll position
+      const scrollY = document.body.dataset.scrollY;
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY));
+        delete document.body.dataset.scrollY;
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      delete document.body.dataset.scrollY;
+    };
+  }, [isMobileMenuOpen]);
 
   // Highlight active links with a subtle dot or glow
   const isActive = (path: string) => pathname === path;
@@ -154,10 +188,20 @@ export default function Navbar() {
 
       {/* Mobile Menu Fullscreen Overlay */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {isMobileMenuOpen && mounted && createPortal(
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
+            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
+              width: '100vw',
+              height: '100vh'
+            }}
           >
             {/* Close Button */}
             <button 
@@ -198,7 +242,8 @@ export default function Navbar() {
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
     </header>
