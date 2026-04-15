@@ -60,7 +60,22 @@ router.post('/image', authenticateToken, upload.single('image'), (req: Request, 
     }
 
     // Return the file path that can be used as image URL
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // For production, use full URL; for development, use relative path
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? (process.env.API_BASE_URL || 'https://api.l7it.art')
+      : '';
+    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    
+    // Log upload details for debugging
+    console.log('File uploaded successfully:', {
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      imageUrl,
+      baseUrl,
+      nodeEnv: process.env.NODE_ENV
+    });
 
     res.status(200).json({
       success: true,
@@ -73,6 +88,30 @@ router.post('/image', authenticateToken, upload.single('image'), (req: Request, 
     res.status(500).json({
       error: true,
       message: 'Failed to upload image'
+    });
+  }
+});
+
+/**
+ * Test endpoint to check uploaded files
+ * GET /api/upload/test
+ * Admin only - lists uploaded files for debugging
+ */
+router.get('/test', authenticateToken, (req: Request, res: Response) => {
+  try {
+    const files = fs.readdirSync(uploadsDir);
+    res.status(200).json({
+      success: true,
+      uploadsDir,
+      files,
+      count: files.length
+    });
+  } catch (error: any) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Failed to read uploads directory',
+      uploadsDir
     });
   }
 });
