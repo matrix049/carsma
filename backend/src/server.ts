@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
 import DatabaseConnection from './config/database';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -12,6 +13,7 @@ import customOrderRoutes from './routes/customOrders';
 import contactRoutes from './routes/contact';
 import seedRoutes from './routes/seed';
 import healthRoutes from './routes/health';
+import uploadRoutes from './routes/upload';
 
 // Load environment variables
 dotenv.config();
@@ -52,6 +54,9 @@ app.use(express.json());
 // 4. Request logging
 app.use(requestLogger);
 
+// 5. Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Root route - API is alive check
 app.get('/', (_req, res) => {
   res.status(200).send('Art Store API is Live');
@@ -68,6 +73,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/custom-orders', customOrderRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api', seedRoutes);
 app.use('/api', healthRoutes);
 

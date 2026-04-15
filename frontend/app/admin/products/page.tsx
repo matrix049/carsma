@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
-import { fetchProducts, createProduct, updateProduct, deleteProduct, Product } from '@/lib/apiServices';
+import { fetchProducts, createProduct, updateProduct, deleteProduct, uploadProductImage, Product } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
@@ -15,6 +15,7 @@ export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { logout } = useAuth();
 
   // Form state
@@ -26,6 +27,9 @@ export default function AdminProductsPage() {
     category: '',
     inStock: true
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   const loadProducts = useCallback(async () => {
     try {
@@ -56,6 +60,7 @@ export default function AdminProductsPage() {
         category: product.category,
         inStock: product.inStock
       });
+      setPreviewUrl(product.image);
     } else {
       setEditingProduct(null);
       setFormData({
@@ -66,13 +71,17 @@ export default function AdminProductsPage() {
         category: '',
         inStock: true
       });
+      setPreviewUrl('');
     }
+    setSelectedFile(null);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
+    setSelectedFile(null);
+    setPreviewUrl('');
     setFormData({
       name: '',
       price: '',
@@ -88,10 +97,20 @@ export default function AdminProductsPage() {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = formData.image;
+
+      // Upload new image if file is selected
+      if (selectedFile) {
+        setIsUploading(true);
+        const uploadResult = await uploadProductImage(selectedFile);
+        imageUrl = uploadResult.imageUrl;
+        setIsUploading(false);
+      }
+
       const productData = {
         name: formData.name.trim(),
         price: parseFloat(formData.price),
-        image: formData.image.trim(),
+        image: imageUrl,
         description: formData.description.trim(),
         category: formData.category.trim(),
         inStock: formData.inStock
@@ -110,6 +129,7 @@ export default function AdminProductsPage() {
       alert(err.message || 'Failed to save product');
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
@@ -133,6 +153,39 @@ export default function AdminProductsPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a valid image file (JPEG, PNG, or WebP)');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      setSelectedFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setPreviewUrl('');
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   return (
@@ -356,20 +409,62 @@ export default function AdminProductsPage() {
                       </div>
                     </div>
 
-                    {/* Image URL */}
+                    {/* Image Upload */}
                     <div>
                       <label className="block text-sm font-bold text-zinc-400 mb-2">
-                        Image URL *
+                        Product Image *
                       </label>
-                      <input
-                        type="url"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all"
-                        placeholder="/images/car1.jpg or https://example.com/image.jpg"
-                      />
+                      
+                      {/* Image Preview */}
+                      {(previewUrl || formData.image) && (
+                        <div className="mb-4 relative">
+                          <img
+                            src={previewUrl || formData.image}
+                            alt="Product preview"
+                            className="w-full h-48 object-cover rounded-xl border border-zinc-800"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* File Upload Input */}
+                      <div className="space-y-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+                        />
+                        
+                        {/* OR Divider */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 h-px bg-zinc-800"></div>
+                          <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">OR</span>
+                          <div className="flex-1 h-px bg-zinc-800"></div>
+                        </div>
+
+                        {/* URL Input */}
+                        <input
+                          type="url"
+                          name="image"
+                          value={formData.image}
+                          onChange={handleInputChange}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all"
+                          placeholder="Or enter image URL: https://example.com/image.jpg"
+                        />
+                      </div>
+                      
+                      <p className="text-xs text-zinc-600 mt-2">
+                        Upload an image file (max 5MB) or enter an image URL
+                      </p>
                     </div>
 
                     {/* Description */}
@@ -412,10 +507,21 @@ export default function AdminProductsPage() {
                       </button>
                       <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isSubmitting || isUploading}
+                        className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        {isSubmitting ? 'Saving...' : (editingProduct ? 'Update Product' : 'Create Product')}
+                        {isUploading ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Uploading...
+                          </>
+                        ) : isSubmitting ? (
+                          'Saving...'
+                        ) : (
+                          editingProduct ? 'Update Product' : 'Create Product'
+                        )}
                       </button>
                     </div>
                   </form>

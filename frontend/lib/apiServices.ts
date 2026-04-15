@@ -357,6 +357,48 @@ export async function updateContactMessageStatus(
 }
 
 /**
+ * Upload product image (Admin only)
+ * Requires authentication token
+ * @param imageFile - Image file to upload
+ * @returns Upload response with image URL
+ */
+export async function uploadProductImage(imageFile: File): Promise<{ success: boolean; imageUrl: string; filename: string }> {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to upload image');
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete uploaded image (Admin only)
+ * Requires authentication token
+ * @param filename - Name of the file to delete
+ * @returns Success response
+ */
+export async function deleteUploadedImage(filename: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/api/upload/image/${filename}`,
+    {
+      method: 'DELETE',
+    },
+    true // Requires authentication
+  );
+}
+
+/**
  * Create a new product (Admin only)
  * Requires authentication token
  * @param productData - Product information including name, price, image, description, category
