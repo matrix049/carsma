@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -39,6 +39,26 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [mobileOpen]);
 
   const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
     <div className="flex flex-col h-full p-8 md:p-10">
@@ -119,7 +139,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       </aside>
 
       {/* ── Mobile top bar ───────────────────────────── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5 py-4 bg-black border-b border-zinc-900">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-5 py-4 bg-black border-b border-zinc-900">
         <div>
           <span className="text-xl font-black tracking-tighter text-white font-jakarta">L7IT</span>
           <span className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 ml-2">Admin</span>
@@ -137,14 +157,28 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
 
       {/* ── Mobile drawer overlay ────────────────────── */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <div 
+          className="md:hidden fixed inset-0 z-[9999] flex" 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            zIndex: 9999
+          }}
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
           {/* Drawer */}
-          <aside className="relative z-10 w-72 max-w-[85vw] bg-black border-r border-zinc-900 h-full overflow-y-auto">
+          <aside 
+            className="relative z-10 w-72 max-w-[85vw] bg-black border-r border-zinc-900 h-full overflow-y-auto"
+            style={{ position: 'relative', zIndex: 10 }}
+          >
             <SidebarContent onClose={() => setMobileOpen(false)} />
           </aside>
         </div>
