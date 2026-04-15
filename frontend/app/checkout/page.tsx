@@ -34,12 +34,10 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
     phone: '',
     address: '',
     city: '',
     state: '',
-    zip: '',
     notes: ''
   });
 
@@ -55,15 +53,10 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setOrderError(null);
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setOrderError(t('invalidEmail'));
-      return;
-    }
     setIsSubmitting(true);
 
     try {
-      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`;
+      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state}`;
       const customerPayload: Customer = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -165,7 +158,7 @@ export default function CheckoutPage() {
                 <h2 className="text-2xl font-black uppercase tracking-tight font-jakarta">01. Identity & Logistics</h2>
               </div>
 
-              <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-10">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Full Name</label>
                   <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
@@ -176,7 +169,7 @@ export default function CheckoutPage() {
                   <input required type="tel" name="phone" placeholder="+212 6 00 00 00 00" value={formData.phone} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
-                <div className="md:col-span-2 space-y-3">
+                <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Shipping Address</label>
                   <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
@@ -198,11 +191,6 @@ export default function CheckoutPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
                     </div>
                   </div>
-                </div>
-                <div className="md:col-span-2 space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Electronic Correspondence (Email)</label>
-                  <input required type="email" name="email" placeholder="khalid@alami.ma" value={formData.email} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
               </form>
             </motion.section>
