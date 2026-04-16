@@ -150,20 +150,17 @@ export default function ShopPage() {
                 </h1>
                 <div className="h-2 w-32 bg-blue-600 rounded-full" />
               </div>
-              <p className="max-w-2xl text-xl text-zinc-500 dark:text-zinc-500 font-medium leading-relaxed">
-                 Synthesized automotive art, architected for the contemporary collector. Staged with precision.
-              </p>
             </motion.div>
 
             {/* Mobile Filters */}
-            <div className="lg:hidden space-y-6">
-               <p className="text-[10px] font-black tracking-[0.4em] text-zinc-400 uppercase">{t('categories')}</p>
-               <div className="flex overflow-x-auto pb-6 gap-4 no-scrollbar">
+            <div className="lg:hidden space-y-4">
+               <p className="text-[9px] font-black tracking-[0.3em] text-zinc-400 uppercase">{t('categories')}</p>
+               <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`shrink-0 rounded-2xl px-8 py-5 text-[10px] font-black uppercase tracking-widest transition-all border ${
+                    className={`shrink-0 rounded-xl px-5 py-3 text-[9px] font-black uppercase tracking-widest transition-all border ${
                       selectedCategory === 'all'
-                        ? 'bg-blue-600 border-blue-500 text-white shadow-3xl shadow-blue-500/30'
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-2xl shadow-blue-500/30'
                         : 'bg-zinc-50 border-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-800'
                     }`}
                   >
@@ -173,9 +170,9 @@ export default function ShopPage() {
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`shrink-0 rounded-2xl px-8 py-5 text-[10px] font-black uppercase tracking-widest transition-all border ${
+                      className={`shrink-0 rounded-xl px-5 py-3 text-[9px] font-black uppercase tracking-widest transition-all border ${
                         selectedCategory === category
-                          ? 'bg-blue-600 border-blue-500 text-white shadow-3xl shadow-blue-500/30'
+                          ? 'bg-blue-600 border-blue-500 text-white shadow-2xl shadow-blue-500/30'
                           : 'bg-zinc-50 border-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-800'
                       }`}
                     >
@@ -204,7 +201,7 @@ export default function ShopPage() {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-12 mb-32"
+                  className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-12 mb-32"
                 >
                   {filteredProducts.map((product) => (
                     <motion.div key={product._id} variants={itemVariants}>

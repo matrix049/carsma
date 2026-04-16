@@ -23,7 +23,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
   const imageUrl = product.image || 'https://via.placeholder.com/400x300?text=No+Image';
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 w-full relative">
+    <div className="group flex flex-col overflow-hidden rounded-2xl md:rounded-3xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 w-full relative">
       <Link href={`/product/${product._id}`} className="flex flex-col flex-1 cursor-pointer">
         <div className="relative aspect-square w-full overflow-hidden bg-zinc-100 dark:bg-zinc-950">
           <img
@@ -36,8 +36,8 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
-          <div className="absolute top-4 left-4 z-10 transition-transform duration-500 group-hover:-translate-y-1">
-             <span className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[8px] font-black tracking-widest text-white uppercase shadow-xl">
+          <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10 transition-transform duration-500 group-hover:-translate-y-1">
+             <span className="rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[7px] md:text-[8px] font-black tracking-widest text-white uppercase shadow-xl">
                Limited Edition
              </span>
           </div>
@@ -51,29 +51,29 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           )}
         </div>
         
-        <div className="flex flex-col p-4 flex-1">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="text-sm font-black tracking-tight text-zinc-900 dark:text-zinc-100 line-clamp-1 group-hover:text-blue-600 transition-colors font-jakarta uppercase">
+        <div className="flex flex-col p-3 md:p-4 flex-1">
+          <div className="flex items-center justify-between gap-1.5 mb-1">
+            <h3 className="text-xs md:text-sm font-black tracking-tight text-zinc-900 dark:text-zinc-100 line-clamp-1 group-hover:text-blue-600 transition-colors font-jakarta uppercase">
               {product.name}
             </h3>
             <div className="flex flex-col items-end">
-              <span className="text-[9px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50 leading-none">
-                {Math.ceil(product.price * 1.5)}<span className="text-[7px] ml-0.5">MAD</span>
+              <span className="text-[8px] md:text-[9px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50 leading-none">
+                {Math.ceil(product.price * 1.5)}<span className="text-[6px] md:text-[7px] ml-0.5">MAD</span>
               </span>
-              <span className="text-sm font-black text-blue-600 shrink-0 font-jakarta leading-none mt-1">
-                {product.price}<span className="text-[9px] ml-0.5">MAD</span>
+              <span className="text-xs md:text-sm font-black text-blue-600 shrink-0 font-jakarta leading-none mt-1">
+                {product.price}<span className="text-[8px] md:text-[9px] ml-0.5">MAD</span>
               </span>
             </div>
           </div>
           
-          <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-4">
+          <p className="text-[8px] md:text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-3 md:mb-4">
              {product.category}
           </p>
           
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock}
-            className={`mt-auto flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition-all ${
+            className={`mt-auto flex w-full items-center justify-center gap-1.5 rounded-xl py-2 md:py-2.5 text-[10px] md:text-xs font-bold transition-all ${
               product.inStock
                 ? 'bg-black text-white hover:bg-zinc-800 active:scale-[0.96] dark:bg-white dark:text-black dark:hover:bg-zinc-200'
                 : 'bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600 cursor-not-allowed'
@@ -81,7 +81,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           >
             {product.inStock ? (
               <>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 {t('addToCart')}
               </>
             ) : t('unavailable')}
