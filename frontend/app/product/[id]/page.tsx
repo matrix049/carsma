@@ -247,30 +247,53 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <AnimatePresence>
               <motion.div 
                 initial={{ y: 100 }} animate={{ y: 0 }}
-                className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-black/80 backdrop-blur-3xl border-t border-zinc-900 p-6 flex items-center justify-between"
+                className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-black/90 backdrop-blur-3xl border-t border-zinc-900 p-4"
               >
-                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{selectedSize} Perspective</span>
-                    <span className="text-xl font-black text-white">{product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0)} MAD</span>
+                 <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-col">
+                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {selectedSize} ({sizes.find(s => s.id === selectedSize)?.label})</span>
+                       <span className="text-xl font-black text-white">{product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0)} MAD</span>
+                    </div>
                  </div>
-                 <button
-                  onClick={() => {
-                    const selectedSizeData = sizes.find(s => s.id === selectedSize);
-                    addToCart(
-                      { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
-                      selectedSize,
-                      selectedSizeData?.label
-                    );
-                  }}
-                  disabled={!product.inStock}
-                  className={`px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
-                    product.inStock
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-zinc-800 text-zinc-600'
-                  }`}
-                >
-                  {product.inStock ? t('addToCart') : t('unavailable')}
-                </button>
+                 <div className="grid grid-cols-2 gap-3">
+                    <button
+                     onClick={() => {
+                       const selectedSizeData = sizes.find(s => s.id === selectedSize);
+                       addToCart(
+                         { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
+                         selectedSize,
+                         selectedSizeData?.label
+                       );
+                     }}
+                     disabled={!product.inStock}
+                     className={`px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
+                       product.inStock
+                         ? 'bg-blue-600 text-white'
+                         : 'bg-zinc-800 text-zinc-600'
+                     }`}
+                   >
+                     {product.inStock ? t('addToCart') : t('unavailable')}
+                   </button>
+                   <button
+                     onClick={() => {
+                       const selectedSizeData = sizes.find(s => s.id === selectedSize);
+                       addToCart(
+                         { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
+                         selectedSize,
+                         selectedSizeData?.label
+                       );
+                       router.push('/checkout');
+                     }}
+                     disabled={!product.inStock}
+                     className={`px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
+                       product.inStock
+                         ? 'bg-white text-black'
+                         : 'bg-zinc-800 text-zinc-600'
+                     }`}
+                   >
+                     {product.inStock ? 'Buy Now' : t('unavailable')}
+                   </button>
+                 </div>
               </motion.div>
             </AnimatePresence>
 
