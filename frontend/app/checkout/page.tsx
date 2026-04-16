@@ -152,22 +152,22 @@ export default function CheckoutPage() {
 
               <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:gap-10">
                 <div className="space-y-2 sm:space-y-3">
-                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Full Name</label>
+                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Full Name • الاسم الكامل</label>
                   <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Phone Number</label>
+                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Phone Number • رقم الهاتف</label>
                   <input required type="tel" name="phone" placeholder="+212 6 00 00 00 00" value={formData.phone} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Shipping Address</label>
+                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Shipping Address • العنوان</label>
                   <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">City</label>
+                  <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">City • المدينة</label>
                   <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
@@ -262,7 +262,7 @@ export default function CheckoutPage() {
               >
                 {isSubmitting ? t('processing') : (
                   <span className="flex items-center gap-3 sm:gap-4">
-                    Finalize Order
+                    <span>Finalize Order • أكمل الطلب</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                   </span>
                 )}

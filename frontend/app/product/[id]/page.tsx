@@ -205,7 +205,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                 {product.inStock ? (
                   <>
-                    {t('addToCart')}
+                    <span>Add to Cart • زيد للسلة</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                   </>
                 ) : t('unavailable')}
@@ -230,7 +230,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                 {product.inStock ? (
                   <>
-                    Buy Now
+                    <span>Buy Now • شري دابا</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </>
                 ) : t('unavailable')}
@@ -272,7 +272,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                          : 'bg-zinc-800 text-zinc-600'
                      }`}
                    >
-                     {product.inStock ? t('addToCart') : t('unavailable')}
+                     {product.inStock ? (
+                       <div className="flex flex-col items-center gap-0.5">
+                         <span>ADD TO CART</span>
+                         <span className="text-[8px] opacity-70">زيد للسلة</span>
+                       </div>
+                     ) : t('unavailable')}
                    </button>
                    <button
                      onClick={() => {
@@ -291,7 +296,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                          : 'bg-zinc-800 text-zinc-600'
                      }`}
                    >
-                     {product.inStock ? 'Buy Now' : t('unavailable')}
+                     {product.inStock ? (
+                       <div className="flex flex-col items-center gap-0.5">
+                         <span>BUY NOW</span>
+                         <span className="text-[8px] opacity-70">شري دابا</span>
+                       </div>
+                     ) : t('unavailable')}
                    </button>
                  </div>
               </motion.div>
