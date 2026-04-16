@@ -67,9 +67,9 @@ export default function CartPage() {
               className="lg:col-span-8 space-y-8"
             >
               <AnimatePresence>
-                {cart.map((item) => (
+                {cart.map((item, index) => (
                   <motion.div 
-                    key={item._id} 
+                    key={`${item._id}-${item.selectedSize || 'default'}-${index}`} 
                     variants={itemVariants}
                     transition={{ duration: 0.6 }}
                     layout
@@ -87,7 +87,10 @@ export default function CartPage() {
                     <div className="flex flex-1 flex-col justify-between w-full">
                       <div className="flex justify-between items-start mb-4">
                         <div className="space-y-1">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">{item.category}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+                            {item.category}
+                            {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
+                          </p>
                           <h3 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 uppercase font-jakarta">{item.name}</h3>
                         </div>
                         <p className="text-2xl font-black text-zinc-900 dark:text-white font-serif">

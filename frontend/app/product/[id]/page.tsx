@@ -188,7 +188,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             <motion.div variants={itemVariants} className="space-y-8">
               <button
-                onClick={() => addToCart({ ...product, price: product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0) })}
+                onClick={() => {
+                  const selectedSizeData = sizes.find(s => s.id === selectedSize);
+                  addToCart(
+                    { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
+                    selectedSize,
+                    selectedSizeData?.label
+                  );
+                }}
                 disabled={!product.inStock}
                 className={`hidden md:flex items-center justify-center gap-4 w-full px-12 py-8 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-4xl transition-all active:scale-[0.98] ${
                   product.inStock
@@ -222,7 +229,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <span className="text-xl font-black text-white">{product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0)} MAD</span>
                  </div>
                  <button
-                  onClick={() => addToCart({ ...product, price: product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0) })}
+                  onClick={() => {
+                    const selectedSizeData = sizes.find(s => s.id === selectedSize);
+                    addToCart(
+                      { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
+                      selectedSize,
+                      selectedSizeData?.label
+                    );
+                  }}
                   disabled={!product.inStock}
                   className={`px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
                     product.inStock

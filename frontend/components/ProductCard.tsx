@@ -18,7 +18,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product);
+    // Add with default medium size
+    addToCart({ ...product, price: product.price + 150 }, 'M', '50x70cm');
   };
 
   const imageUrl = product.image || 'https://via.placeholder.com/400x300?text=No+Image';

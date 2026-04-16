@@ -5,11 +5,13 @@ import { Product } from '@/lib/apiServices';
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedSize?: string;
+  sizeLabel?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, selectedSize?: string, sizeLabel?: string) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -53,19 +55,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   // Add product to cart
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, selectedSize?: string, sizeLabel?: string) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item._id === product._id);
+      const existingItem = prevCart.find((item) => item._id === product._id && item.selectedSize === selectedSize);
       if (existingItem) {
         return prevCart.map((item) =>
-          item._id === product._id
+          item._id === product._id && item.selectedSize === selectedSize
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, quantity: 1, selectedSize, sizeLabel }];
     });
-    showToast(`Added ${product.name} to cart`);
+    const sizeInfo = selectedSize ? ` (${sizeLabel || selectedSize})` : '';
+    showToast(`Added ${product.name}${sizeInfo} to cart`);
   };
 
   // Remove product from cart completely

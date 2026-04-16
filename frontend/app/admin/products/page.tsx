@@ -334,7 +334,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-2xl font-black text-white">
-                              ${product.price.toFixed(2)}
+                              {product.price.toFixed(2)} MAD
                             </p>
                             <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">
                               {product.category}
@@ -397,7 +397,7 @@ export default function AdminProductsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-bold text-zinc-400 mb-2">
-                          Price (USD) *
+                          Price (MAD) *
                         </label>
                         <input
                           type="number"
@@ -408,7 +408,7 @@ export default function AdminProductsPage() {
                           min="0"
                           step="0.01"
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all"
-                          placeholder="49.99"
+                          placeholder="499.99"
                         />
                       </div>
                       <div>

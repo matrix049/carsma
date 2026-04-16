@@ -8,21 +8,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MOROCCO_STATES = [
-  'Tanger-Tétouan-Al Hoceïma',
-  "L'Oriental",
-  'Fès-Meknès',
-  'Rabat-Salé-Kénitra',
-  'Béni Mellal-Khénifra',
-  'Casablanca-Settat',
-  'Marrakech-Safi',
-  'Drâa-Tafilalet',
-  'Souss-Massa',
-  'Guelmim-Oued Noun',
-  'Laâyoune-Sakia El Hamra',
-  'Dakhla-Oued Ed-Dahab'
-];
-
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, calculateTotal, clearCart } = useCart();
@@ -37,7 +22,6 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     city: '',
-    state: '',
     notes: ''
   });
 
@@ -56,7 +40,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state}`;
+      const fullAddress = `${formData.address}, ${formData.city}`;
       const customerPayload: Customer = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -179,19 +163,6 @@ export default function CheckoutPage() {
                   <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Region / Province</label>
-                  <div className="relative">
-                    <select required name="state" value={formData.state} onChange={handleChange}
-                      className="w-full bg-zinc-950 border border-zinc-900 rounded-[1.5rem] px-8 py-6 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all appearance-none cursor-pointer text-zinc-400">
-                      <option value="" disabled>Select Region</option>
-                      {MOROCCO_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-700">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                  </div>
-                </div>
               </form>
             </motion.section>
 
@@ -231,14 +202,17 @@ export default function CheckoutPage() {
               <h2 className="text-xs font-black uppercase tracking-[0.5em] text-zinc-500 mb-12">Manifesto & Total</h2>
               
               <div className="space-y-10 mb-16 max-h-[40vh] overflow-y-auto pr-4 no-scrollbar">
-                {cart.map((item) => (
-                  <div key={item._id} className="flex gap-8 items-center group">
+                {cart.map((item, index) => (
+                  <div key={`${item._id}-${item.selectedSize || 'default'}-${index}`} className="flex gap-8 items-center group">
                     <div className="h-24 w-24 flex-none rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 transition-transform group-hover:scale-105 duration-500">
                       <img src={item.image} alt={item.name} className="h-full w-full object-cover scale-110" />
                     </div>
                     <div className="flex-1 space-y-1">
                       <h4 className="text-sm font-black uppercase tracking-widest text-white leading-tight">{item.name}</h4>
-                      <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">{item.category} • X{item.quantity}</p>
+                      <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">
+                        {item.category} • X{item.quantity}
+                        {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
+                      </p>
                     </div>
                     <div className="text-sm font-black text-white whitespace-nowrap">
                       {item.price * item.quantity} <span className="text-[9px] text-zinc-600 italic">MAD</span>
