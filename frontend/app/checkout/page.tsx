@@ -67,6 +67,8 @@ export default function CheckoutPage() {
       await createOrder(orderData);
       setSuccess(true);
       clearCart();
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setOrderError(err.message || t('orderFailed'));
     } finally {
@@ -152,22 +154,22 @@ export default function CheckoutPage() {
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Full Name</label>
                   <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-xs sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Phone Number</label>
                   <input required type="tel" name="phone" placeholder="+212 6 00 00 00 00" value={formData.phone} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-xs sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">Shipping Address</label>
                   <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-xs sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 ml-1">City</label>
                   <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-xs sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
               </form>
             </motion.section>

@@ -186,7 +186,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </p>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="space-y-8">
+            <motion.div variants={itemVariants} className="space-y-4">
               <button
                 onClick={() => {
                   const selectedSizeData = sizes.find(s => s.id === selectedSize);
@@ -207,6 +207,31 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <>
                     {t('addToCart')}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                  </>
+                ) : t('unavailable')}
+              </button>
+
+              <button
+                onClick={() => {
+                  const selectedSizeData = sizes.find(s => s.id === selectedSize);
+                  addToCart(
+                    { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
+                    selectedSize,
+                    selectedSizeData?.label
+                  );
+                  router.push('/checkout');
+                }}
+                disabled={!product.inStock}
+                className={`hidden md:flex items-center justify-center gap-4 w-full px-12 py-8 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-4xl transition-all active:scale-[0.98] ${
+                  product.inStock
+                    ? 'bg-zinc-900 text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-zinc-200'
+                    : 'cursor-not-allowed bg-zinc-900 text-zinc-700'
+                }`}
+              >
+                {product.inStock ? (
+                  <>
+                    Buy Now
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </>
                 ) : t('unavailable')}
               </button>
