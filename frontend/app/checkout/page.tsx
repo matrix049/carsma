@@ -41,9 +41,15 @@ export default function CheckoutPage() {
 
     try {
       const fullAddress = `${formData.address}, ${formData.city}`;
+      
+      // Split firstName into first and last name if it contains a space
+      const nameParts = formData.firstName.trim().split(' ');
+      const firstName = nameParts[0] || formData.firstName;
+      const lastName = nameParts.slice(1).join(' ') || formData.firstName;
+      
       const customerPayload: Customer = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: firstName,
+        lastName: lastName,
         phone: formData.phone,
         address: fullAddress
       };
