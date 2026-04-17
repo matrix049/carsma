@@ -71,6 +71,9 @@ export default function CustomizePage() {
                 Your <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">Car,</span><br />
                 <span className="text-blue-600">Our Art</span>
               </h1>
+              <p className="text-base text-blue-400 font-medium leading-relaxed pt-4 border-t border-zinc-800">
+                مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
+              </p>
             </div>
             <p className="text-xl text-zinc-400 font-medium leading-relaxed max-w-lg">
               {t('customDesignDesc')} Transform your automotive soul into a gallery-grade masterpiece. Every curve, every reflection, meticulously captured by our digital curators.
