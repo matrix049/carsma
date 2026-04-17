@@ -24,8 +24,8 @@ const dictionary: Translations = {
   adminDashboard: { en: 'Admin Dashboard', fr: 'Tableau de bord', ar: 'لوحة التحكم' },
   
   // Shopping
-  addToCart: { en: 'Add to Cart', fr: 'Ajouter au panier', ar: 'زيد ل-panier' },
-  unavailable: { en: 'Unavailable', fr: 'Indisponible', ar: 'ماكاينش دابا' },
+  addToCart: { en: 'Add to Cart', fr: 'Ajouter au panier', ar: 'زيد للسلة' },
+  unavailable: { en: 'Unavailable', fr: 'Indisponible', ar: 'ماكاينش' },
   checkout: { en: 'Checkout', fr: 'Paiement', ar: 'خلاص' },
   selectLanguage: { en: 'Language', fr: 'Langue', ar: 'اللغة / Darija' },
   proceedToCheckout: { en: 'Proceed to Checkout', fr: 'Passer au paiement', ar: 'كمل باش تخلص' },
