@@ -186,8 +186,8 @@ export default function CheckoutPage() {
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <div className="flex-1">
-                   <h4 className="text-base sm:text-xl font-black uppercase tracking-tight text-white mb-1 sm:mb-2">Cash on Delivery (COD)</h4>
-                   <p className="text-xs sm:text-sm text-zinc-500 font-medium">Authentic physical tender upon arrival. No upfront digital transaction required.</p>
+                   <h4 className="text-base sm:text-xl font-black tracking-tight text-white mb-1 sm:mb-2">حتى توصلك عاد خلص</h4>
+                   <p className="text-xs sm:text-sm text-zinc-500 font-medium">Pay when it arrives. No upfront payment required.</p>
                 </div>
                 <div className="hidden sm:block opacity-10">
                    <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h5a1 1 0 011 1v10a1 1 0 01-1 1h-1m-4 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
