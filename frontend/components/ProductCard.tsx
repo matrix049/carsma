@@ -81,24 +81,35 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="mb-10 flex-1 text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
             {product.description || t('exploreSelection')}
           </p>
-          <button
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className={`mt-auto flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-[10px] font-black uppercase tracking-widest transition-all z-10 relative overflow-hidden group/btn ${
-              product.inStock
-                ? 'bg-zinc-900 text-white hover:bg-black hover:shadow-2xl active:scale-[0.98] dark:bg-zinc-800 dark:hover:bg-zinc-700'
-                : 'cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600'
-            }`}
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              {product.inStock ? (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                  {t('addToCart')}
-                </>
-              ) : t('unavailable')}
-            </span>
-          </button>
+          <div className="flex gap-3 mt-auto">
+            <Link
+              href={`/product/${product._id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center rounded-2xl py-5 px-5 text-[10px] font-black uppercase tracking-widest transition-all bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:scale-[0.98] dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className={`flex-1 flex items-center justify-center gap-3 rounded-2xl py-5 text-[10px] font-black uppercase tracking-widest transition-all z-10 relative overflow-hidden group/btn ${
+                product.inStock
+                  ? 'bg-zinc-900 text-white hover:bg-black hover:shadow-2xl active:scale-[0.98] dark:bg-zinc-800 dark:hover:bg-zinc-700'
+                  : 'cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600'
+              }`}
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                {product.inStock ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    {t('addToCart')}
+                  </>
+                ) : t('unavailable')}
+              </span>
+            </button>
+          </div>
         </div>
       </Link>
     </motion.div>
