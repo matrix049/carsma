@@ -91,13 +91,13 @@ export default function Home() {
                   {t('exploreGallery')}
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </span>
-                <span className="text-[10px] opacity-80">شوف اللوحات</span>
+                <span className="text-xs opacity-80">شوف اللوحات</span>
               </span>
             </WheelButton>
             <WheelButton href="/customize" variant="secondary">
               <span className="flex flex-col items-center gap-1">
                 <span>{t('customizeYourDesign')}</span>
-                <span className="text-[10px] opacity-80">طلب تصميم خاص</span>
+                <span className="text-xs opacity-80">طلب تصميم خاص</span>
               </span>
             </WheelButton>
           </div>
@@ -133,7 +133,7 @@ export default function Home() {
                 {t('exploreGallery')}
                 <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
               </span>
-              <span className="text-[10px] opacity-80 normal-case tracking-normal">شوف اللوحات</span>
+              <span className="text-xs opacity-80 normal-case tracking-normal">شوف اللوحات</span>
             </Link>
           </motion.div>
         </motion.div>
@@ -199,7 +199,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                     </svg>
                   </span>
-                  <span className="text-[10px] opacity-80">طلب تصميم خاص</span>
+                  <span className="text-xs opacity-80">طلب تصميم خاص</span>
                 </span>
               </WheelButton>
             </div>

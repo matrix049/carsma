@@ -275,7 +275,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                      {product.inStock ? (
                        <div className="flex flex-col items-center gap-0.5">
                          <span>ADD TO CART</span>
-                         <span className="text-[10px] opacity-80">زيد للسلة</span>
+                         <span className="text-xs opacity-80">زيد للسلة</span>
                        </div>
                      ) : t('unavailable')}
                    </button>
@@ -299,7 +299,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                      {product.inStock ? (
                        <div className="flex flex-col items-center gap-0.5">
                          <span>BUY NOW</span>
-                         <span className="text-[10px] opacity-80">شري دابا</span>
+                         <span className="text-xs opacity-80">شري دابا</span>
                        </div>
                      ) : t('unavailable')}
                    </button>
