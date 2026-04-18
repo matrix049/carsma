@@ -11,31 +11,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Navbar() {
   const pathname = usePathname();
   const { itemCount } = useCart();
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isLangOpen && !(event.target as HTMLElement).closest('.lang-dropdown')) {
-        setIsLangOpen(false);
-      }
-    };
 
     window.addEventListener('scroll', handleScroll);
-    window.addEventListener('mousedown', handleClickOutside);
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isLangOpen]);
+  }, []);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -70,7 +61,6 @@ export default function Navbar() {
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMenu = () => {
     setIsMobileMenuOpen(false);
-    setIsLangOpen(false);
   };
 
   const navLinks = [
@@ -115,40 +105,6 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-6">
-          {/* Language Selector - Desktop & Mobile */}
-          <div className="relative lang-dropdown">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 transition-all hover:text-white hover:border-zinc-700 hover:bg-zinc-800"
-            >
-              {language}
-              <svg className={`w-3 h-3 transition-transform duration-500 ${isLangOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
-            </motion.button>
-
-            <AnimatePresence>
-              {isLangOpen && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  className="absolute right-0 mt-4 w-48 origin-top-right overflow-hidden rounded-[2rem] border border-zinc-800 bg-black p-2 shadow-3xl backdrop-blur-2xl z-50"
-                >
-                  {(['en', 'fr', 'ar'] as const).map(l => (
-                    <button
-                      key={l}
-                      onClick={() => { setLanguage(l); setIsLangOpen(false); }}
-                      className={`flex w-full items-center justify-between rounded-2xl px-5 py-3.5 text-[10px] font-black uppercase tracking-widest transition-all ${language === l ? 'bg-blue-600/10 text-blue-500' : 'text-zinc-500 hover:bg-zinc-900 hover:text-white'}`}
-                    >
-                      {l === 'en' ? 'English' : l === 'fr' ? 'Français' : 'العربية'}
-                      {language === l && <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(37,99,235,1)]" />}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           <div className="flex items-center gap-4">
             <Link href="/cart" className="relative p-2 text-zinc-500 hover:text-white transition-all hover:scale-110">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
