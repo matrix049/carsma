@@ -19,6 +19,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "L7it - الحيط",
   description: "Exclusive automotive wall art for car enthusiasts",
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export const viewport = {
