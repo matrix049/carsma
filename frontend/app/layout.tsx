@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "L7it - Automotive Art Gallery",
+  title: "L7it - الحيط",
   description: "Exclusive automotive wall art for car enthusiasts",
 };
 
