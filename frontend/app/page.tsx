@@ -127,13 +127,13 @@ export default function Home() {
           <motion.div variants={itemVariants}>
             <Link 
               href="/shop" 
-              className="group inline-flex flex-col items-start gap-1 text-xs font-black text-blue-600 hover:text-blue-500 transition-all uppercase tracking-widest"
+              className="group inline-flex flex-col items-start gap-2 transition-all"
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-4 text-xl font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest">
                 {t('exploreGallery')}
-                <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <svg className="w-7 h-7 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
               </span>
-              <span className="text-xs opacity-80 normal-case tracking-normal">شوف اللوحات</span>
+              <span className="text-base opacity-80 normal-case tracking-normal text-blue-600">شوف اللوحات</span>
             </Link>
           </motion.div>
         </motion.div>
@@ -153,9 +153,9 @@ export default function Home() {
               whileInView="visible" 
               viewport={{ once: true }} 
               variants={containerVariants}
-              className="flex gap-12 animate-scroll"
+              className="flex gap-8 animate-scroll"
               style={{
-                width: `${featuredProducts.length * 400}px`,
+                width: `${featuredProducts.length * 320}px`,
               }}
             >
               {/* Duplicate products for seamless loop */}
@@ -163,7 +163,7 @@ export default function Home() {
                 <motion.div 
                   key={`${product._id}-${index}`} 
                   variants={itemVariants}
-                  className="flex-shrink-0 w-[350px]"
+                  className="flex-shrink-0 w-[280px]"
                 >
                   <ProductCard product={product} />
                 </motion.div>
@@ -189,6 +189,9 @@ export default function Home() {
             </h2>
             <p className="text-xl text-zinc-500 font-medium leading-relaxed max-w-xl">
               {t('customDesignDesc')}
+            </p>
+            <p className="text-lg text-blue-400 font-medium leading-relaxed max-w-xl border-t border-zinc-800 pt-6">
+              مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
             </p>
             <div className="pt-8">
               <WheelButton href="/customize" variant="primary">
