@@ -128,3 +128,22 @@ body {
 .tire-mark {
   animation: tire-mark 0.6s ease-out forwards;
 }
+
+
+/* Auto-scrolling carousel animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}

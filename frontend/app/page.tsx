@@ -20,7 +20,8 @@ export default function Home() {
     async function loadProducts() {
       try {
         const data = await fetchProducts();
-        setFeaturedProducts(data.slice(0, 4));
+        // Get all products instead of just first 4
+        setFeaturedProducts(data);
       } catch (err: any) {
         console.error('Failed to load products:', err);
         setError(err.message || 'Failed to load products');
@@ -145,16 +146,30 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12"
-          >
-            {featuredProducts.map((product) => (
-              <motion.div key={product._id} variants={itemVariants}>
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
+          <div className="relative overflow-hidden">
+            {/* Auto-sliding carousel */}
+            <motion.div 
+              initial="hidden" 
+              whileInView="visible" 
+              viewport={{ once: true }} 
+              variants={containerVariants}
+              className="flex gap-12 animate-scroll"
+              style={{
+                width: `${featuredProducts.length * 400}px`,
+              }}
+            >
+              {/* Duplicate products for seamless loop */}
+              {[...featuredProducts, ...featuredProducts].map((product, index) => (
+                <motion.div 
+                  key={`${product._id}-${index}`} 
+                  variants={itemVariants}
+                  className="flex-shrink-0 w-[350px]"
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         )}
       </section>
 
