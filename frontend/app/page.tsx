@@ -172,43 +172,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* Custom Design CTA Section */}
-      <section className="container mx-auto px-6 py-40 max-w-7xl">
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1 }}
-          className="relative overflow-hidden rounded-[4rem] bg-zinc-950 px-12 py-32 text-left shadow-4xl border border-zinc-900"
-        >
-          <div className="absolute inset-0 z-0 opacity-40">
-            <div className="h-full w-full bg-[radial-gradient(circle_at_70%_50%,#2563eb_0%,transparent_60%)] opacity-20"></div>
-          </div>
-          
-          <div className="relative z-10 max-w-3xl space-y-12">
-            <h2 className="text-5xl font-black tracking-tighter text-white sm:text-8xl leading-[0.9] uppercase font-jakarta">
-              {t('customDesignTitle')}
-            </h2>
-            <p className="text-xl text-zinc-500 font-medium leading-relaxed max-w-xl">
-              {t('customDesignDesc')}
-            </p>
-            <p className="text-lg text-blue-400 font-medium leading-relaxed max-w-xl border-t border-zinc-800 pt-6">
-              مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
-            </p>
-            <div className="pt-8">
-              <WheelButton href="/customize" variant="primary">
-                <span className="flex flex-col items-center gap-1">
-                  <span className="flex items-center gap-2">
-                    {t('contactUsNow')}
-                    <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
-                  </span>
-                  <span className="text-xs opacity-80">طلب تصميم خاص</span>
-                </span>
-              </WheelButton>
-            </div>
-          </div>
-        </motion.div>
-      </section>
     </div>
   );
 }
