@@ -186,7 +186,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                    <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
                       Identity
                     </label>
                     <input 
@@ -202,7 +202,7 @@ export default function ContactPage() {
                     )}
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                    <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
                       {t('email')}
                     </label>
                     <input 
@@ -219,7 +219,7 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                  <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
                     Matter of Inquiry
                   </label>
                   <textarea

@@ -102,12 +102,12 @@ export default function CustomizePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Car Model / Year</label>
+                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Car Model / Year</label>
                        <input required type="text" name="model" placeholder="e.g. 1972 Nissan Skyline GT-R" value={formData.model} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Exterior Color</label>
+                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Exterior Color</label>
                        <input required type="text" name="carName" placeholder="e.g. Midnight Purple III" value={formData.carName} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
@@ -143,14 +143,14 @@ export default function CustomizePage() {
                     <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">03. Assets & Vision</h2>
                   </div>
                   <div className="space-y-2">
-                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Reference Photos</label>
+                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Reference Photos</label>
                      <div className="w-full aspect-[3/1] rounded-2xl border-2 border-dashed border-zinc-800 bg-zinc-950 flex flex-col items-center justify-center gap-3 text-zinc-600 hover:border-blue-600 hover:text-blue-500 transition-all cursor-pointer group">
                         <svg className="w-8 h-8 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span className="text-[10px] font-bold">Drag & Drop or <span className="text-white">Browse</span></span>
                      </div>
                   </div>
                   <div className="space-y-2">
-                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Special Notes</label>
+                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Special Notes</label>
                      <textarea name="notes" rows={4} placeholder="Describe specific details, lighting preferences, or any unique modifications..." value={formData.notes} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all resize-none" />
                   </div>
