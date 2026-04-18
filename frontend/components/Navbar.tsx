@@ -66,6 +66,7 @@ export default function Navbar() {
   const navLinks = [
     { name: t('home'), path: '/' },
     { name: t('shop'), path: '/shop' },
+    { name: 'FAQ', path: '/faq' },
     { name: t('contact'), path: '/contact' },
     { name: t('customizationRequest'), path: '/customize' }
   ];
