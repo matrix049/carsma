@@ -77,7 +77,7 @@ export default function Home() {
             >
               {t('exclusiveTitle')}
             </motion.span>
-            <h1 className="text-6xl font-black tracking-tighter text-white sm:text-8xl lg:text-[10rem] uppercase font-jakarta leading-[0.85]">
+            <h1 className="text-5xl font-black tracking-tighter text-white sm:text-6xl lg:text-7xl uppercase font-jakarta leading-[0.85]">
               {t('premiumWall')}<br /><span className="text-blue-600 drop-shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all hover:drop-shadow-[0_0_50px_rgba(37,99,235,0.6)]">{t('wallCollection')}</span>
             </h1>
           </div>
