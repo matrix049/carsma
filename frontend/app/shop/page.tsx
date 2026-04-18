@@ -13,6 +13,7 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
@@ -38,14 +39,29 @@ export default function ShopPage() {
 
   useEffect(() => {
     let filtered = allProducts;
+    
+    // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(p => p.category === selectedCategory);
     }
+    
+    // Filter by stock
     if (inStockOnly) {
       filtered = filtered.filter(p => p.inStock);
     }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        (p.description && p.description.toLowerCase().includes(query))
+      );
+    }
+    
     setFilteredProducts(filtered);
-  }, [selectedCategory, inStockOnly, allProducts]);
+  }, [selectedCategory, inStockOnly, searchQuery, allProducts]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -149,6 +165,35 @@ export default function ShopPage() {
                   {t('shop')}
                 </h1>
                 <div className="h-2 w-32 bg-blue-600 rounded-full" />
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative max-w-2xl">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by car name, brand, or model... ابحث عن السيارة"
+                  className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-5 pl-14 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-400"
+                />
+                <svg 
+                  className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </motion.div>
 
