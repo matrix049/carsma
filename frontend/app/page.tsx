@@ -153,9 +153,9 @@ export default function Home() {
               whileInView="visible" 
               viewport={{ once: true }} 
               variants={containerVariants}
-              className="flex gap-8 animate-scroll"
+              className="flex gap-6 animate-scroll"
               style={{
-                width: `${featuredProducts.length * 320}px`,
+                width: `${featuredProducts.length * 250}px`,
               }}
             >
               {/* Duplicate products for seamless loop */}
@@ -163,7 +163,7 @@ export default function Home() {
                 <motion.div 
                   key={`${product._id}-${index}`} 
                   variants={itemVariants}
-                  className="flex-shrink-0 w-[280px]"
+                  className="flex-shrink-0 w-[220px]"
                 >
                   <ProductCard product={product} />
                 </motion.div>
