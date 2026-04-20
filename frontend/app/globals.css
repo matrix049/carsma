@@ -1,17 +1,12 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
   --surface: #f8fafc;
   --primary: #2563eb;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-primary: var(--primary);
   --font-jakarta: var(--font-jakarta);
   --font-inter: var(--font-inter);
 }
@@ -62,88 +57,4 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-
-/* Wheel and Car Animations */
-@keyframes wheel-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes smoke-drift {
-  0% {
-    opacity: 0.6;
-    transform: translateX(0) scale(0.5);
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-30px) scale(1.5);
-  }
-}
-
-@keyframes car-drive {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(100vw);
-  }
-}
-
-.wheel-spin {
-  animation: wheel-spin 1s linear infinite;
-}
-
-.smoke-drift {
-  animation: smoke-drift 1.5s ease-out infinite;
-}
-
-.car-drive {
-  animation: car-drive 20s linear infinite;
-}
-
-/* Tire mark effect */
-@keyframes tire-mark {
-  0% {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: scaleX(1);
-  }
-}
-
-.tire-mark {
-  animation: tire-mark 0.6s ease-out forwards;
-}
-
-
-/* Auto-scrolling carousel animation */
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-scroll {
-  animation: scroll 40s linear infinite;
-}
-
-.animate-scroll:hover {
-  animation-play-state: paused;
 }
