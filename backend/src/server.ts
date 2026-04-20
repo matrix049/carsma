@@ -97,8 +97,21 @@ const startServer = async () => {
   // Connect to MongoDB in the background (non-blocking)
   const db = new DatabaseConnection();
   db.connect()
-    .then(() => {
+    .then(async () => {
       console.log('✓ MongoDB connected successfully');
+      // Sync admin credentials from env vars on every startup
+      try {
+        const Admin = (await import('./models/Admin')).default;
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        if (adminEmail && adminPassword) {
+          await Admin.deleteMany({});
+          await Admin.create({ email: adminEmail, password: adminPassword });
+          console.log(`✓ Admin synced: ${adminEmail}`);
+        }
+      } catch (e) {
+        console.error('⚠ Admin sync failed:', e);
+      }
     })
     .catch((error) => {
       console.error('✗ MongoDB connection failed:', error.message);

@@ -58,6 +58,8 @@ const seedData = async () => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
+    // Always update/recreate admin with current env vars
+    await Admin.deleteMany({});
     const admin = await Admin.create({
       email: adminEmail,
       password: adminPassword
