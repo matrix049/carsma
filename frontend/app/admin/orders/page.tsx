@@ -74,6 +74,100 @@ export default function AdminOrdersPage() {
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
+  // Handle modal keyboard events and focus management
+  useEffect(() => {
+    if (selectedOrder) {
+      // Focus the modal for keyboard navigation
+      const modalElement = document.querySelector('[role="dialog"]') as HTMLElement;
+      if (modalElement) {
+        modalElement.focus();
+      }
+
+      // Handle escape key globally
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setSelectedOrder(null);
+        }
+      };
+
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleEscape);
+
+      // Touch gesture handling for mobile
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+
+      const handleTouchStart = (e: Event) => {
+        const touchEvent = e as TouchEvent;
+        startY = touchEvent.touches[0].clientY;
+        isDragging = true;
+      };
+
+      const handleTouchMove = (e: Event) => {
+        const touchEvent = e as TouchEvent;
+        if (!isDragging) return;
+        currentY = touchEvent.touches[0].clientY;
+        const deltaY = currentY - startY;
+        
+        // Only allow downward swipe and only if at the top of the modal
+        const modalContent = e.target as HTMLElement;
+        const isAtTop = modalContent.scrollTop === 0;
+        
+        if (deltaY > 0 && isAtTop) {
+          e.preventDefault();
+          // Add visual feedback for swipe
+          const modal = document.querySelector('[role="dialog"] > div') as HTMLElement;
+          if (modal) {
+            const progress = Math.min(deltaY / 150, 1);
+            modal.style.transform = `translateY(${deltaY * 0.5}px) scale(${1 - progress * 0.1})`;
+            modal.style.opacity = `${1 - progress * 0.3}`;
+          }
+        }
+      };
+
+      const handleTouchEnd = (e: Event) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        const deltaY = currentY - startY;
+        const modal = document.querySelector('[role="dialog"] > div') as HTMLElement;
+        
+        if (deltaY > 100) {
+          // Close modal if swiped down enough
+          setSelectedOrder(null);
+        } else {
+          // Reset modal position
+          if (modal) {
+            modal.style.transform = '';
+            modal.style.opacity = '';
+          }
+        }
+      };
+
+      // Add touch listeners to the modal content
+      const modalContent = document.querySelector('[role="dialog"] > div');
+      if (modalContent) {
+        modalContent.addEventListener('touchstart', handleTouchStart, { passive: false });
+        modalContent.addEventListener('touchmove', handleTouchMove, { passive: false });
+        modalContent.addEventListener('touchend', handleTouchEnd);
+      }
+
+      return () => {
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', handleEscape);
+        
+        // Clean up touch listeners
+        if (modalContent) {
+          modalContent.removeEventListener('touchstart', handleTouchStart);
+          modalContent.removeEventListener('touchmove', handleTouchMove);
+          modalContent.removeEventListener('touchend', handleTouchEnd);
+        }
+      };
+    }
+  }, [selectedOrder]);
+
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
     setUpdatingId(orderId);
     try {
@@ -426,6 +520,15 @@ export default function AdminOrdersPage() {
           <div 
             className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm"
             onClick={() => setSelectedOrder(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setSelectedOrder(null);
+              }
+            }}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -434,19 +537,47 @@ export default function AdminOrdersPage() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-[3rem] border border-zinc-800 bg-zinc-950 shadow-2xl"
             >
-              {/* Close button */}
+              {/* Close button - Enhanced for mobile */}
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="absolute top-4 right-4 sm:top-8 sm:right-8 h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
+                className="absolute top-4 right-4 sm:top-8 sm:right-8 h-12 w-12 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10 touch-manipulation"
+                aria-label="Close modal"
               >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
+              {/* Mobile: Swipe indicator and instructions */}
+              <div className="block sm:hidden absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-zinc-700 rounded-full"></div>
+              <div className="block sm:hidden absolute top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+                Swipe down or tap outside to close
+              </div>
+
               <div className="p-4 sm:p-6 md:p-10 lg:p-14">
+                {/* Mobile Header with Close Button */}
+                <div className="block sm:hidden mb-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-black tracking-tighter font-jakarta uppercase text-white">
+                      Order Details
+                    </h2>
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="h-10 w-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all touch-manipulation"
+                      aria-label="Close modal"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-blue-500 text-lg font-black mt-2">
+                    #{selectedOrder.orderNumber}
+                  </p>
+                </div>
+
                 {/* Header */}
-                <div className="mb-6 sm:mb-8 md:mb-10">
+                <div className="hidden sm:block mb-6 sm:mb-8 md:mb-10">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter font-jakarta uppercase">
                       Order Details
