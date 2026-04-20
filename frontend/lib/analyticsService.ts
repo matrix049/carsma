@@ -109,12 +109,11 @@ class AnalyticsService {
    * Fetch analytics statistics (admin only)
    */
   static async fetchAnalyticsStats(token: string): Promise<AnalyticsData> {
-    return await apiRequest<{ data: AnalyticsData }>('/api/analytics/stats', {
+    const result = await apiRequest<{ success: boolean; data: AnalyticsData }>('/api/analytics/stats', {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    }, true).then(result => result.data);
+    }, true);
+    
+    return result.data;
   }
 }
 

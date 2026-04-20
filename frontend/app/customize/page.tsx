@@ -143,7 +143,9 @@ export default function CustomizePage() {
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">03. Malahadhat</h2>
+                    <h2 className="text-xl font-black tracking-tight font-jakarta">
+                      الملاحظات: (بغيتي تزيد شي حاجة؟)
+                    </h2>
                   </div>
                   <div className="space-y-2">
                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Ay haja khra bghiti tzidha</label>

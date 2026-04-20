@@ -16,11 +16,17 @@ export default function AdminLogin() {
 
   useEffect(() => {
     setMounted(true);
-    // Only redirect to dashboard if we're on the login page and user is authenticated
-    if (isAuthenticated && window.location.pathname === '/admin') {
-      router.push('/admin/dashboard');
+  }, []);
+
+  // Only redirect if we're authenticated and specifically on the /admin login page
+  useEffect(() => {
+    if (mounted && isAuthenticated && typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (currentPath === '/admin' || currentPath === '/admin/') {
+        router.push('/admin/dashboard');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [mounted, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +46,15 @@ export default function AdminLogin() {
   };
 
   if (!mounted) return null;
+
+  // If we're authenticated and on the login page, redirect to dashboard
+  if (mounted && isAuthenticated && typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/admin' || currentPath === '/admin/') {
+      router.push('/admin/dashboard');
+      return null;
+    }
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center py-8 md:py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-black">
