@@ -12,19 +12,6 @@ interface NotificationOptions {
 }
 
 /**
- * Notification Service using ntfy.sh
- * Sends push notifications for important events (orders, custom requests, etc.)
- */
-
-interface NotificationOptions {
-  title: string;
-  message: string;
-  priority?: 'min' | 'low' | 'default' | 'high' | 'urgent';
-  tags?: string[];
-  click?: string; // URL to open when notification is clicked
-}
-
-/**
  * Send notification via ntfy.sh
  * @param options - Notification configuration
  */
@@ -54,25 +41,29 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
   console.log('🌐 Sending to URL:', ntfyUrl);
 
   try {
-    const payload = {
-      topic: ntfyTopic,
-      title: options.title,
-      message: options.message,
-      priority: options.priority || 'high',
-      tags: options.tags || [],
-      ...(options.click && { click: options.click }),
-    };
+    // Simple approach - send just the message as plain text
+    // Use query parameters for metadata
+    const url = new URL(ntfyUrl);
+    url.searchParams.set('title', options.title);
+    url.searchParams.set('priority', options.priority || 'high');
+    if (options.tags && options.tags.length > 0) {
+      url.searchParams.set('tags', options.tags.join(','));
+    }
+    if (options.click) {
+      url.searchParams.set('click', options.click);
+    }
 
-    console.log('📦 Full Payload:', JSON.stringify(payload, null, 2));
+    console.log('📦 URL with params:', url.toString());
+    console.log('📝 Message Body:', options.message);
     console.log('🚀 Making HTTP POST request...');
 
-    const response = await fetch(ntfyUrl, {
+    const response = await fetch(url.toString(), {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain; charset=utf-8',
         'User-Agent': 'L7IT-Backend/1.0',
       },
-      body: JSON.stringify(payload),
+      body: options.message,
     });
 
     console.log('📡 Response received:');
@@ -92,7 +83,6 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
         console.error('   Current URL:', ntfyUrl);
       } else if (response.status === 400) {
         console.error('💡 Possible issue: Invalid payload format');
-        console.error('   Payload sent:', JSON.stringify(payload));
       } else if (response.status === 429) {
         console.error('💡 Rate limited - too many requests');
       } else if (response.status >= 500) {
@@ -137,10 +127,10 @@ export async function notifyNewOrder(orderData: {
     : undefined;
 
   await sendNotification({
-    title: '🛒 طلب جديد! New Order!',
-    message: `👤 ${orderData.customerName}\n📞 ${orderData.customerPhone}\n💰 ${orderData.totalPrice} MAD (${orderData.itemCount} items)`,
+    title: '🛒 طلب جديد!',
+    message: `${orderData.customerName}\n${orderData.customerPhone}\n\nDKHOL L SITE W CONFIRMI M3AH`,
     priority: 'urgent',
-    tags: ['shopping_cart', 'money_with_wings'],
+    tags: ['shopping_cart', 'bell'],
     click: adminUrl,
   });
 }
