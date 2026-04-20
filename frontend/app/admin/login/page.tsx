@@ -41,23 +41,23 @@ export default function AdminLogin() {
   if (!mounted) return null;
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-black">
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-zinc-200 bg-white p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center py-8 md:py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-black">
+      <div className="w-full max-w-md space-y-6 md:space-y-8 rounded-2xl md:rounded-3xl border border-zinc-200 bg-white p-6 md:p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          <h2 className="mt-2 text-center text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
             Admin Login
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
             Sign in to access the dashboard
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 md:mt-8 space-y-4 md:space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
               <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
             </div>
           )}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
               <input
@@ -66,7 +66,7 @@ export default function AdminLogin() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
+                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +80,7 @@ export default function AdminLogin() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
+                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

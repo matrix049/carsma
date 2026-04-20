@@ -126,12 +126,12 @@ export default function AdminOrdersPage() {
 
         <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-14">
           {/* Header */}
-          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 md:mb-16">
+          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-8 lg:mb-16">
             <div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
                 Order <span className="text-zinc-800">Control</span>
               </h1>
-              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
+              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-2 md:mt-3 flex items-center gap-3">
                 <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
                 {orders.length} total orders loaded
               </p>
@@ -139,18 +139,18 @@ export default function AdminOrdersPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => exportCSV(filtered)}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-blue-600 hover:bg-blue-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] whitespace-nowrap"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Export CSV
               </button>
               <button
                 onClick={loadOrders}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all flex-shrink-0"
+                className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all flex-shrink-0"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
@@ -158,44 +158,44 @@ export default function AdminOrdersPage() {
           </header>
 
           {/* KPI mini-cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 lg:mb-12">
             {kpiCards.map((k) => (
               <motion.button
                 key={k.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => setFilterStatus(filterStatus === k.filter ? 'all' : k.filter)}
-                className={`rounded-2xl md:rounded-3xl border p-5 md:p-8 text-left transition-all ${
+                className={`rounded-xl md:rounded-2xl lg:rounded-3xl border p-4 md:p-5 lg:p-8 text-left transition-all ${
                   filterStatus === k.filter
                     ? k.activeClass
                     : 'border-zinc-900 bg-zinc-900/30 hover:border-zinc-700'
                 }`}
               >
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-3 md:mb-4">
+                <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2 md:mb-3 lg:mb-4">
                   {k.label}
                 </p>
-                <p className="text-3xl md:text-4xl font-black tracking-tighter font-jakarta">{k.count}</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter font-jakarta">{k.count}</p>
               </motion.button>
             ))}
           </div>
 
           {/* Search + Status Filter bar */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-8 md:mb-10">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-8 lg:mb-10">
             <div className="relative flex-1">
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, phone or order ID…"
-                className="w-full bg-zinc-900 border border-zinc-900 rounded-2xl pl-11 pr-5 py-3.5 text-[11px] font-semibold focus:outline-none focus:border-blue-600 transition-all text-white placeholder-zinc-700"
+                className="w-full bg-zinc-900 border border-zinc-900 rounded-xl md:rounded-2xl pl-10 md:pl-11 pr-4 md:pr-5 py-3 md:py-3.5 text-[10px] md:text-[11px] font-semibold focus:outline-none focus:border-blue-600 transition-all text-white placeholder-zinc-700"
               />
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="bg-zinc-900 border border-zinc-900 rounded-2xl px-5 py-3.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
+              className="bg-zinc-900 border border-zinc-900 rounded-xl md:rounded-2xl px-4 md:px-5 py-3 md:py-3.5 text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-400 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
               {STATUS_OPTIONS.map((s) => (

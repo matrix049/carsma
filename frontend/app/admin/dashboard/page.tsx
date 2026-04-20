@@ -88,12 +88,12 @@ export default function AdminDashboard() {
         {/* Main Workspace */}
         <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-16">
           {/* Header */}
-          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10 md:mb-20">
+          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-10">
             <div>
-              <h1 className="text-3xl md:text-6xl font-black tracking-tighter font-jakarta uppercase leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-6xl font-black tracking-tighter font-jakarta uppercase leading-tight">
                 Commercial <span className="text-zinc-800">Intelligence</span>
               </h1>
-              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
+              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-2 md:mt-3 flex items-center gap-3">
                 <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
                 Live Hub Status: Optimized
               </p>
@@ -101,9 +101,9 @@ export default function AdminDashboard() {
             <div className="flex gap-3">
               <button
                 onClick={loadData}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-800 transition-all"
+                className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-800 transition-all"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
           </header>
 
           {/* KPI Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-10 mb-10 md:mb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 lg:gap-10 mb-8 md:mb-10 lg:mb-20">
             {[
               { label: 'Total Revenue', value: stats?.totalRevenue || 0, format: 'currency', sub: 'Confirmed + Delivered', trend: 'up', color: 'blue' },
               { label: 'Pending Orders', value: stats?.pendingOrders || 0, format: 'number', sub: 'Immediate Action Required', trend: 'alert', color: 'amber' },
@@ -122,10 +122,10 @@ export default function AdminDashboard() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="rounded-[2rem] md:rounded-[3rem] bg-zinc-900/40 border border-zinc-900 p-7 md:p-10 shadow-3xl hover:border-zinc-800 transition-all"
+                className="rounded-2xl md:rounded-[2rem] lg:rounded-[3rem] bg-zinc-900/40 border border-zinc-900 p-4 md:p-7 lg:p-10 shadow-3xl hover:border-zinc-800 transition-all"
               >
-                <div className="flex justify-between items-start mb-6 md:mb-10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">{kpi.label}</p>
+                <div className="flex justify-between items-start mb-4 md:mb-6 lg:mb-10">
+                  <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">{kpi.label}</p>
                   <div
                     className={`h-1.5 w-1.5 rounded-full ${
                       kpi.trend === 'up'
@@ -136,14 +136,14 @@ export default function AdminDashboard() {
                     }`}
                   />
                 </div>
-                <h3 className="text-4xl md:text-5xl font-black tracking-tighter mb-3 font-jakarta">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter mb-2 md:mb-3 font-jakarta">
                   {kpi.value.toLocaleString()}
                   {kpi.format === 'currency' && (
-                    <span className="text-[10px] text-zinc-600 ml-2">MAD</span>
+                    <span className="text-[8px] md:text-[10px] text-zinc-600 ml-1 md:ml-2">MAD</span>
                   )}
                 </h3>
                 <p
-                  className={`text-[9px] font-black uppercase tracking-widest ${
+                  className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${
                     kpi.color === 'blue'
                       ? 'text-blue-500'
                       : kpi.color === 'amber'
@@ -159,23 +159,23 @@ export default function AdminDashboard() {
 
           {/* Recent Transactions */}
           <div>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 md:mb-12">
-              <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight font-jakarta">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8 lg:mb-12">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight font-jakarta">
                 Recent Transactions
               </h2>
               <div className="flex gap-3">
                 <button
                   onClick={() => exportCSV(orders)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-[9px] font-black uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)]"
+                  className="flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-blue-600 hover:bg-blue-500 text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)]"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   CSV Export
                 </button>
                 <Link
                   href="/admin/orders"
-                  className="px-5 py-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all"
+                  className="px-4 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-800 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all"
                 >
                   View All →
                 </Link>
@@ -189,36 +189,36 @@ export default function AdminDashboard() {
             )}
 
             {/* Desktop table */}
-            <div className="hidden md:block rounded-[3rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
+            <div className="hidden lg:block rounded-2xl lg:rounded-[3rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-zinc-900 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-700">
-                    <th className="px-10 py-8">Reference</th>
-                    <th className="px-10 py-8">Customer</th>
-                    <th className="px-10 py-8">Status</th>
-                    <th className="px-10 py-8 text-right">Value</th>
+                    <th className="px-6 lg:px-10 py-6 lg:py-8">Reference</th>
+                    <th className="px-6 lg:px-10 py-6 lg:py-8">Customer</th>
+                    <th className="px-6 lg:px-10 py-6 lg:py-8">Status</th>
+                    <th className="px-6 lg:px-10 py-6 lg:py-8 text-right">Value</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-900/50">
                   {orders.slice(0, 10).map((order) => (
                     <tr key={order._id} className="hover:bg-zinc-800/10 transition-colors">
-                      <td className="px-10 py-8 text-[11px] font-black text-blue-600">
+                      <td className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] lg:text-[11px] font-black text-blue-600">
                         #L7-{order._id.slice(-6).toUpperCase()}
                       </td>
-                      <td className="px-10 py-8">
-                        <p className="text-[11px] font-black uppercase tracking-tight text-white">
+                      <td className="px-6 lg:px-10 py-6 lg:py-8">
+                        <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-tight text-white">
                           {order.customer.firstName} {order.customer.lastName}
                         </p>
-                        <p className="text-[9px] text-zinc-700 font-bold mt-1">{order.customer.phone}</p>
+                        <p className="text-[8px] lg:text-[9px] text-zinc-700 font-bold mt-1">{order.customer.phone}</p>
                       </td>
-                      <td className="px-10 py-8">
-                        <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
+                      <td className="px-6 lg:px-10 py-6 lg:py-8">
+                        <span className={`px-3 lg:px-5 py-1 lg:py-2 rounded-full text-[8px] lg:text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
                           {order.status}
                         </span>
                       </td>
-                      <td className="px-10 py-8 text-right text-[11px] font-black text-white">
+                      <td className="px-6 lg:px-10 py-6 lg:py-8 text-right text-[10px] lg:text-[11px] font-black text-white">
                         {order.totalPrice.toLocaleString()}{' '}
-                        <span className="text-[8px] text-zinc-700 ml-1">MAD</span>
+                        <span className="text-[7px] lg:text-[8px] text-zinc-700 ml-1">MAD</span>
                       </td>
                     </tr>
                   ))}
@@ -227,31 +227,31 @@ export default function AdminDashboard() {
             </div>
 
             {/* Mobile cards */}
-            <div className="md:hidden space-y-3">
+            <div className="lg:hidden space-y-3">
               {orders.slice(0, 10).map((order, idx) => (
                 <motion.div
                   key={order._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.04 }}
-                  className="rounded-2xl border border-zinc-900 bg-zinc-900/30 p-5"
+                  className="rounded-xl md:rounded-2xl border border-zinc-900 bg-zinc-900/30 p-4 md:p-5"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-[11px] font-black text-blue-500">
+                    <span className="text-[10px] md:text-[11px] font-black text-blue-500">
                       #L7-{order._id.slice(-6).toUpperCase()}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
+                    <span className={`px-2.5 md:px-3 py-1 rounded-full text-[7px] md:text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-[12px] font-black uppercase tracking-tight text-white">
+                  <p className="text-[11px] md:text-[12px] font-black uppercase tracking-tight text-white">
                     {order.customer.firstName} {order.customer.lastName}
                   </p>
-                  <p className="text-[10px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
+                  <p className="text-[9px] md:text-[10px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
                   <div className="mt-3 pt-3 border-t border-zinc-900 flex items-center justify-between">
-                    <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Total</span>
-                    <span className="text-[13px] font-black text-white">
-                      {order.totalPrice.toLocaleString()} <span className="text-[9px] text-zinc-600">MAD</span>
+                    <span className="text-[8px] md:text-[9px] text-zinc-600 font-black uppercase tracking-widest">Total</span>
+                    <span className="text-[12px] md:text-[13px] font-black text-white">
+                      {order.totalPrice.toLocaleString()} <span className="text-[8px] md:text-[9px] text-zinc-600">MAD</span>
                     </span>
                   </div>
                 </motion.div>

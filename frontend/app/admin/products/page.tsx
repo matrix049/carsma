@@ -213,12 +213,12 @@ export default function AdminProductsPage() {
 
         <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-14">
           {/* Header */}
-          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 md:mb-16">
+          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-8 lg:mb-16">
             <div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
                 Product <span className="text-zinc-800">Management</span>
               </h1>
-              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-3 flex items-center gap-3">
+              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-2 md:mt-3 flex items-center gap-3">
                 <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
                 {products.length} products loaded
               </p>
@@ -226,18 +226,18 @@ export default function AdminProductsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => handleOpenModal()}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-blue-600 hover:bg-blue-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.25)] whitespace-nowrap"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                 </svg>
                 Add Product
               </button>
               <button
                 onClick={loadProducts}
-                className="h-11 w-11 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all flex-shrink-0"
+                className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all flex-shrink-0"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
@@ -277,14 +277,14 @@ export default function AdminProductsPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                   {products.map((product, idx) => (
                     <motion.div
                       key={product._id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="rounded-3xl border border-zinc-900 bg-zinc-900/30 overflow-hidden hover:border-zinc-700 transition-all group"
+                      className="rounded-2xl md:rounded-3xl border border-zinc-900 bg-zinc-900/30 overflow-hidden hover:border-zinc-700 transition-all group"
                     >
                       {/* Product Image */}
                       <div className="aspect-square bg-zinc-800 relative overflow-hidden">
@@ -296,27 +296,27 @@ export default function AdminProductsPage() {
                             (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                           }}
                         />
-                        <div className="absolute top-3 right-3 flex gap-2">
+                        <div className="absolute top-2 md:top-3 right-2 md:right-3 flex gap-1.5 md:gap-2">
                           <button
                             onClick={() => handleOpenModal(product)}
-                            className="h-8 w-8 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-all"
+                            className="h-7 w-7 md:h-8 md:w-8 rounded-lg md:rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-all"
                           >
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
                           <button
                             onClick={() => handleDelete(product)}
-                            className="h-8 w-8 rounded-xl bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all"
+                            className="h-7 w-7 md:h-8 md:w-8 rounded-lg md:rounded-xl bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all"
                           >
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
                         </div>
                         {!product.inStock && (
-                          <div className="absolute bottom-3 left-3">
-                            <span className="px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold">
+                          <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3">
+                            <span className="px-2.5 md:px-3 py-1 rounded-full bg-red-600 text-white text-[10px] md:text-xs font-bold">
                               Out of Stock
                             </span>
                           </div>
@@ -324,23 +324,23 @@ export default function AdminProductsPage() {
                       </div>
 
                       {/* Product Info */}
-                      <div className="p-5">
-                        <h3 className="text-lg font-black text-white mb-2 truncate">
+                      <div className="p-4 md:p-5">
+                        <h3 className="text-base md:text-lg font-black text-white mb-2 truncate">
                           {product.name}
                         </h3>
-                        <p className="text-sm text-zinc-500 mb-3 line-clamp-2">
+                        <p className="text-xs md:text-sm text-zinc-500 mb-3 line-clamp-2">
                           {product.description || 'No description'}
                         </p>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-2xl font-black text-white">
+                            <p className="text-xl md:text-2xl font-black text-white">
                               {product.price.toFixed(2)} MAD
                             </p>
-                            <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">
+                            <p className="text-[10px] md:text-xs text-zinc-600 font-bold uppercase tracking-widest">
                               {product.category}
                             </p>
                           </div>
-                          <div className={`h-3 w-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <div className={`h-2.5 w-2.5 md:h-3 md:w-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
                         </div>
                       </div>
                     </motion.div>
@@ -354,25 +354,25 @@ export default function AdminProductsPage() {
         {/* Product Modal */}
         <AnimatePresence>
           {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/80 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl"
+                className="relative w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-2xl md:rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl"
               >
                 {/* Close button */}
                 <button
                   onClick={handleCloseModal}
-                  className="absolute top-6 right-6 h-10 w-10 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
 
-                <div className="p-8">
-                  <h2 className="text-3xl font-black tracking-tighter font-jakarta uppercase mb-8">
+                <div className="p-6 md:p-8">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter font-jakarta uppercase mb-6 md:mb-8">
                     {editingProduct ? 'Edit Product' : 'Add New Product'}
                   </h2>
 
