@@ -17,13 +17,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState('M');
   
-  const sizes = [
-    { id: 'S', label: '30x40cm', priceMod: 0 },
-    { id: 'M', label: '50x70cm', priceMod: 150 },
-    { id: 'L', label: '70x100cm', priceMod: 400 },
-  ];
+  // Fixed size - Medium (120cm x 35cm)
+  const fixedSize = { id: 'M', label: '120cm x 35cm', priceMod: 150 };
+  const totalPrice = product ? product.price + fixedSize.priceMod : 0;
 
   useEffect(() => {
     async function loadProduct() {
@@ -145,14 +142,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-4">
                   <span className="text-xl font-black text-zinc-600 line-through tracking-widest decoration-blue-500/40">
-                    {Math.ceil((product.price * 1.5) + (sizes.find(s => s.id === selectedSize)?.priceMod || 0))} <span className="text-[10px]">MAD</span>
+                    {Math.ceil((product.price * 1.5) + fixedSize.priceMod)} <span className="text-[10px]">MAD</span>
                   </span>
                   <div className="rounded-full bg-blue-600/10 border border-blue-500/20 px-4 py-1.5 text-[8px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
                     Collector's Discount
                   </div>
                 </div>
                 <p className="text-5xl sm:text-7xl font-black text-zinc-950 dark:text-white leading-none">
-                  {product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0)} <span className="text-sm">MAD</span>
+                  {totalPrice} <span className="text-sm">MAD</span>
                 </p>
               </div>
             </motion.div>
@@ -162,21 +159,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Dimensions</h3>
                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest group cursor-pointer hover:underline underline-offset-8">Sizing Protocol &rarr;</span>
               </div>
-              <div className="grid grid-cols-3 gap-6">
-                {sizes.map((size) => (
-                  <button
-                    key={size.id}
-                    onClick={() => setSelectedSize(size.id)}
-                    className={`flex flex-col items-center gap-3 rounded-3xl border-2 py-6 transition-all duration-500 ${
-                      selectedSize === size.id
-                        ? 'border-blue-600 bg-blue-600/5 text-blue-600 shadow-[0_15px_40px_-10px_rgba(37,99,235,0.2)]'
-                        : 'border-zinc-100 dark:border-zinc-900 hover:border-zinc-200 dark:hover:border-zinc-800 text-zinc-500'
-                    }`}
-                  >
-                    <span className="text-lg font-black uppercase tracking-tighter">{size.id}</span>
-                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">{size.label}</span>
-                  </button>
-                ))}
+              <div className="flex justify-center">
+                <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-blue-600 bg-blue-600/5 text-blue-600 shadow-[0_15px_40px_-10px_rgba(37,99,235,0.2)] py-6 px-12 transition-all duration-500">
+                  <span className="text-lg font-black uppercase tracking-tighter">M</span>
+                  <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">{fixedSize.label}</span>
+                </div>
               </div>
             </motion.div>
 
@@ -189,11 +176,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <motion.div variants={itemVariants} className="space-y-4">
               <button
                 onClick={() => {
-                  const selectedSizeData = sizes.find(s => s.id === selectedSize);
                   addToCart(
-                    { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
-                    selectedSize,
-                    selectedSizeData?.label
+                    { ...product, price: totalPrice },
+                    fixedSize.id,
+                    fixedSize.label
                   );
                 }}
                 disabled={!product.inStock}
@@ -213,11 +199,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               <button
                 onClick={() => {
-                  const selectedSizeData = sizes.find(s => s.id === selectedSize);
                   addToCart(
-                    { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
-                    selectedSize,
-                    selectedSizeData?.label
+                    { ...product, price: totalPrice },
+                    fixedSize.id,
+                    fixedSize.label
                   );
                   router.push('/checkout');
                 }}
@@ -251,18 +236,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {selectedSize} ({sizes.find(s => s.id === selectedSize)?.label})</span>
-                       <span className="text-xl font-black text-white">{product.price + (sizes.find(s => s.id === selectedSize)?.priceMod || 0)} MAD</span>
+                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {fixedSize.id} ({fixedSize.label})</span>
+                       <span className="text-xl font-black text-white">{totalPrice} MAD</span>
                     </div>
                  </div>
                  <div className="grid grid-cols-2 gap-3">
                     <button
                      onClick={() => {
-                       const selectedSizeData = sizes.find(s => s.id === selectedSize);
                        addToCart(
-                         { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
-                         selectedSize,
-                         selectedSizeData?.label
+                         { ...product, price: totalPrice },
+                         fixedSize.id,
+                         fixedSize.label
                        );
                      }}
                      disabled={!product.inStock}
@@ -281,11 +265,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                    </button>
                    <button
                      onClick={() => {
-                       const selectedSizeData = sizes.find(s => s.id === selectedSize);
                        addToCart(
-                         { ...product, price: product.price + (selectedSizeData?.priceMod || 0) },
-                         selectedSize,
-                         selectedSizeData?.label
+                         { ...product, price: totalPrice },
+                         fixedSize.id,
+                         fixedSize.label
                        );
                        router.push('/checkout');
                      }}
