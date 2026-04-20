@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     
     // Only redirect after the component has mounted to avoid hydration errors
     if (!isAuthenticated) {
-      router.push('/admin/login');
+      router.push('/admin');
     }
   }, [isAuthenticated, router]);
 
