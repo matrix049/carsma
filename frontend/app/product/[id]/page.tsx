@@ -7,6 +7,7 @@ import { fetchProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import AnalyticsService from '@/lib/analyticsService';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -40,6 +41,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
     loadProduct();
   }, [id]);
+
+  // Track product view when product loads successfully
+  useEffect(() => {
+    if (product && !isLoading && !error) {
+      // Track the product view asynchronously
+      const trackView = async () => {
+        try {
+          await AnalyticsService.trackProductView(product._id);
+        } catch (error) {
+          // Analytics failures should not affect user experience
+          console.warn('Product view tracking failed:', error);
+        }
+      };
+      
+      trackView();
+    }
+  }, [product, isLoading, error]);
 
   if (isLoading) {
     return (
