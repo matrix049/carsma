@@ -424,7 +424,7 @@ export default function AdminOrdersPage() {
         {/* Order Details Modal */}
         {selectedOrder && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm"
             onClick={() => setSelectedOrder(null)}
           >
             <motion.div
@@ -432,65 +432,65 @@ export default function AdminOrdersPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border border-zinc-800 bg-zinc-950 shadow-2xl"
+              className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-[3rem] border border-zinc-800 bg-zinc-950 shadow-2xl"
             >
               {/* Close button */}
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="absolute top-8 right-8 h-12 w-12 flex items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
+                className="absolute top-4 right-4 sm:top-8 sm:right-8 h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
-              <div className="p-10 md:p-14">
+              <div className="p-4 sm:p-6 md:p-10 lg:p-14">
                 {/* Header */}
-                <div className="mb-10">
-                  <div className="flex items-center gap-4 mb-4">
-                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter font-jakarta uppercase">
+                <div className="mb-6 sm:mb-8 md:mb-10">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter font-jakarta uppercase">
                       Order Details
                     </h2>
-                    <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusStyle(selectedOrder.status)}`}>
+                    <span className={`px-3 sm:px-5 py-1 sm:py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${statusStyle(selectedOrder.status)} self-start`}>
                       {selectedOrder.status}
                     </span>
                   </div>
-                  <p className="text-blue-500 text-xl font-black">
+                  <p className="text-blue-500 text-lg sm:text-xl font-black">
                     #{selectedOrder.orderNumber}
                   </p>
-                  <p className="text-zinc-600 text-sm font-bold mt-2">
+                  <p className="text-zinc-600 text-xs sm:text-sm font-bold mt-1 sm:mt-2">
                     {new Date(selectedOrder.createdAt).toLocaleString()}
                   </p>
                 </div>
 
                 {/* Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-10">
                   {/* Customer Information */}
-                  <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                  <div className="rounded-2xl sm:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 sm:p-6 md:p-8">
+                    <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-4 sm:mb-6">
                       Customer Information
                     </h3>
-                    <div className="space-y-5">
+                    <div className="space-y-3 sm:space-y-4 md:space-y-5">
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Name</p>
-                        <p className="text-lg font-black text-white">
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Name</p>
+                        <p className="text-base sm:text-lg font-black text-white">
                           {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Phone</p>
-                        <p className="text-base font-bold text-zinc-300">{selectedOrder.customer.phone}</p>
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Phone</p>
+                        <p className="text-sm sm:text-base font-bold text-zinc-300">{selectedOrder.customer.phone}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Delivery Address</p>
-                        <p className="text-sm font-medium text-zinc-400 leading-relaxed">
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Delivery Address</p>
+                        <p className="text-xs sm:text-sm font-medium text-zinc-400 leading-relaxed">
                           {selectedOrder.customer.address.split('| Notes:')[0].trim()}
                         </p>
                       </div>
                       {selectedOrder.customer.address.includes('| Notes:') && (
                         <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-2">Customer Notes</p>
-                          <p className="text-sm font-medium text-amber-500/80 leading-relaxed italic">
+                          <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-amber-600 mb-1 sm:mb-2">Customer Notes</p>
+                          <p className="text-xs sm:text-sm font-medium text-amber-500/80 leading-relaxed italic">
                             {selectedOrder.customer.address.split('| Notes:')[1]?.trim()}
                           </p>
                         </div>
@@ -499,20 +499,20 @@ export default function AdminOrdersPage() {
                   </div>
 
                   {/* Order Information */}
-                  <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                  <div className="rounded-2xl sm:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 sm:p-6 md:p-8">
+                    <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-4 sm:mb-6">
                       Order Information
                     </h3>
-                    <div className="space-y-5">
+                    <div className="space-y-3 sm:space-y-4 md:space-y-5">
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Payment Method</p>
-                        <p className="text-base font-black text-white uppercase">
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Payment Method</p>
+                        <p className="text-sm sm:text-base font-black text-white uppercase">
                           {selectedOrder.paymentMethod === 'cod' ? 'Cash on Delivery' : selectedOrder.paymentMethod}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Order Date</p>
-                        <p className="text-base font-bold text-zinc-300">
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Order Date</p>
+                        <p className="text-sm sm:text-base font-bold text-zinc-300">
                           {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { 
                             weekday: 'long', 
                             year: 'numeric', 
@@ -520,43 +520,43 @@ export default function AdminOrdersPage() {
                             day: 'numeric' 
                           })}
                         </p>
-                        <p className="text-sm text-zinc-600 mt-1">
+                        <p className="text-xs sm:text-sm text-zinc-600 mt-1">
                           {new Date(selectedOrder.createdAt).toLocaleTimeString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-2">Order ID</p>
-                        <p className="text-xs font-mono text-zinc-500 break-all">{selectedOrder._id}</p>
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-700 mb-1 sm:mb-2">Order ID</p>
+                        <p className="text-[10px] sm:text-xs font-mono text-zinc-500 break-all">{selectedOrder._id}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Products */}
-                <div className="rounded-3xl border border-zinc-900 bg-zinc-900/30 p-8 mb-10">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+                <div className="rounded-2xl sm:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 md:mb-10">
+                  <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-4 sm:mb-6">
                     Ordered Items
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {selectedOrder.products.map((product, idx) => (
                       <div 
                         key={idx}
-                        className="flex items-center justify-between p-5 rounded-2xl bg-zinc-950 border border-zinc-900"
+                        className="flex items-center justify-between p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl bg-zinc-950 border border-zinc-900"
                       >
-                        <div className="flex items-center gap-5">
-                          <div className="h-14 w-14 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                            <span className="text-xl font-black text-blue-500">{product.quantity}</span>
+                        <div className="flex items-center gap-3 sm:gap-4 md:gap-5 flex-1 min-w-0">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-lg sm:rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm sm:text-lg md:text-xl font-black text-blue-500">{product.quantity}</span>
                           </div>
-                          <div>
-                            <p className="text-base font-black text-white">{product.name}</p>
-                            <p className="text-sm text-zinc-600 font-bold mt-1">Quantity: {product.quantity}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm sm:text-base font-black text-white truncate">{product.name}</p>
+                            <p className="text-xs sm:text-sm text-zinc-600 font-bold mt-0.5 sm:mt-1">Qty: {product.quantity}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-black text-white">
+                        <div className="text-right flex-shrink-0 ml-2">
+                          <p className="text-sm sm:text-base md:text-lg font-black text-white">
                             {(product.price * product.quantity).toFixed(0)}
                           </p>
-                          <p className="text-xs text-zinc-600 font-bold">MAD</p>
+                          <p className="text-[10px] sm:text-xs text-zinc-600 font-bold">MAD</p>
                         </div>
                       </div>
                     ))}
@@ -564,19 +564,19 @@ export default function AdminOrdersPage() {
                 </div>
 
                 {/* Total */}
-                <div className="rounded-3xl border-2 border-blue-600/30 bg-blue-950/20 p-8">
-                  <div className="flex items-center justify-between">
+                <div className="rounded-2xl sm:rounded-3xl border-2 border-blue-600/30 bg-blue-950/20 p-4 sm:p-6 md:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-2">
+                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-2">
                         Total Amount
                       </p>
-                      <p className="text-4xl md:text-5xl font-black text-white">
+                      <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white">
                         {selectedOrder.totalPrice.toFixed(0)}
-                        <span className="text-xl text-zinc-600 ml-2">MAD</span>
+                        <span className="text-sm sm:text-lg md:text-xl text-zinc-600 ml-1 sm:ml-2">MAD</span>
                       </p>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">Update Status</p>
+                    <div className="flex flex-col gap-2 sm:gap-3">
+                      <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-600">Update Status</p>
                       <select
                         value={selectedOrder.status}
                         disabled={updatingId === selectedOrder._id}
@@ -584,7 +584,7 @@ export default function AdminOrdersPage() {
                           handleStatusChange(selectedOrder._id, e.target.value as Status);
                           setSelectedOrder({ ...selectedOrder, status: e.target.value as any });
                         }}
-                        className={`bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3 text-sm font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer ${
+                        className={`bg-zinc-950 border border-zinc-800 rounded-lg sm:rounded-xl px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer min-w-[120px] ${
                           updatingId === selectedOrder._id ? 'opacity-40 cursor-not-allowed' : ''
                         }`}
                       >
@@ -593,7 +593,7 @@ export default function AdminOrdersPage() {
                         ))}
                       </select>
                       {updatingId === selectedOrder._id && (
-                        <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
+                        <span className="text-[8px] sm:text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
                       )}
                     </div>
                   </div>
