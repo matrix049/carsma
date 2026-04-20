@@ -29,6 +29,29 @@ export default function AdminLogin() {
     }
   }, [mounted, isAuthenticated, router]);
 
+  // Early return if not mounted
+  if (!mounted) return null;
+
+  // If we're NOT on the login page, don't render this component at all
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/admin' && currentPath !== '/admin/') {
+      return null;
+    }
+  }
+
+  // If we're authenticated and on the login page, show loading while redirecting
+  if (mounted && isAuthenticated && typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/admin' || currentPath === '/admin/') {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+        </div>
+      );
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -45,17 +68,6 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
-
-  if (!mounted) return null;
-
-  // If we're authenticated and on the login page, redirect to dashboard
-  if (mounted && isAuthenticated && typeof window !== 'undefined') {
-    const currentPath = window.location.pathname;
-    // Only redirect if we're exactly on the login page, not on other admin pages
-    if (currentPath === '/admin' || currentPath === '/admin/') {
-      return null; // Let the useEffect handle the redirect
-    }
-  }
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center py-8 md:py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-black">
