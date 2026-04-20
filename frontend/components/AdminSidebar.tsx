@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 
 const NAV_ITEMS = [
@@ -44,6 +44,7 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -107,11 +108,17 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           return (
-            <Link
+            <button
               key={item.label}
-              href={item.href}
-              onClick={() => onClose?.()}
-              className={`flex items-center gap-4 md:gap-5 group transition-all ${
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🔍 Sidebar click - Target href:', item.href);
+                console.log('🔍 Sidebar click - Current pathname:', pathname);
+                console.log('🔍 Sidebar click - Using router.push to navigate');
+                router.push(item.href);
+                onClose?.();
+              }}
+              className={`flex items-center gap-4 md:gap-5 group transition-all w-full text-left ${
                 active ? 'text-blue-500' : 'text-zinc-600 hover:text-white'
               }`}
             >
@@ -121,7 +128,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">
                 {item.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </nav>
