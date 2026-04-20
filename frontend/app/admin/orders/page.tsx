@@ -518,7 +518,7 @@ export default function AdminOrdersPage() {
         {/* Order Details Modal */}
         {selectedOrder && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm"
             onClick={() => setSelectedOrder(null)}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
@@ -537,10 +537,10 @@ export default function AdminOrdersPage() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-[3rem] border border-zinc-800 bg-zinc-950 shadow-2xl"
             >
-              {/* Close button - Enhanced for mobile */}
+              {/* Close button - Enhanced for mobile, positioned below mobile nav */}
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="absolute top-4 right-4 sm:top-8 sm:right-8 h-12 w-12 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10 touch-manipulation"
+                className="absolute top-20 right-4 sm:top-8 sm:right-8 h-12 w-12 sm:h-12 sm:w-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all z-10 touch-manipulation"
                 aria-label="Close modal"
               >
                 <svg className="w-6 h-6 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -548,13 +548,13 @@ export default function AdminOrdersPage() {
                 </svg>
               </button>
 
-              {/* Mobile: Swipe indicator and instructions */}
-              <div className="block sm:hidden absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-zinc-700 rounded-full"></div>
-              <div className="block sm:hidden absolute top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+              {/* Mobile: Swipe indicator and instructions - positioned below mobile nav */}
+              <div className="block sm:hidden absolute top-16 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-zinc-700 rounded-full"></div>
+              <div className="block sm:hidden absolute top-20 left-1/2 transform -translate-x-1/2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
                 Swipe down or tap outside to close
               </div>
 
-              <div className="p-4 sm:p-6 md:p-10 lg:p-14">
+              <div className="pt-20 sm:pt-4 p-4 sm:p-6 md:p-10 lg:p-14">
                 {/* Mobile Header with Close Button */}
                 <div className="block sm:hidden mb-6">
                   <div className="flex items-center justify-between">
