@@ -38,6 +38,7 @@ async function testNotifications() {
     await notifyNewOrder({
       orderId: 'TEST-12345',
       customerName: 'John Doe',
+      customerPhone: '+212600000000',
       totalPrice: 450,
       itemCount: 3,
     });

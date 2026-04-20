@@ -1,0 +1,21 @@
+# Documentation files (except README)
+*.md
+!README.md
+
+# Development files
+.vscode/
+.idea/
+.kiro/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Node modules (handled by Railway)
+node_modules/
