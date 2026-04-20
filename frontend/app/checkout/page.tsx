@@ -158,7 +158,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-200 ml-1">Phone Number • رقم الهاتف</label>
-                  <input required type="tel" name="phone" placeholder="+212 6 00 00 00 00" value={formData.phone} onChange={handleChange}
+                  <input required type="tel" name="phone" placeholder="0675749377" value={formData.phone} onChange={handleChange}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
                 </div>
                 <div className="space-y-2 sm:space-y-3">
