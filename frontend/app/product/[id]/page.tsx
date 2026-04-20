@@ -155,13 +155,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </motion.div>
             
             <motion.div variants={itemVariants} className="space-y-8 mb-16">
-              <div className="flex justify-between items-end border-b border-zinc-100 dark:border-zinc-900 pb-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Dimensions</h3>
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest group cursor-pointer hover:underline underline-offset-8">Sizing Protocol &rarr;</span>
-              </div>
               <div className="flex justify-center">
                 <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-blue-600 bg-blue-600/5 text-blue-600 shadow-[0_15px_40px_-10px_rgba(37,99,235,0.2)] py-6 px-12 transition-all duration-500">
-                  <span className="text-lg font-black uppercase tracking-tighter">M</span>
+                  <span className="text-lg font-black uppercase tracking-tighter">Standard Size</span>
                   <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">{fixedSize.label}</span>
                 </div>
               </div>
