@@ -150,7 +150,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between items-center text-zinc-500">
                      <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{t('shipping')}</span>
-                     <span className="text-[9px] sm:text-[10px] font-black text-blue-500 uppercase tracking-widest">Calculated at Settlement</span>
+                     <span className="text-[9px] sm:text-[10px] font-black text-green-400 uppercase tracking-widest">FREE 🎁</span>
                   </div>
                   <div className="pt-4 sm:pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-end">
                     <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white">{t('total')}</span>

@@ -30,9 +30,9 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const SHIPPING_COST = 25;
+  const SHIPPING_COST = 0;
   const subtotal = Math.round(calculateTotal());
-  const finalTotal = subtotal + SHIPPING_COST;
+  const finalTotal = subtotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,10 +236,9 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-[10px] sm:text-[11px] font-black uppercase tracking-widest">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    Transit (Morocco)
-                    <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full border border-zinc-800 flex items-center justify-center text-[7px] sm:text-[8px] font-bold">!</div>
+                    Shipping • التوصيل
                   </div>
-                  <span className="text-white">25 MAD</span>
+                  <span className="text-green-400">FREE 🎁</span>
                 </div>
                 <div className="flex justify-between items-end text-3xl sm:text-5xl font-black text-white pt-6 sm:pt-10 mt-6 sm:mt-10 border-t border-zinc-800 font-jakarta">
                   <div className="space-y-1.5 sm:space-y-2">
