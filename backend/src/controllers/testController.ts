@@ -75,8 +75,17 @@ export async function checkNtfyConfig(req: Request, res: Response): Promise<void
   const ntfyTopic = process.env.NTFY_TOPIC;
   const ntfyServer = process.env.NTFY_SERVER || 'https://ntfy.sh';
   const frontendUrl = process.env.FRONTEND_URL;
+  const nodeEnv = process.env.NODE_ENV;
+
+  console.log('🔍 ===== NTFY CONFIG CHECK =====');
+  console.log('🔍 Request from:', req.get('origin') || 'No origin');
+  console.log('🔍 Environment:', nodeEnv);
+  console.log('🔍 NTFY_TOPIC:', ntfyTopic ? 'SET' : 'NOT SET');
+  console.log('🔍 NTFY_SERVER:', ntfyServer);
+  console.log('🔍 FRONTEND_URL:', frontendUrl || 'NOT SET');
 
   res.status(200).json({
+    environment: nodeEnv || 'development',
     ntfy: {
       configured: !!ntfyTopic,
       topic: ntfyTopic ? `${ntfyTopic.substring(0, 5)}...` : 'NOT SET',

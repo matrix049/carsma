@@ -9,11 +9,23 @@ import { notifyNewOrder } from '../services/notificationService';
  * Creates a new order from customer checkout
  */
 export async function createOrder(req: AuthRequest, res: Response): Promise<void> {
+  console.log('🚀 ===== NEW ORDER REQUEST RECEIVED =====');
+  console.log('🌍 Request Origin:', req.get('origin') || 'No origin header');
+  console.log('🌍 User Agent:', req.get('user-agent') || 'No user agent');
+  console.log('🌍 Request IP:', req.ip || req.connection.remoteAddress || 'Unknown IP');
+  console.log('📦 Request Body Keys:', Object.keys(req.body));
+  
   try {
     const { customer, products, totalPrice, paymentMethod } = req.body;
 
+    console.log('✅ Request validation starting...');
+    console.log('👤 Customer data received:', customer ? 'YES' : 'NO');
+    console.log('📦 Products data received:', products ? `YES (${products?.length} items)` : 'NO');
+    console.log('💰 Total price received:', totalPrice);
+
     // Validate required fields
     if (!customer || !customer.firstName || !customer.lastName || !customer.phone || !customer.address) {
+      console.log('❌ Customer validation failed');
       res.status(400).json({
         error: true,
         message: 'Customer information is required (firstName, lastName, phone, address)'
@@ -22,6 +34,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     }
 
     if (!products || !Array.isArray(products) || products.length === 0) {
+      console.log('❌ Products validation failed');
       res.status(400).json({
         error: true,
         message: 'Products array is required and must not be empty'
@@ -30,12 +43,15 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     }
 
     if (totalPrice === undefined || totalPrice === null || totalPrice < 0) {
+      console.log('❌ Price validation failed');
       res.status(400).json({
         error: true,
         message: 'Valid total price is required'
       });
       return;
     }
+
+    console.log('✅ All validations passed, creating order...');
 
     // Create new order in database
     const order = new Order({
@@ -51,18 +67,26 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
       status: 'pending'
     });
 
+    console.log('💾 Saving order to database...');
     await order.save();
     console.log('📦 ===== ORDER CREATED SUCCESSFULLY =====');
     console.log('📦 Order ID:', order._id.toString());
     console.log('📦 Order Number:', order.orderNumber);
     console.log('📦 Customer:', `${customer.firstName} ${customer.lastName}`);
+    console.log('📦 Phone:', customer.phone);
     console.log('📦 Total Price:', totalPrice, 'MAD');
     console.log('📦 Items Count:', products.length);
+    console.log('📦 Payment Method:', paymentMethod || 'Cash on Delivery');
     console.log('📦 ===== STARTING NOTIFICATION PROCESS =====');
 
     // Send notification to admin
     try {
       console.log('🔔 Calling notifyNewOrder function...');
+      console.log('🔔 Environment check:');
+      console.log('   - NTFY_TOPIC:', process.env.NTFY_TOPIC ? 'SET' : 'NOT SET');
+      console.log('   - NTFY_SERVER:', process.env.NTFY_SERVER || 'DEFAULT');
+      console.log('   - FRONTEND_URL:', process.env.FRONTEND_URL || 'NOT SET');
+      
       await notifyNewOrder({
         orderId: order._id.toString(),
         customerName: `${customer.firstName} ${customer.lastName}`,
@@ -80,14 +104,20 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
       // Don't fail the order creation if notification fails
     }
 
+    console.log('📤 Sending success response to client...');
     // Return success response with orderId
     res.status(201).json({
       success: true,
       orderId: order._id.toString(),
       message: 'Order created successfully'
     });
+    console.log('✅ ===== ORDER CREATION FLOW COMPLETED =====');
   } catch (error: any) {
-    console.error('Create order error:', error);
+    console.error('❌ ===== ORDER CREATION FAILED =====');
+    console.error('❌ Create order error:', error);
+    console.error('❌ Error type:', error?.constructor?.name || typeof error);
+    console.error('❌ Error message:', error?.message || String(error));
+    console.error('❌ Stack trace:', error?.stack || 'No stack trace');
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
