@@ -25,8 +25,7 @@ const OrderSchema = new Schema<IOrder>(
   {
     orderNumber: {
       type: Number,
-      unique: true,
-      required: true
+      unique: true
     },
     customer: {
       firstName: {
