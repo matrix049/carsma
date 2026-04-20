@@ -57,6 +57,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     await notifyNewOrder({
       orderId: order._id.toString(),
       customerName: `${customer.firstName} ${customer.lastName}`,
+      customerPhone: customer.phone,
       totalPrice,
       itemCount: products.length,
     });

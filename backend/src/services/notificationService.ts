@@ -57,17 +57,18 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
 export async function notifyNewOrder(orderData: {
   orderId: string;
   customerName: string;
+  customerPhone: string;
   totalPrice: number;
   itemCount: number;
 }): Promise<void> {
   const adminUrl = process.env.FRONTEND_URL 
-    ? `${process.env.FRONTEND_URL}/admin/dashboard`
+    ? `${process.env.FRONTEND_URL}/admin/orders`
     : undefined;
 
   await sendNotification({
-    title: '🛒 New Order Received!',
-    message: `${orderData.customerName} placed an order for ${orderData.totalPrice} MAD (${orderData.itemCount} items)`,
-    priority: 'high',
+    title: '🛒 طلب جديد! New Order!',
+    message: `👤 ${orderData.customerName}\n📞 ${orderData.customerPhone}\n💰 ${orderData.totalPrice} MAD (${orderData.itemCount} items)`,
+    priority: 'urgent',
     tags: ['shopping_cart', 'money_with_wings'],
     click: adminUrl,
   });
