@@ -1,3 +1,5 @@
+import { apiRequest } from './api';
+
 // Analytics service for tracking page views and user interactions
 
 // Valid page types
@@ -35,9 +37,6 @@ export interface AnalyticsData {
 
 class AnalyticsService {
   private static readonly SESSION_KEY = 'analytics_session_id';
-  private static readonly API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://carsma-production.up.railway.app/api' 
-    : 'http://localhost:5000/api';
 
   /**
    * Generate a unique session ID
@@ -75,18 +74,10 @@ class AnalyticsService {
         return;
       }
 
-      const response = await fetch(`${this.API_BASE_URL}/analytics/track`, {
+      await apiRequest('/api/analytics/track', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
-
-      // Don't throw errors for analytics failures - should be non-blocking
-      if (!response.ok) {
-        console.warn('Analytics tracking failed:', response.status, response.statusText);
-      }
     } catch (error) {
       // Log error but don't throw - analytics should never break user experience
       console.warn('Analytics tracking error:', error);
@@ -118,26 +109,12 @@ class AnalyticsService {
    * Fetch analytics statistics (admin only)
    */
   static async fetchAnalyticsStats(token: string): Promise<AnalyticsData> {
-    const response = await fetch(`${this.API_BASE_URL}/analytics/stats`, {
+    return await apiRequest<{ data: AnalyticsData }>('/api/analytics/stats', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch analytics: ${response.status}`);
-    }
-
-    const result = await response.json();
-    
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to fetch analytics data');
-    }
-
-    return result.data;
+    }, true).then(result => result.data);
   }
 }
 

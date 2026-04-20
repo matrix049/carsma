@@ -136,11 +136,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         </button>
         <div className="p-4 md:p-5 rounded-3xl bg-zinc-900/50 border border-zinc-800 flex items-center gap-3 md:gap-4">
           <div className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xs shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-            HA
+            A
           </div>
           <div className="flex-1 overflow-hidden">
             <p className="text-[10px] font-black uppercase tracking-tight text-white truncate">
-              Hamza Alaoui
+              Amine
             </p>
             <p className="text-[8px] font-bold text-zinc-600 mt-1 uppercase tracking-widest">
               Master Admin

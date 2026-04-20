@@ -303,26 +303,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                  </div>
               </motion.div>
             </AnimatePresence>
-
-            {/* Curator's Insight */}
-            <motion.div variants={itemVariants} className="mt-24 p-12 rounded-[4rem] bg-zinc-900 border border-zinc-800 relative overflow-hidden group">
-               <div className="relative z-10 space-y-6">
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600">Architectural Insight</span>
-                 <p className="text-xl text-zinc-400 font-medium italic leading-relaxed">
-                   "This piece is more than art; it's a structural tribute. The interplay of shadows against the matte black gradients evokes the sheer force of the machine. It defines the room."
-                 </p>
-                 <div className="flex items-center gap-5 pt-8">
-                    <div className="h-12 w-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-blue-500 font-black text-xs">HA</div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-white">Hamza Alaoui</p>
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Lead Strategist</p>
-                    </div>
-                 </div>
-               </div>
-               <div className="absolute -bottom-10 -right-10 p-12 opacity-5 scale-150 transition-transform group-hover:scale-110 duration-1000">
-                 <svg className="w-48 h-48 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017V14C19.017 11.2386 16.7784 9 14.017 9V7C17.883 7 21.017 10.134 21.017 14V21H14.017ZM3.017 21V18C3.017 16.8954 3.91243 16 5.017 16H8.017V14C8.017 11.2386 5.77843 9 3.017 9V7C6.883 7 10.017 10.134 10.017 14V21H3.017Z" /></svg>
-               </div>
-            </motion.div>
           </motion.div>
         </div>
       </div>

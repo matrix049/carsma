@@ -17,7 +17,6 @@ export default function CustomizePage() {
     lastName: '',
     email: '',
     phone: '',
-    carName: '',
     model: '',
     year: '',
     notes: '',
@@ -94,7 +93,7 @@ export default function CustomizePage() {
             <div className="rounded-[3rem] bg-zinc-900 border border-zinc-800 p-8 md:p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]">
               <form onSubmit={handleSubmit} className="space-y-14">
                 
-                {/* 01. Identity */}
+                {/* 01. Vehicle Identity */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
@@ -102,13 +101,13 @@ export default function CustomizePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Car Model / Year</label>
-                       <input required type="text" name="model" placeholder="e.g. 1972 Nissan Skyline GT-R" value={formData.model} onChange={handleChange}
+                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Smiya dyal tomobil w model dyalha</label>
+                       <input required type="text" name="model" placeholder="مثال: BMW M3 2020" value={formData.model} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Exterior Color</label>
-                       <input required type="text" name="carName" placeholder="e.g. Midnight Purple III" value={formData.carName} onChange={handleChange}
+                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">3am dyalha</label>
+                       <input required type="text" name="year" placeholder="مثال: 2020" value={formData.year} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                   </div>
@@ -118,40 +117,37 @@ export default function CustomizePage() {
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">02. Perspective</h2>
+                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">02. Kifach bghiti tswira dyal tomobil?</h2>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    {['front', 'side', 'rear'].map((p) => (
+                    {[
+                      { value: 'front', label: 'Men l9dam' },
+                      { value: 'side', label: 'Men janb' },
+                      { value: 'rear', label: 'Men lwer' }
+                    ].map((option) => (
                       <button 
-                        key={p} type="button" 
-                        onClick={() => setFormData(prev => ({ ...prev, perspective: p }))}
+                        key={option.value} type="button" 
+                        onClick={() => setFormData(prev => ({ ...prev, perspective: option.value }))}
                         className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
-                          formData.perspective === p ? 'border-blue-600 bg-blue-600/5 shadow-[0_0_20px_rgba(37,99,235,0.2)]' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
+                          formData.perspective === option.value ? 'border-blue-600 bg-blue-600/5 shadow-[0_0_20px_rgba(37,99,235,0.2)]' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
                         }`}
                       >
-                         <svg className={`w-8 h-8 ${formData.perspective === p ? 'text-blue-500' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.502 1.94a.5.5 0 010 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.457l-1.354 1.354-2-2 1.354-1.354 2 2z"/></svg>
-                         <span className="text-[10px] font-black uppercase tracking-widest">{p}</span>
+                         <svg className={`w-8 h-8 ${formData.perspective === option.value ? 'text-blue-500' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.502 1.94a.5.5 0 010 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.457l-1.354 1.354-2-2 1.354-1.354 2 2z"/></svg>
+                         <span className="text-[10px] font-black uppercase tracking-widest">{option.label}</span>
                       </button>
                     ))}
                   </div>
                 </section>
 
-                {/* 03. Assets & Vision */}
+                {/* 03. Notes */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">03. Assets & Vision</h2>
+                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">03. Malahadhat</h2>
                   </div>
                   <div className="space-y-2">
-                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Reference Photos</label>
-                     <div className="w-full aspect-[3/1] rounded-2xl border-2 border-dashed border-zinc-800 bg-zinc-950 flex flex-col items-center justify-center gap-3 text-zinc-600 hover:border-blue-600 hover:text-blue-500 transition-all cursor-pointer group">
-                        <svg className="w-8 h-8 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span className="text-[10px] font-bold">Drag & Drop or <span className="text-white">Browse</span></span>
-                     </div>
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Special Notes</label>
-                     <textarea name="notes" rows={4} placeholder="Describe specific details, lighting preferences, or any unique modifications..." value={formData.notes} onChange={handleChange}
+                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Ay haja khra bghiti tzidha</label>
+                     <textarea name="notes" rows={4} placeholder="اكتب أي تفاصيل إضافية تريد إضافتها للطلب..." value={formData.notes} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all resize-none" />
                   </div>
                 </section>

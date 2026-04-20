@@ -16,7 +16,8 @@ export default function AdminLogin() {
 
   useEffect(() => {
     setMounted(true);
-    if (isAuthenticated) {
+    // Only redirect to dashboard if we're on the login page and user is authenticated
+    if (isAuthenticated && window.location.pathname === '/admin') {
       router.push('/admin/dashboard');
     }
   }, [isAuthenticated, router]);
