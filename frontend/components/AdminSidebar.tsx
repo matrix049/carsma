@@ -112,9 +112,6 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
               key={item.label}
               onClick={(e) => {
                 e.preventDefault();
-                console.log('🔍 Sidebar click - Target href:', item.href);
-                console.log('🔍 Sidebar click - Current pathname:', pathname);
-                console.log('🔍 Sidebar click - Using router.push to navigate');
                 router.push(item.href);
                 onClose?.();
               }}

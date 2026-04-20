@@ -18,19 +18,9 @@ export default function AdminLoginPage() {
     setMounted(true);
   }, []);
 
-  // Debug logging
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('🔍 AdminLoginPage component - Current path:', window.location.pathname);
-      console.log('🔍 AdminLoginPage component - Is authenticated:', isAuthenticated);
-      console.log('🔍 AdminLoginPage component - Mounted:', mounted);
-    }
-  }, [mounted, isAuthenticated]);
-
   // Only redirect if we're authenticated and on the login page
   useEffect(() => {
     if (mounted && isAuthenticated) {
-      console.log('🔄 AdminLoginPage - Redirecting authenticated user to dashboard');
       router.push('/admin/dashboard');
     }
   }, [mounted, isAuthenticated, router]);
