@@ -13,6 +13,7 @@ interface AuthContextType {
   token: string | null;
   admin: Admin | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   login: (token: string, admin: Admin) => void;
   logout: () => void;
 }
@@ -32,22 +33,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load token and admin from localStorage on mount
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-      const storedAdmin = localStorage.getItem(ADMIN_STORAGE_KEY);
-      
-      if (storedToken) {
-        setToken(storedToken);
+    const initializeAuth = async () => {
+      try {
+        const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+        const storedAdmin = localStorage.getItem(ADMIN_STORAGE_KEY);
+        
+        // Set state synchronously to avoid race conditions
+        if (storedToken && storedAdmin) {
+          const adminData = JSON.parse(storedAdmin);
+          setToken(storedToken);
+          setAdmin(adminData);
+        }
+      } catch (error) {
+        console.error('Failed to load auth data from localStorage:', error);
+        // Clear corrupted data
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+      } finally {
+        // Delay initialization to ensure state updates are complete
+        setTimeout(() => setIsInitialized(true), 0);
       }
-      
-      if (storedAdmin) {
-        setAdmin(JSON.parse(storedAdmin));
-      }
-    } catch (error) {
-      console.error('Failed to load auth data from localStorage:', error);
-    } finally {
-      setIsInitialized(true);
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   // Login function - stores JWT token and admin info
@@ -76,13 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check if user is authenticated
-  const isAuthenticated = token !== null && admin !== null;
+  // Check if user is authenticated - only after initialization
+  const isAuthenticated = isInitialized && token !== null && admin !== null;
 
   const value: AuthContextType = {
     token,
     admin,
-    isAuthenticated,
+    isAuthenticated: isAuthenticated,
+    isInitialized,
     login,
     logout,
   };

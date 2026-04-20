@@ -1,29 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { adminLogin } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { login, isAuthenticated } = useAuth();
-  const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const { login, isAuthenticated, isInitialized } = useAuth();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Get the redirect URL from query params or default to dashboard
+  const redirectTo = searchParams.get('redirect') || '/admin/dashboard';
 
-  // Only redirect if we're authenticated and on the login page
+  // Only redirect if we're authenticated and initialization is complete
   useEffect(() => {
-    if (mounted && isAuthenticated) {
-      router.push('/admin/dashboard');
+    if (isInitialized && isAuthenticated) {
+      router.replace(redirectTo);
     }
-  }, [mounted, isAuthenticated, router]);
+  }, [isInitialized, isAuthenticated, router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +32,7 @@ export default function AdminLoginPage() {
     try {
       const response = await adminLogin({ email, password });
       login(response.token, response.admin);
-      router.push('/admin/dashboard');
+      // Redirect will happen via useEffect
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
     } finally {
@@ -41,10 +40,17 @@ export default function AdminLoginPage() {
     }
   };
 
-  if (!mounted) return null;
+  // Show loading while auth is initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   // If authenticated, show loading while redirecting
-  if (mounted && isAuthenticated) {
+  if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
@@ -113,5 +119,17 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
