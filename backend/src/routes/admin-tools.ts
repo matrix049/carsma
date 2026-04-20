@@ -1,0 +1,71 @@
+import { Router, Request, Response } from 'express';
+import Product from '../models/Product';
+import { authenticateToken } from '../middleware/auth';
+
+const router = Router();
+
+/**
+ * Update all product prices to 200 MAD
+ * POST /api/admin-tools/update-prices
+ * Admin only - updates all products to 200 MAD
+ */
+router.post('/update-prices', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Update all products to 200 MAD
+    const result = await Product.updateMany(
+      {}, // Update all products
+      { $set: { price: 200 } }
+    );
+
+    // Get updated products
+    const products = await Product.find({});
+
+    res.status(200).json({
+      success: true,
+      message: `Updated ${result.modifiedCount} products to 200 MAD`,
+      modifiedCount: result.modifiedCount,
+      products: products.map(p => ({
+        id: p._id,
+        name: p.name,
+        price: p.price
+      }))
+    });
+  } catch (error: any) {
+    console.error('Price update error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Failed to update prices',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * Get current product prices
+ * GET /api/admin-tools/prices
+ * Admin only - lists all product prices
+ */
+router.get('/prices', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find({});
+    
+    res.status(200).json({
+      success: true,
+      products: products.map(p => ({
+        id: p._id,
+        name: p.name,
+        price: p.price,
+        category: p.category
+      }))
+    });
+  } catch (error: any) {
+    console.error('Get prices error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Failed to get prices',
+      details: error.message
+    });
+  }
+});
+
+export default router;
