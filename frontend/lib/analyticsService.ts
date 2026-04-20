@@ -111,7 +111,7 @@ class AnalyticsService {
   static async fetchAnalyticsStats(token: string): Promise<AnalyticsData> {
     const result = await apiRequest<{ success: boolean; data: AnalyticsData }>('/api/analytics/stats', {
       method: 'GET',
-    }, true);
+    }, true); // This will automatically use the token from localStorage
     
     return result.data;
   }

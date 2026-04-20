@@ -22,6 +22,7 @@ export default function AdminLogin() {
   useEffect(() => {
     if (mounted && isAuthenticated && typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
+      // Only redirect if we're exactly on the login page, not on other admin pages
       if (currentPath === '/admin' || currentPath === '/admin/') {
         router.push('/admin/dashboard');
       }
@@ -50,9 +51,9 @@ export default function AdminLogin() {
   // If we're authenticated and on the login page, redirect to dashboard
   if (mounted && isAuthenticated && typeof window !== 'undefined') {
     const currentPath = window.location.pathname;
+    // Only redirect if we're exactly on the login page, not on other admin pages
     if (currentPath === '/admin' || currentPath === '/admin/') {
-      router.push('/admin/dashboard');
-      return null;
+      return null; // Let the useEffect handle the redirect
     }
   }
 

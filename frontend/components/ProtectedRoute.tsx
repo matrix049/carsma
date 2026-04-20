@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     setMounted(true);
     
-    // Only redirect after the component has mounted to avoid hydration errors
+    // Only redirect to login if not authenticated
     if (!isAuthenticated) {
       router.push('/admin');
     }
