@@ -11,7 +11,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "ts-node src/scripts/seed.ts",
-    "verify-seed": "ts-node src/scripts/verify-seed.ts"
+    "verify-seed": "ts-node src/scripts/verify-seed.ts",
+    "update-admin": "ts-node src/scripts/update-admin.ts",
+    "update-prices": "ts-node src/scripts/update-prices.ts"
   },
   "keywords": [],
   "author": "",
