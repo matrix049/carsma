@@ -97,7 +97,7 @@ OrderSchema.pre<IOrder>('save', async function() {
   if (this.isNew) {
     try {
       const lastOrder = await mongoose.model('Order').findOne().sort({ orderNumber: -1 });
-      this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 0;
+      this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1; // Start from 1, not 0
     } catch (error) {
       throw error;
     }
