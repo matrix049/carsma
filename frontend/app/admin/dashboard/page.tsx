@@ -57,7 +57,7 @@ export default function AdminDashboard() {
     try {
       setIsLoading(true);
       const [ordersData, statsData] = await Promise.all([fetchOrders(), fetchStats()]);
-      setOrders([...ordersData].reverse());
+      setOrders(ordersData); // Backend already sorts by newest first (createdAt: -1)
       setStats(statsData);
       setError(null);
     } catch (err: any) {
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-zinc-900 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-700">
-                    <th className="px-6 lg:px-10 py-6 lg:py-8">Reference</th>
+                    <th className="px-6 lg:px-10 py-6 lg:py-8">Date</th>
                     <th className="px-6 lg:px-10 py-6 lg:py-8">Customer</th>
                     <th className="px-6 lg:px-10 py-6 lg:py-8">Status</th>
                     <th className="px-6 lg:px-10 py-6 lg:py-8 text-right">Value</th>
@@ -202,8 +202,20 @@ export default function AdminDashboard() {
                 <tbody className="divide-y divide-zinc-900/50">
                   {orders.slice(0, 10).map((order) => (
                     <tr key={order._id} className="hover:bg-zinc-800/10 transition-colors">
-                      <td className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] lg:text-[11px] font-black text-blue-600">
-                        #L7-{order._id.slice(-6).toUpperCase()}
+                      <td className="px-6 lg:px-10 py-6 lg:py-8">
+                        <p className="text-[10px] lg:text-[11px] font-black text-white">
+                          {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                        <p className="text-[8px] lg:text-[9px] text-zinc-700 font-bold mt-1">
+                          {new Date(order.createdAt).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
                       </td>
                       <td className="px-6 lg:px-10 py-6 lg:py-8">
                         <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-tight text-white">
@@ -237,9 +249,21 @@ export default function AdminDashboard() {
                   className="rounded-xl md:rounded-2xl border border-zinc-900 bg-zinc-900/30 p-4 md:p-5"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-[10px] md:text-[11px] font-black text-blue-500">
-                      #L7-{order._id.slice(-6).toUpperCase()}
-                    </span>
+                    <div>
+                      <p className="text-[10px] md:text-[11px] font-black text-white">
+                        {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-[8px] md:text-[9px] text-zinc-600 font-bold mt-0.5">
+                        {new Date(order.createdAt).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
                     <span className={`px-2.5 md:px-3 py-1 rounded-full text-[7px] md:text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
                       {order.status}
                     </span>

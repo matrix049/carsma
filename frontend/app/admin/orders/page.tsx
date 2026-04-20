@@ -26,7 +26,7 @@ function exportCSV(orders: Order[]) {
   const rows = [
     ['Order ID', 'Date', 'Customer', 'Phone', 'Address', 'Products', 'Total (MAD)', 'Payment', 'Status'],
     ...orders.map((o) => [
-      `#L7-${o._id.slice(-6).toUpperCase()}`,
+      `#${o.orderNumber}`,
       new Date(o.createdAt).toLocaleString(),
       `${o.customer.firstName} ${o.customer.lastName}`,
       o.customer.phone,
@@ -62,7 +62,7 @@ export default function AdminOrdersPage() {
     try {
       setIsLoading(true);
       const data = await fetchOrders();
-      setOrders([...data].reverse());
+      setOrders(data); // Backend already sorts by newest first (createdAt: -1)
       setError(null);
     } catch (err: any) {
       console.error('Failed to load orders:', err);
@@ -257,7 +257,7 @@ export default function AdminOrdersPage() {
                           >
                             <td className="px-8 py-7">
                               <span className="text-[11px] font-black text-blue-500">
-                                #L7-{order._id.slice(-6).toUpperCase()}
+                                #{order.orderNumber}
                               </span>
                               {order.paymentMethod === 'cod' && (
                                 <span className="ml-2 px-2 py-0.5 rounded bg-zinc-800 text-[8px] font-black uppercase tracking-widest text-zinc-500">
@@ -346,7 +346,7 @@ export default function AdminOrdersPage() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[12px] font-black text-blue-500">
-                              #L7-{order._id.slice(-6).toUpperCase()}
+                              #{order.orderNumber}
                             </span>
                             {order.paymentMethod === 'cod' && (
                               <span className="px-2 py-0.5 rounded bg-zinc-800 text-[8px] font-black uppercase tracking-widest text-zinc-500">
@@ -456,7 +456,7 @@ export default function AdminOrdersPage() {
                     </span>
                   </div>
                   <p className="text-blue-500 text-xl font-black">
-                    #L7-{selectedOrder._id.slice(-6).toUpperCase()}
+                    #{selectedOrder.orderNumber}
                   </p>
                   <p className="text-zinc-600 text-sm font-bold mt-2">
                     {new Date(selectedOrder.createdAt).toLocaleString()}

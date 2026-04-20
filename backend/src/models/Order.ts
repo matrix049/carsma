@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IOrder extends Document {
+  orderNumber: number;
   customer: {
     firstName: string;
     lastName: string;
@@ -22,6 +23,11 @@ export interface IOrder extends Document {
 
 const OrderSchema = new Schema<IOrder>(
   {
+    orderNumber: {
+      type: Number,
+      unique: true,
+      required: true
+    },
     customer: {
       firstName: {
         type: String,
@@ -86,6 +92,18 @@ const OrderSchema = new Schema<IOrder>(
     timestamps: true
   }
 );
+
+// Auto-increment orderNumber before saving
+OrderSchema.pre<IOrder>('save', async function() {
+  if (this.isNew) {
+    try {
+      const lastOrder = await mongoose.model('Order').findOne().sort({ orderNumber: -1 });
+      this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+});
 
 // Index for efficient sorting by creation date (newest first)
 OrderSchema.index({ createdAt: -1 });

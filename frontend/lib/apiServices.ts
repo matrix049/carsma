@@ -37,6 +37,7 @@ export interface Customer {
 
 export interface Order {
   _id: string;
+  orderNumber: number;
   customer: Customer;
   products: OrderProduct[];
   totalPrice: number;

@@ -52,15 +52,33 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     });
 
     await order.save();
+    console.log('📦 ===== ORDER CREATED SUCCESSFULLY =====');
+    console.log('📦 Order ID:', order._id.toString());
+    console.log('📦 Order Number:', order.orderNumber);
+    console.log('📦 Customer:', `${customer.firstName} ${customer.lastName}`);
+    console.log('📦 Total Price:', totalPrice, 'MAD');
+    console.log('📦 Items Count:', products.length);
+    console.log('📦 ===== STARTING NOTIFICATION PROCESS =====');
 
     // Send notification to admin
-    await notifyNewOrder({
-      orderId: order._id.toString(),
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      customerPhone: customer.phone,
-      totalPrice,
-      itemCount: products.length,
-    });
+    try {
+      console.log('🔔 Calling notifyNewOrder function...');
+      await notifyNewOrder({
+        orderId: order._id.toString(),
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        customerPhone: customer.phone,
+        totalPrice,
+        itemCount: products.length,
+      });
+      console.log('✅ ===== NOTIFICATION PROCESS COMPLETED =====');
+    } catch (notificationError) {
+      console.error('❌ ===== NOTIFICATION PROCESS FAILED =====');
+      console.error('❌ Notification error:', notificationError);
+      console.error('❌ Error type:', notificationError instanceof Error ? notificationError.constructor.name : typeof notificationError);
+      console.error('❌ Error message:', notificationError instanceof Error ? notificationError.message : String(notificationError));
+      console.error('❌ Stack trace:', notificationError instanceof Error ? notificationError.stack : 'No stack trace');
+      // Don't fail the order creation if notification fails
+    }
 
     // Return success response with orderId
     res.status(201).json({
