@@ -24,15 +24,17 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
     topic: ntfyTopic ? `${ntfyTopic.substring(0, 5)}...` : 'NOT SET',
     server: ntfyServer,
     title: options.title,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'unknown'
   });
 
   // Skip if ntfy is not configured
   if (!ntfyTopic) {
     console.log('⚠️  NTFY_TOPIC not configured. Skipping notification:', options.title);
     console.log('💡 To enable notifications:');
-    console.log('   1. Set NTFY_TOPIC in your .env file');
-    console.log('   2. Subscribe to the same topic in the ntfy app');
+    console.log('   1. Set NTFY_TOPIC in your environment variables');
+    console.log('   2. For Railway: Go to Variables tab and add NTFY_TOPIC=carsma2026');
+    console.log('   3. Subscribe to the same topic in the ntfy app');
     console.log('🔔 ===== NOTIFICATION SKIPPED =====');
     return;
   }
@@ -81,6 +83,7 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
         console.error('💡 Possible issue: Topic URL might be incorrect');
         console.error('   Expected format: https://ntfy.sh/your-topic-name');
         console.error('   Current URL:', ntfyUrl);
+        console.error('   🔧 Fix: Set NTFY_TOPIC=carsma2026 in Railway Variables');
       } else if (response.status === 400) {
         console.error('💡 Possible issue: Invalid payload format');
       } else if (response.status === 429) {
@@ -108,6 +111,7 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
     console.error('   - Invalid NTFY_SERVER URL:', ntfyServer);
     console.error('   - Firewall blocking outbound HTTPS requests');
     console.error('   - SSL/TLS certificate issues');
+    console.error('   - Railway network restrictions');
     console.log('🔔 ===== NOTIFICATION ERROR =====');
   }
 }
