@@ -24,8 +24,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     
     // Only redirect to login if not authenticated
     if (!isAuthenticated) {
-      console.log('🔄 ProtectedRoute - Redirecting to /admin (not authenticated)');
-      router.push('/admin');
+      console.log('🔄 ProtectedRoute - Redirecting to /admin/login (not authenticated)');
+      router.push('/admin/login');
     }
   }, [isAuthenticated, router]);
 
