@@ -18,8 +18,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Add with default medium size
-    addToCart({ ...product, price: product.price + 150 }, 'M', '50x70cm');
+    // Add with default medium size - price is now fixed at base product price
+    addToCart({ ...product, price: product.price }, 'M', '120cm x 35cm');
   };
 
   const imageUrl = product.image || 'https://via.placeholder.com/400x300?text=No+Image';
@@ -68,7 +68,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </p>
             <div className="flex flex-col items-end">
               <span className="text-[10px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50">
-                {Math.ceil(product.price * 1.5)} <span className="text-[8px]">MAD</span>
+                {Math.ceil(product.price * 1.2)} <span className="text-[8px]">MAD</span>
               </span>
               <span className="text-3xl font-black text-zinc-900 dark:text-white font-jakarta">
                 {product.price} <span className="text-[10px] font-black text-zinc-500 ml-0.5 uppercase">MAD</span>

@@ -58,7 +58,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
             </h3>
             <div className="flex flex-col items-end">
               <span className="text-[8px] md:text-[9px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50 leading-none">
-                {Math.ceil(product.price * 1.5)}<span className="text-[6px] md:text-[7px] ml-0.5">MAD</span>
+                {Math.ceil(product.price * 1.2)}<span className="text-[6px] md:text-[7px] ml-0.5">MAD</span>
               </span>
               <span className="text-xs md:text-sm font-black text-blue-600 shrink-0 font-jakarta leading-none mt-1">
                 {product.price}<span className="text-[8px] md:text-[9px] ml-0.5">MAD</span>

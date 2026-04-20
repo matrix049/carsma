@@ -18,9 +18,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fixed size - Medium (120cm x 35cm)
-  const fixedSize = { id: 'M', label: '120cm x 35cm', priceMod: 150 };
-  const totalPrice = product ? product.price + fixedSize.priceMod : 0;
+  // Fixed size - Medium (120cm x 35cm) - Price is now included in base product price
+  const fixedSize = { id: 'M', label: '120cm x 35cm', priceMod: 0 };
+  const totalPrice = product ? product.price : 0;
 
   useEffect(() => {
     async function loadProduct() {
@@ -142,7 +142,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-4">
                   <span className="text-xl font-black text-zinc-600 line-through tracking-widest decoration-blue-500/40">
-                    {Math.ceil((product.price * 1.5) + fixedSize.priceMod)} <span className="text-[10px]">MAD</span>
+                    {Math.ceil(product.price * 1.2)} <span className="text-[10px]">MAD</span>
                   </span>
                   <div className="rounded-full bg-blue-600/10 border border-blue-500/20 px-4 py-1.5 text-[8px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
                     Collector's Discount
