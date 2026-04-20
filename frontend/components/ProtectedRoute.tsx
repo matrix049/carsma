@@ -16,8 +16,15 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     setMounted(true);
     
+    // Debug logging
+    if (typeof window !== 'undefined') {
+      console.log('🔍 ProtectedRoute - Current path:', window.location.pathname);
+      console.log('🔍 ProtectedRoute - Is authenticated:', isAuthenticated);
+    }
+    
     // Only redirect to login if not authenticated
     if (!isAuthenticated) {
+      console.log('🔄 ProtectedRoute - Redirecting to /admin (not authenticated)');
       router.push('/admin');
     }
   }, [isAuthenticated, router]);

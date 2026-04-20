@@ -18,12 +18,23 @@ export default function AdminLogin() {
     setMounted(true);
   }, []);
 
+  // Debug logging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('🔍 AdminLogin component - Current path:', window.location.pathname);
+      console.log('🔍 AdminLogin component - Is authenticated:', isAuthenticated);
+      console.log('🔍 AdminLogin component - Mounted:', mounted);
+    }
+  }, [mounted, isAuthenticated]);
+
   // Only redirect if we're authenticated and specifically on the /admin login page
   useEffect(() => {
     if (mounted && isAuthenticated && typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
+      console.log('🔍 Redirect check - Current path:', currentPath);
       // Only redirect if we're exactly on the login page, not on other admin pages
       if (currentPath === '/admin' || currentPath === '/admin/') {
+        console.log('🔄 Redirecting to dashboard from login page');
         router.push('/admin/dashboard');
       }
     }
