@@ -104,7 +104,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 py-32 lg:py-48 max-w-7xl">
+      <div className="container mx-auto px-6 py-32 lg:py-48 max-w-7xl pb-40 md:pb-0">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -157,17 +157,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black text-zinc-900 dark:text-zinc-50 tracking-tighter leading-[0.85] uppercase font-jakarta">
                 {product.name}
               </h1>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-4">
-                  <span className="text-xl font-black text-zinc-600 line-through tracking-widest decoration-blue-500/40">
-                    {Math.ceil(product.price * 1.2)} <span className="text-[10px]">MAD</span>
-                  </span>
-                  <div className="rounded-full bg-blue-600/10 border border-blue-500/20 px-4 py-1.5 text-[8px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
-                    Collector's Discount
-                  </div>
-                </div>
-                <p className="text-5xl sm:text-7xl font-black text-zinc-950 dark:text-white leading-none">
-                  {totalPrice} <span className="text-sm">MAD</span>
+              <div className="flex items-center gap-4">
+                <span className="text-2xl font-black text-zinc-500 line-through leading-none">
+                  {Math.ceil(product.price * 1.2)} MAD
+                </span>
+                <p className="text-4xl sm:text-5xl font-black text-zinc-950 dark:text-white leading-none">
+                  {totalPrice} <span className="text-base font-black text-zinc-400">MAD</span>
                 </p>
               </div>
             </motion.div>

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, calculateTotal, clearCart } = useCart();
+  const { cart, calculateTotal, clearCart, removeFromCart, updateQuantity } = useCart();
   const { t, language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -151,25 +151,61 @@ export default function CheckoutPage() {
               </div>
 
               <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:gap-10">
+                {/* Full Name */}
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-200 ml-1">Full Name • الاسم الكامل</label>
-                  <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                  <div className="relative">
+                    <span className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </span>
+                    <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                  </div>
                 </div>
+
+                {/* Phone */}
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-200 ml-1">Phone Number • رقم الهاتف</label>
-                  <input required type="tel" name="phone" placeholder="0675749377" value={formData.phone} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                  <div className="relative">
+                    <span className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </span>
+                    <input required type="tel" name="phone" placeholder="0675749377" value={formData.phone} onChange={handleChange}
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                  </div>
                 </div>
+
+                {/* Address */}
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-200 ml-1">Shipping Address • العنوان</label>
-                  <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                  <div className="relative">
+                    <span className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    </span>
+                    <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                  </div>
                 </div>
+
+                {/* City */}
                 <div className="space-y-2 sm:space-y-3">
                   <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-200 ml-1">City • المدينة</label>
-                  <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
-                    className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] px-5 py-4 sm:px-8 sm:py-6 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-800" />
+                  <div className="relative">
+                    <span className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </span>
+                    <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                  </div>
                 </div>
               </form>
             </motion.section>
@@ -209,21 +245,45 @@ export default function CheckoutPage() {
 
               <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] text-zinc-500 mb-8 sm:mb-12">Manifesto & Total</h2>
               
-              <div className="space-y-6 sm:space-y-10 mb-12 sm:mb-16 max-h-[40vh] overflow-y-auto pr-2 sm:pr-4 no-scrollbar">
+              <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-12 max-h-[40vh] overflow-y-auto pr-2 sm:pr-4 no-scrollbar">
                 {cart.map((item, index) => (
-                  <div key={`${item._id}-${item.selectedSize || 'default'}-${index}`} className="flex gap-4 sm:gap-8 items-center group">
-                    <div className="h-16 w-16 sm:h-24 sm:w-24 flex-none rounded-xl sm:rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 transition-transform group-hover:scale-105 duration-500">
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover scale-110" />
+                  <div key={`${item._id}-${item.selectedSize || 'default'}-${index}`} className="flex gap-3 sm:gap-6 items-center group">
+                    <div className="h-14 w-14 sm:h-20 sm:w-20 flex-none rounded-xl sm:rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800">
+                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                     </div>
-                    <div className="flex-1 space-y-0.5 sm:space-y-1">
-                      <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-white leading-tight">{item.name}</h4>
-                      <p className="text-[8px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">
-                        {item.category} • X{item.quantity}
-                        {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-white leading-tight truncate">{item.name}</h4>
+                      <p className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-widest">
+                        {item.price} MAD × {item.quantity}
                       </p>
+                      {/* Quantity controls */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all touch-manipulation"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+                        </button>
+                        <span className="text-xs font-black text-white w-4 text-center">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all touch-manipulation"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item._id)}
+                          className="ml-1 h-6 w-6 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-red-900/50 text-zinc-500 hover:text-red-400 transition-all touch-manipulation"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm font-black text-white whitespace-nowrap">
-                      {item.price * item.quantity} <span className="text-[8px] sm:text-[9px] text-zinc-600 italic">MAD</span>
+                    <div className="text-xs sm:text-sm font-black text-white whitespace-nowrap flex-shrink-0">
+                      {item.price * item.quantity} <span className="text-[8px] sm:text-[9px] text-zinc-600">MAD</span>
                     </div>
                   </div>
                 ))}
@@ -238,7 +298,7 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-2 sm:gap-3">
                     Shipping • التوصيل
                   </div>
-                  <span className="text-green-400">FREE 🎁</span>
+                  <span className="text-green-400">Free Shipping</span>
                 </div>
                 <div className="flex justify-between items-end text-3xl sm:text-5xl font-black text-white pt-6 sm:pt-10 mt-6 sm:mt-10 border-t border-zinc-800 font-jakarta">
                   <div className="space-y-1.5 sm:space-y-2">

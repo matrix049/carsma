@@ -253,6 +253,47 @@ export default function ShopPage() {
                       <CompactProductCard product={product} />
                     </motion.div>
                   ))}
+
+                  {/* Custom Design Card - always shown at end of grid */}
+                  {!isLoading && (
+                    <motion.div variants={itemVariants}>
+                      <a
+                        href="/customize"
+                        className="group flex flex-col justify-between h-full min-h-[280px] sm:min-h-[360px] rounded-2xl sm:rounded-3xl border-2 border-dashed border-blue-600/40 bg-blue-600/5 hover:bg-blue-600/10 hover:border-blue-500 transition-all duration-500 p-5 sm:p-8 overflow-hidden relative"
+                      >
+                        {/* Glow */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.08),transparent_70%)]" />
+
+                        <div className="relative z-10 flex flex-col h-full gap-4">
+                          {/* Icon */}
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex-1">
+                            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 mb-2">Custom Order</p>
+                            <h3 className="text-lg sm:text-2xl font-black tracking-tighter text-white uppercase leading-tight font-jakarta">
+                              Don't see your car?
+                            </h3>
+                            <p className="text-xs sm:text-sm text-zinc-500 font-medium mt-2 leading-relaxed">
+                              مالقيتيش الطوموبيل لي كاتعجبك؟ صيفط لينا الماركا و الموضيل
+                            </p>
+                          </div>
+
+                          {/* CTA */}
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-500 group-hover:text-blue-400 transition-colors">
+                            <span>Request Custom Design</span>
+                            <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                          </div>
+                        </div>
+                      </a>
+                    </motion.div>
+                  )}
                   
                   {filteredProducts.length === 0 && (
                     <motion.div 
