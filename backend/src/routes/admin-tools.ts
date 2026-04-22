@@ -5,7 +5,7 @@ import { authenticateToken } from '../middleware/auth';
 const router = Router();
 
 /**
- * Update all product prices to 200 MAD (Public endpoint for one-time fix)
+ * Update all product prices to 179 MAD (Public endpoint for one-time fix)
  * GET /api/admin-tools/fix-prices-now
  * No auth required - for emergency price fix
  */
@@ -15,10 +15,10 @@ router.get('/fix-prices-now', async (req: Request, res: Response) => {
     const beforeProducts = await Product.find({});
     const beforePrices = beforeProducts.map(p => ({ name: p.name, price: p.price }));
 
-    // Update all products to 200 MAD
+    // Update all products to 179 MAD
     const result = await Product.updateMany(
       {}, // Update all products
-      { $set: { price: 200 } }
+      { $set: { price: 179 } }
     );
 
     // Get updated products
@@ -27,7 +27,7 @@ router.get('/fix-prices-now', async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
-      message: `✅ Updated ${result.modifiedCount} products to 200 MAD`,
+      message: `✅ Updated ${result.modifiedCount} products to 179 MAD`,
       modifiedCount: result.modifiedCount,
       before: beforePrices,
       after: afterPrices
@@ -43,16 +43,16 @@ router.get('/fix-prices-now', async (req: Request, res: Response) => {
 });
 
 /**
- * Update all product prices to 200 MAD
+ * Update all product prices to 179 MAD
  * POST /api/admin-tools/update-prices
- * Admin only - updates all products to 200 MAD
+ * Admin only - updates all products to 179 MAD
  */
 router.post('/update-prices', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // Update all products to 200 MAD
+    // Update all products to 179 MAD
     const result = await Product.updateMany(
       {}, // Update all products
-      { $set: { price: 200 } }
+      { $set: { price: 179 } }
     );
 
     // Get updated products
@@ -60,7 +60,7 @@ router.post('/update-prices', authenticateToken, async (req: Request, res: Respo
 
     res.status(200).json({
       success: true,
-      message: `Updated ${result.modifiedCount} products to 200 MAD`,
+      message: `Updated ${result.modifiedCount} products to 179 MAD`,
       modifiedCount: result.modifiedCount,
       products: products.map(p => ({
         id: p._id,

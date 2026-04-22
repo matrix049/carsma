@@ -19,14 +19,14 @@ export default function FAQPage() {
     {
       question: "What materials are used for the prints?",
       questionAr: "شنو هي المواد المستخدمة للطباعة؟",
-      answer: "We use premium museum-grade paper with archival inks that ensure your artwork lasts for decades without fading. Each print is carefully crafted to maintain the highest quality standards.",
-      answerAr: "كنستخدمو ورق ممتاز بجودة المتاحف مع حبر كيصبر بزاف باش اللوحة ديالك تبقى سنين بلا ما تتبهت. كل لوحة كنديروها بعناية فائقة باش نضمنو أعلى جودة."
+      answer: "We use premium Alucobond material that ensures your artwork is durable, lightweight, and maintains vibrant colors. This high-quality aluminum composite material is perfect for modern wall art and provides excellent longevity.",
+      answerAr: "كنستخدمو مادة الألوكوبوند الممتازة لي كتضمن أن اللوحة ديالك تكون قوية وخفيفة وتحافظ على الألوان الزاهية. هاد المادة عالية الجودة مثالية للوحات الحائط العصرية وكتعطي متانة ممتازة."
     },
     {
       question: "How long does shipping take?",
       questionAr: "شحال كتاخد التوصيل؟",
-      answer: "Delivery within Morocco typically takes 2-5 business days. We ship to all major cities including Rabat, Casablanca, Marrakech, and more. You'll receive a tracking number once your order ships.",
-      answerAr: "التوصيل داخل المغرب عادة كياخد من 2 ل 5 أيام. كنوصلو لجميع المدن الكبيرة بحال الرباط، الدار البيضا، مراكش، وغيرهم. غادي توصلك رقم التتبع فاش نصيفطو الطلب ديالك."
+      answer: "Shipping takes from 24 hours to 3 days within Morocco. We ensure fast and reliable delivery to all major cities. You'll receive a tracking number once your order ships.",
+      answerAr: "التوصيل كياخد من 24 ساعة ل 3 أيام داخل المغرب. كنضمنو توصيل سريع وموثوق لجميع المدن الكبيرة. غادي توصلك رقم التتبع فاش نصيفطو الطلب ديالك."
     },
     {
       question: "Can I request a custom car design?",
@@ -37,8 +37,8 @@ export default function FAQPage() {
     {
       question: "What sizes are available?",
       questionAr: "شنو هي المقاسات المتوفرة؟",
-      answer: "We offer three standard sizes: Small (30x40cm), Medium (50x70cm), and Large (70x100cm). Each size is carefully selected to fit different spaces and preferences. Prices vary by size.",
-      answerAr: "عندنا ثلاث مقاسات: صغير (30x40 سم)، متوسط (50x70 سم)، وكبير (70x100 سم). كل مقاس مختار بعناية باش يناسب مساحات وأذواق مختلفة. الأثمنة كتختالف حسب المقاس."
+      answer: "We offer only one standard size which is 120cm x 35cm. This carefully selected size is perfect for modern wall art and fits beautifully in most spaces, providing an elegant and impactful display.",
+      answerAr: "عندنا مقاس واحد فقط وهو 120 سم × 35 سم. هاد المقاس مختار بعناية ومثالي للوحات الحائط العصرية وكيناسب معظم المساحات، وكيعطي عرض أنيق ومؤثر."
     },
     {
       question: "Do you offer framing services?",
@@ -49,8 +49,8 @@ export default function FAQPage() {
     {
       question: "What is your return policy?",
       questionAr: "شنو هي سياسة الإرجاع؟",
-      answer: "We want you to be completely satisfied with your purchase. If there's any issue with your order, please contact us within 7 days of delivery. We'll work with you to resolve any concerns.",
-      answerAr: "بغيناك تكون راضي تماماً على الشراء ديالك. إلا كان شي مشكل مع الطلب ديالك، عيط لينا فأقل من 7 أيام من التوصيل. غادي نخدمو معاك باش نحلو أي مشكل."
+      answer: "We do not accept returns on our custom artwork. Each piece is carefully crafted and printed specifically for your order. Please review your selection carefully before placing your order to ensure complete satisfaction.",
+      answerAr: "ما كنقبلوش الإرجاع على اللوحات المخصصة ديالنا. كل قطعة كتتصنع وتتطبع خصيصاً للطلب ديالك. عافاك راجع الاختيار ديالك مزيان قبل ما تأكد الطلب باش تكون راضي تماماً."
     },
     {
       question: "How do I care for my artwork?",
