@@ -89,15 +89,19 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <Link 
-                href={link.path} 
-                className={`relative px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-white ${isActive(link.path) ? 'text-white' : 'text-zinc-500'}`}
+              <Link
+                href={link.path}
+                className={`group relative px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-colors hover:text-white ${isActive(link.path) ? 'text-white' : 'text-zinc-500'}`}
               >
-                {link.name}
+                <span className="relative inline-block">
+                  {link.name}
+                  <span className="pointer-events-none absolute -bottom-2 left-0 right-0 h-px scale-x-0 bg-zinc-500 origin-left transition-transform duration-500 group-hover:scale-x-100" />
+                </span>
                 {isActive(link.path) && (
-                  <motion.div 
-                    layoutId="nav-dot"
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,1)]"
+                  <motion.div
+                    layoutId="nav-active-bar"
+                    className="absolute -bottom-2 left-0 right-0 h-px bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.9)]"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
               </Link>

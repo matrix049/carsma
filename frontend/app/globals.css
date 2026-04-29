@@ -50,7 +50,11 @@ body {
   background: #3f3f46;
 }
 
-/* Utilities */
+/* ========================================================================
+   Crafted utilities
+   ======================================================================== */
+
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -58,3 +62,116 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Balanced text wrap for headlines */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Soft film-grain overlay (used on dark sections to add tactile texture) */
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* Vertical hairline (used as a craft detail in dark sections) */
+.hairline {
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.2) 12%, rgba(255,255,255,0.2) 88%, transparent);
+}
+
+/* Marquee tracks (a 200%-wide flex row containing the duplicated content) */
+.marquee-track {
+  animation: marquee-x 40s linear infinite;
+}
+.marquee-track-fast {
+  animation: marquee-x 22s linear infinite;
+}
+.marquee-track-reverse {
+  animation: marquee-x-reverse 50s linear infinite;
+}
+
+@keyframes marquee-x {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes marquee-x-reverse {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Slow zoom for hero stills */
+.kenburn {
+  animation: kenburn 22s ease-out infinite alternate;
+  transform-origin: 50% 60%;
+}
+@keyframes kenburn {
+  0%   { transform: scale(1.04) translate3d(0, 0, 0); }
+  100% { transform: scale(1.18) translate3d(0, -2%, 0); }
+}
+
+/* Aurora-style soft pulse used behind hero copy */
+.pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.6;  transform: scale(1.08); }
+}
+
+/* Shimmer text used for gradient kicker text */
+.text-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, #fff 35%, rgba(255,255,255,0.4) 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Slow vertical drift used on small UI bits */
+.float-y {
+  animation: float-y 5s ease-in-out infinite;
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* Scoreboard-style flicker for numeric counters */
+@keyframes ticker-flick {
+  0%   { transform: translateY(0); opacity: 1; }
+  45%  { transform: translateY(-100%); opacity: 0; }
+  50%  { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Reduced motion: kill the loops */
+@media (prefers-reduced-motion: reduce) {
+  .kenburn,
+  .pulse-glow,
+  .text-shimmer,
+  .float-y,
+  .marquee-track,
+  .marquee-track-fast,
+  .marquee-track-reverse {
+    animation: none !important;
+  }
+}
+
+/* Legacy carousel keyframe kept for backward compat */
+@keyframes scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-scroll { animation: scroll 40s linear infinite; }
