@@ -10,6 +10,7 @@ import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from '@/components/ProductCard';
+import CompactProductCard from '@/components/CompactProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import WheelLoader from '@/components/WheelLoader';
 import PorscheCar from '@/components/PorscheCar';
@@ -156,13 +157,21 @@ export default function Home() {
       return;
 
     const ctx = gsap.context(() => {
-      gsap.from('.product-card', {
-        opacity: 0,
-        y: 40,
-        duration: 0.85,
-        stagger: 0.08,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.products-grid', start: 'top 80%' },
+      // Two .products-grid containers exist (mobile slider + desktop grid).
+      // Animate each one independently against its own children — and skip
+      // hidden containers so we don't fire an offscreen tween.
+      gsap.utils.toArray<HTMLElement>('.products-grid').forEach((grid) => {
+        if (grid.offsetParent === null) return;
+        const cards = grid.querySelectorAll<HTMLElement>('.product-card');
+        if (cards.length === 0) return;
+        gsap.from(cards, {
+          opacity: 0,
+          y: 40,
+          duration: 0.85,
+          stagger: 0.08,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: grid, start: 'top 85%' },
+        });
       });
     }, rootRef);
 
@@ -238,11 +247,23 @@ export default function Home() {
             <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-zinc-400 md:mt-8 md:text-lg">
               Numbered automotive prints. Hand-drawn, made in Rabat.
             </p>
-            <div className="mt-10 md:mt-12">
+            <p
+              dir="rtl"
+              className="mt-3 max-w-md text-sm font-medium leading-relaxed text-zinc-500 md:text-base"
+            >
+              تصاميم طوموبيلات معدودة، مرسومة باليد فالرباط
+            </p>
+            <div className="mt-10 flex flex-col items-center gap-3 md:mt-12">
               <Link href="/shop" className={btnPrimary}>
                 Explore Collection
                 <ArrowRight />
               </Link>
+              <span
+                dir="rtl"
+                className="font-mono text-[11px] tracking-[0.3em] text-blue-500/80"
+              >
+                شوف الݣالوري
+              </span>
             </div>
           </div>
         </div>
@@ -279,10 +300,18 @@ export default function Home() {
                 Featured.
               </h2>
             </div>
-            <Link data-reveal href="/shop" className={`${btnGhostDark} self-start md:self-end`}>
-              See all
-              <ArrowRight />
-            </Link>
+            <div data-reveal className="flex flex-col items-start gap-2 md:items-end">
+              <Link href="/shop" className={btnGhostDark}>
+                See all
+                <ArrowRight />
+              </Link>
+              <span
+                dir="rtl"
+                className="font-mono text-[10px] tracking-[0.3em] text-blue-500/80"
+              >
+                شوف الكل
+              </span>
+            </div>
           </div>
 
           {isLoading ? (
@@ -290,13 +319,36 @@ export default function Home() {
               <WheelLoader size="lg" />
             </div>
           ) : (
-            <div className="products-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.slice(0, 6).map((p) => (
-                <div key={p._id} className="product-card">
-                  <ProductCard product={p} />
+            <>
+              {/* Mobile: horizontal scroll-snap slider with compact cards */}
+              <div className="products-grid -mx-6 md:hidden">
+                <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4">
+                  {products.slice(0, 6).map((p) => (
+                    <div
+                      key={p._id}
+                      className="product-card w-[68vw] max-w-[260px] flex-shrink-0 snap-center"
+                    >
+                      <CompactProductCard product={p} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <p
+                  dir="rtl"
+                  className="mt-4 px-6 text-center font-mono text-[10px] tracking-[0.3em] text-zinc-500"
+                >
+                  ← زلق باش تشوف الكل →
+                </p>
+              </div>
+
+              {/* Desktop: grid */}
+              <div className="products-grid hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+                {products.slice(0, 6).map((p) => (
+                  <div key={p._id} className="product-card">
+                    <ProductCard product={p} />
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -331,23 +383,55 @@ export default function Home() {
 
           <p
             data-reveal
+            dir="rtl"
+            className="mx-auto mt-6 max-w-xl font-display text-2xl uppercase tracking-tight text-blue-500/90 md:text-3xl"
+          >
+            جيب الطوموبيل، حنا نزينو ليك الحيط
+          </p>
+
+          <p
+            data-reveal
             className="mx-auto mt-10 max-w-xl text-base font-medium leading-relaxed text-zinc-400 md:text-lg"
           >
             Send the angle, send the color. We&apos;ll draw it, print it, and
             ship it. Numbered for you.
           </p>
 
+          <p
+            data-reveal
+            dir="rtl"
+            className="mx-auto mt-3 max-w-xl text-sm font-medium leading-relaxed text-zinc-500 md:text-base"
+          >
+            صيفط الزاوية، صيفط اللون. غادي نرسموها، نطبعوها، ونصيفطوها معدودة بسميتك
+          </p>
+
           <div
             data-reveal
-            className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row md:gap-6"
+            className="mt-12 flex flex-col items-center justify-center gap-6 md:flex-row md:items-start md:gap-10"
           >
-            <Link href="/customize" className={btnAccent}>
-              Request Custom Art
-              <ArrowRight />
-            </Link>
-            <Link href="/shop" className={btnGhostDark}>
-              Browse Collection
-            </Link>
+            <div className="flex flex-col items-center gap-3">
+              <Link href="/customize" className={btnAccent}>
+                Request Custom Art
+                <ArrowRight />
+              </Link>
+              <span
+                dir="rtl"
+                className="font-mono text-[10px] tracking-[0.3em] text-blue-300/90"
+              >
+                طلب تصميم خاص
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Link href="/shop" className={btnGhostDark}>
+                Browse Collection
+              </Link>
+              <span
+                dir="rtl"
+                className="font-mono text-[10px] tracking-[0.3em] text-white/60"
+              >
+                شوف الݣالوري
+              </span>
+            </div>
           </div>
         </div>
       </section>
