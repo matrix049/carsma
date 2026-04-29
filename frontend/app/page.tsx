@@ -1,164 +1,312 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from '@/components/ProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
-import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useMotionValue,
-  useSpring,
-  useMotionTemplate,
-} from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
-import WheelButton from '@/components/WheelButton';
-import Marquee from '@/components/Marquee';
-import RevealText from '@/components/RevealText';
-import MagneticLink from '@/components/MagneticLink';
 import PorscheIntro from '@/components/PorscheIntro';
 
 /* ----------------------------------------------------------------------------
- * Hero
+ * Helpers
  * --------------------------------------------------------------------------*/
 
-function Hero() {
-  const { t } = useLanguage();
-  const heroRef = useRef<HTMLElement>(null);
+// useLayoutEffect runs synchronously before paint — but it warns on the server.
+// This iso pattern keeps it on the client and silently degrades on the server.
+const useIsoLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-  // Scroll-driven parallax for the hero image + copy
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const copyY = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
-  const copyOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+/**
+ * SplitText — splits a string into per-character spans wrapped in an
+ * overflow-hidden line, so a transform-from-below animation reads as a
+ * curtain-drop instead of a generic fade.
+ */
+function SplitText({
+  text,
+  className = '',
+}: {
+  text: string;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`split-line block overflow-hidden ${className}`}
+      aria-label={text}
+    >
+      <span className="block">
+        {text.split('').map((c, i) => (
+          <span
+            key={i}
+            className="split-char inline-block will-change-transform"
+            aria-hidden="true"
+          >
+            {c === ' ' ? ' ' : c}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
 
-  // Cursor-tracked spotlight glow (subtle, only inside hero)
-  const mouseX = useMotionValue(50);
-  const mouseY = useMotionValue(50);
-  const glowX = useSpring(mouseX, { stiffness: 80, damping: 20 });
-  const glowY = useSpring(mouseY, { stiffness: 80, damping: 20 });
+/* ----------------------------------------------------------------------------
+ * Page
+ * --------------------------------------------------------------------------*/
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    mouseX.set(((e.clientX - rect.left) / rect.width) * 100);
-    mouseY.set(((e.clientY - rect.top) / rect.height) * 100);
-  };
+export default function Home() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const glowBackground = useMotionTemplate`radial-gradient(600px circle at ${glowX}% ${glowY}%, rgba(37,99,235,0.18), transparent 65%)`;
+  // Load products
+  useEffect(() => {
+    let active = true;
+    fetchProducts()
+      .then((data) => {
+        if (active) setProducts(data);
+      })
+      .catch((err) => {
+        console.error('Failed to load products:', err);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Master GSAP timeline (hero entrance + scroll-triggered reveals)
+  useIsoLayoutEffect(() => {
+    if (!rootRef.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    const ctx = gsap.context(() => {
+      if (reduced) {
+        // Skip motion — show the final state immediately
+        gsap.set(
+          [
+            '.hero-kicker',
+            '.hero-tagline',
+            '.hero-cta',
+            '.hero-meta',
+            '.hero-scroll',
+            '.split-char',
+            '[data-reveal]',
+          ],
+          { opacity: 1, y: 0, yPercent: 0 },
+        );
+        return;
+      }
+
+      // ── Hero entrance ──────────────────────────────────────────────────
+      const tl = gsap.timeline({ delay: 0.2 });
+      tl.from('.hero-kicker', {
+        opacity: 0,
+        y: 12,
+        duration: 0.6,
+        ease: 'power2.out',
+      })
+        .from(
+          '.hero-headline .split-char',
+          {
+            yPercent: 115,
+            opacity: 0,
+            duration: 0.95,
+            stagger: 0.022,
+            ease: 'power3.out',
+          },
+          '<+=0.05',
+        )
+        .from(
+          '.hero-tagline',
+          { opacity: 0, y: 16, duration: 0.7, ease: 'power2.out' },
+          '-=0.4',
+        )
+        .from(
+          '.hero-cta > *',
+          {
+            opacity: 0,
+            y: 16,
+            duration: 0.7,
+            stagger: 0.08,
+            ease: 'power2.out',
+          },
+          '-=0.5',
+        )
+        .from(
+          '.hero-meta > *',
+          {
+            opacity: 0,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power2.out',
+          },
+          '-=0.3',
+        )
+        .from(
+          '.hero-scroll',
+          { opacity: 0, y: -8, duration: 0.5, ease: 'power2.out' },
+          '-=0.3',
+        );
+
+      // Slow ambient pan on the dot grid (the only "loop" — keeps cost low)
+      gsap.to('.bg-dotgrid', {
+        backgroundPosition: '24px 24px',
+        ease: 'none',
+        duration: 8,
+        repeat: -1,
+      });
+
+      // ── Reveal-on-scroll: simple fade + slide up ──────────────────────
+      gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {
+        gsap.from(el, {
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+          opacity: 0,
+          y: 30,
+          duration: 0.85,
+          ease: 'power3.out',
+        });
+      });
+
+      // Closing headline — letter-by-letter on scroll-in
+      gsap.from('.closing-headline .split-char', {
+        scrollTrigger: { trigger: '.closing-headline', start: 'top 78%' },
+        yPercent: 110,
+        opacity: 0,
+        duration: 0.9,
+        stagger: 0.018,
+        ease: 'power3.out',
+      });
+    }, rootRef);
+
+    // After fonts swap in (Anton is loaded async), trigger positions can
+    // shift — refresh ScrollTrigger so triggers re-measure correctly.
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
+    }
+
+    return () => ctx.revert();
+  }, []);
+
+  // Stagger product entrance once the data is in (the cards aren't in the
+  // DOM during the master timeline, so this runs separately).
+  useEffect(() => {
+    if (isLoading) return;
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.product-card',
+        { opacity: 0, y: 32 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          stagger: 0.08,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.products-grid',
+            start: 'top 85%',
+          },
+        },
+      );
+    }, rootRef);
+
+    ScrollTrigger.refresh();
+    return () => ctx.revert();
+  }, [isLoading]);
 
   return (
-    <section
-      ref={heroRef}
-      onMouseMove={handleMouseMove}
-      className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-black grain"
-    >
-      {/* Parallaxed image with slow ken-burns layered on top */}
-      <motion.div
-        style={{ y: imageY, scale: imageScale }}
-        className="absolute inset-0 z-0 will-change-transform"
-      >
-        <div className="kenburn h-full w-full">
-          <img
-            src="/hero_premium.png"
-            alt=""
-            className="h-full w-full object-cover brightness-[0.42] contrast-110 saturate-[0.85]"
+    <>
+      <PorscheIntro />
+      <div ref={rootRef} className="bg-black text-white">
+        {/* ───────────────────────────────────────────────────────────────
+         * HERO
+         * ───────────────────────────────────────────────────────────── */}
+        <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
+          {/* Subtle dot grid — ambient urban texture */}
+          <div
+            className="bg-dotgrid absolute inset-0 will-change-[background-position]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)',
+              backgroundSize: '24px 24px',
+            }}
           />
-        </div>
-        {/* Layered gradients for depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.55)_70%,_#000_100%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
-      </motion.div>
+          {/* Soft blue spotlight */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(37,99,235,0.16)_0%,_transparent_55%)]" />
+          {/* Film grain */}
+          <div className="grain absolute inset-0" />
+          {/* Bottom fade into next section */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-black" />
 
-      {/* Cursor-tracked aurora glow */}
-      <motion.div
-        style={{ background: glowBackground }}
-        className="pointer-events-none absolute inset-0 z-[1] hidden md:block"
-      />
+          {/* Corner meta */}
+          <div className="hero-meta pointer-events-none absolute top-28 left-6 right-6 z-10 flex items-center justify-between text-white/45 lg:px-6">
+            <div className="flex items-center gap-3">
+              <div className="h-px w-10 bg-white/30" />
+              <span className="font-mono text-[10px] tracking-[0.4em] uppercase">
+                N° 001 / Noir
+              </span>
+            </div>
+            <div className="hidden items-center gap-3 md:flex">
+              <span className="font-mono text-[10px] tracking-[0.4em] uppercase">
+                L7it studio — Rabat
+              </span>
+              <div className="h-px w-10 bg-white/30" />
+            </div>
+          </div>
 
-      {/* Aurora pulse anchored behind the headline */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/20 blur-3xl pulse-glow"
-      />
+          {/* Center copy */}
+          <div className="relative z-10 flex h-full w-full items-center justify-center px-6 text-center">
+            <div className="w-full max-w-7xl">
+              <div className="hero-kicker mb-8 inline-flex items-center gap-3 text-blue-500">
+                <span className="h-px w-8 bg-blue-500/60" />
+                <span className="font-mono text-[10px] tracking-[0.5em] uppercase">
+                  Premium / Wall art
+                </span>
+                <span className="h-px w-8 bg-blue-500/60" />
+              </div>
 
-      {/* Top-left edition tag */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-        className="absolute top-28 left-6 lg:left-12 z-20 flex items-center gap-3 text-white/60"
-      >
-        <div className="h-px w-10 bg-white/30" />
-        <span className="font-mono text-[10px] tracking-[0.4em] uppercase">
-          N° 001 / Noir Edition
-        </span>
-      </motion.div>
+              <h1 className="hero-headline font-display uppercase leading-[0.84] tracking-tight text-white">
+                <SplitText
+                  text="WALL"
+                  className="text-[clamp(5rem,17vw,15rem)]"
+                />
+                <SplitText
+                  text="ART."
+                  className="bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 bg-clip-text text-[clamp(5rem,17vw,15rem)] text-transparent"
+                />
+              </h1>
 
-      {/* Top-right meta */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-        className="absolute top-28 right-6 lg:right-12 z-20 hidden items-center gap-3 text-white/60 md:flex"
-      >
-        <span className="font-mono text-[10px] tracking-[0.4em] uppercase">
-          Crafted in Rabat — MA
-        </span>
-        <div className="h-px w-10 bg-white/30" />
-      </motion.div>
+              <p className="hero-tagline mx-auto mt-10 max-w-xl text-base font-medium leading-relaxed text-zinc-400 md:text-lg">
+                Numbered, hand-drawn automotive prints — bolted to the wall,
+                made in Rabat.
+              </p>
 
-      {/* Hero copy */}
-      <motion.div
-        style={{ y: copyY, opacity: copyOpacity }}
-        className="relative z-10 flex h-full w-full items-center justify-center px-6 text-center"
-      >
-        <div className="max-w-6xl space-y-8 md:space-y-10">
-          <h1 className="font-display text-balance text-[clamp(3.5rem,11vw,9.5rem)] font-normal leading-[0.85] tracking-tight text-white uppercase">
-            <RevealText
-              as="span"
-              text={t('premiumWall')}
-              className="block"
-              stagger={0.08}
-            />
-            <span className="block overflow-hidden">
-              <motion.span
-                initial={{ y: '110%' }}
-                animate={{ y: '0%' }}
-                transition={{ delay: 0.7, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-block bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 bg-clip-text text-transparent drop-shadow-[0_0_60px_rgba(37,99,235,0.35)]"
-              >
-                {t('wallCollection')}
-              </motion.span>
-            </span>
-          </h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0, duration: 0.8 }}
-            className="mx-auto max-w-xl text-base font-medium leading-relaxed text-zinc-300/90 md:text-lg"
-          >
-            {t('heroDesc')}
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-            className="flex flex-wrap justify-center gap-4 pt-4 md:gap-6 md:pt-6"
-          >
-            <WheelButton href="/shop" variant="primary">
-              <span className="flex flex-col items-center gap-1">
-                <span className="flex items-center gap-2">
-                  {t('exploreGallery')}
+              <div className="hero-cta mt-12 flex flex-col items-center justify-center gap-6 md:flex-row">
+                <Link
+                  href="/shop"
+                  className="group inline-flex items-center gap-3 rounded-full bg-white px-10 py-5 text-xs font-black uppercase tracking-[0.25em] text-black transition-all duration-300 hover:bg-blue-500 hover:text-white active:scale-95"
+                >
+                  Explore Collection
                   <svg
-                    className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -170,480 +318,155 @@ function Hero() {
                       d="M14 5l7 7m0 0l-7 7m7-7H3"
                     />
                   </svg>
-                </span>
-                <span className="text-xs opacity-80">شوف اللوحات</span>
-              </span>
-            </WheelButton>
-            <WheelButton href="/customize" variant="secondary">
-              <span className="flex flex-col items-center gap-1">
-                <span>{t('customizeYourDesign')}</span>
-                <span className="text-xs opacity-80">طلب تصميم خاص</span>
-              </span>
-            </WheelButton>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Bottom marquee strip — brand list in muted serif-ish caps */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 1 }}
-        className="absolute bottom-16 md:bottom-20 left-0 right-0 z-10"
-      >
-        <Marquee speed="normal" className="border-y border-white/5 py-5">
-          {[
-            'Porsche',
-            'Lamborghini',
-            'Ferrari',
-            'McLaren',
-            'Mercedes-AMG',
-            'BMW M',
-            'Pagani',
-            'Bugatti',
-            'Aston Martin',
-            'Koenigsegg',
-          ].map((b, i) => (
-            <div key={i} className="flex items-center gap-12 px-6 text-white/30">
-              <span className="font-display text-3xl uppercase tracking-tight md:text-5xl">
-                {b}
-              </span>
-              <span className="text-blue-500">●</span>
-            </div>
-          ))}
-        </Marquee>
-      </motion.div>
-
-      {/* Scroll cue */}
-      <motion.div
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 text-white/40"
-      >
-        <div className="flex flex-col items-center gap-2">
-          <span className="font-mono text-[9px] tracking-[0.4em] uppercase">scroll</span>
-          <div className="h-8 w-px bg-gradient-to-b from-white/40 to-transparent" />
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
-/* ----------------------------------------------------------------------------
- * Manifesto — large-format quote that reveals word-by-word
- * --------------------------------------------------------------------------*/
-
-function Manifesto() {
-  return (
-    <section className="relative w-full overflow-hidden bg-[#0a0a0a] grain">
-      <div className="container relative z-10 mx-auto max-w-6xl px-6 py-32 md:py-48">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-15%' }}
-          className="mb-12 flex items-center gap-4 text-blue-500"
-        >
-          <div className="h-px w-12 bg-blue-500/60" />
-          <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em]">
-            Manifesto / 02
-          </span>
-        </motion.div>
-
-        <RevealText
-          as="h2"
-          text="Not posters. Not prints. Quiet declarations bolted to the wall — drawn for the obsessed, finished for the few."
-          className="font-display text-balance text-[clamp(2.5rem,6.5vw,6.5rem)] uppercase leading-[0.9] tracking-tight text-white"
-          stagger={0.04}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-10%' }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="mt-16 grid grid-cols-1 gap-12 border-t border-white/10 pt-12 md:grid-cols-3"
-        >
-          {[
-            {
-              k: 'Stat / 01',
-              n: '120',
-              s: 'cm — gallery format, vertical-grain canvas',
-            },
-            {
-              k: 'Stat / 02',
-              n: '1 / 50',
-              s: 'numbered editions — every piece signed by hand',
-            },
-            {
-              k: 'Stat / 03',
-              n: '∞',
-              s: 'pixels redrawn — twice. then once more.',
-            },
-          ].map((row, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-10%' }}
-              transition={{ delay: 0.3 + i * 0.1, duration: 0.7 }}
-              className="space-y-3"
-            >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-blue-500/80 uppercase">
-                {row.k}
-              </span>
-              <div className="font-display text-7xl tracking-tight text-white md:text-8xl">
-                {row.n}
-              </div>
-              <p className="text-sm leading-relaxed text-zinc-400 font-medium">
-                {row.s}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------------------------------------------------------------
- * Featured Selection — refined header + auto-scrolling carousel
- * --------------------------------------------------------------------------*/
-
-function FeaturedSection({
-  products,
-  isLoading,
-}: {
-  products: Product[];
-  isLoading: boolean;
-}) {
-  const { t } = useLanguage();
-
-  return (
-    <section className="container mx-auto max-w-7xl px-6 py-32 md:py-40">
-      <div className="mb-20 flex flex-col justify-between gap-8 md:flex-row md:items-end">
-        <div className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-3 text-blue-600"
-          >
-            <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em]">
-              Selection / 03
-            </span>
-            <div className="h-px w-12 bg-blue-600/40" />
-          </motion.div>
-          <RevealText
-            as="h2"
-            text={t('featuredSelection')}
-            className="font-display text-[clamp(2.75rem,9vw,9rem)] uppercase leading-[0.82] tracking-tight text-zinc-900 dark:text-zinc-50"
-            stagger={0.05}
-          />
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="h-1.5 w-24 origin-left rounded-full bg-blue-600"
-          />
-        </div>
-
-        <MagneticLink href="/shop" className="group inline-flex flex-col items-start gap-2">
-          <span className="flex items-center gap-4 text-xl font-black uppercase tracking-widest text-blue-600 hover:text-blue-500">
-            {t('exploreGallery')}
-            <svg
-              className="h-7 w-7 transition-transform group-hover:translate-x-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="3"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
-          </span>
-          <span className="text-base font-medium tracking-normal text-blue-600 opacity-80 normal-case">
-            شوف اللوحات
-          </span>
-        </MagneticLink>
-      </div>
-
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-32">
-          <WheelLoader size="lg" />
-          <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600">
-            Loading Premium Collection...
-          </p>
-        </div>
-      ) : (
-        <div className="relative -mx-6 overflow-hidden">
-          {/* Edge fades for cleaner carousel framing */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent dark:from-[#0a0a0a]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent dark:from-[#0a0a0a]" />
-
-          <Marquee speed="slow" pauseOnHover className="px-6 py-2">
-            {products.map((product, index) => (
-              <div
-                key={`${product._id}-${index}`}
-                className="mx-3 w-[260px] flex-shrink-0 md:w-[300px]"
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </Marquee>
-        </div>
-      )}
-    </section>
-  );
-}
-
-/* ----------------------------------------------------------------------------
- * Process — vertical stepper with animated connector
- * --------------------------------------------------------------------------*/
-
-function ProcessSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start 70%', 'end 60%'],
-  });
-
-  const lineHeight = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
-
-  const steps = [
-    {
-      n: '01',
-      label: 'Drawn',
-      copy: 'Every silhouette is hand-traced from reference, then redrawn vector-clean. No filters. No AI brush packs.',
-    },
-    {
-      n: '02',
-      label: 'Pressed',
-      copy: 'Printed on archival 240 gsm matte canvas with pigment ink — built to outlive the trends.',
-    },
-    {
-      n: '03',
-      label: 'Inspected',
-      copy: 'Each piece is checked under daylight, signed, numbered, and rolled in a black tube.',
-    },
-    {
-      n: '04',
-      label: 'Shipped',
-      copy: 'Tracked door-to-door across Morocco. Packaged so the only thing it meets is your wall.',
-    },
-  ];
-
-  return (
-    <section className="relative w-full overflow-hidden bg-[#050505] py-32 md:py-48">
-      <div className="container mx-auto max-w-5xl px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-16 flex items-center gap-3 text-blue-500"
-        >
-          <div className="h-px w-12 bg-blue-500/60" />
-          <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em]">
-            Process / 04
-          </span>
-        </motion.div>
-
-        <RevealText
-          as="h2"
-          text="From sketch to your wall — four hands, four checks, zero shortcuts."
-          className="mb-24 font-display text-balance text-[clamp(2.25rem,5.5vw,5rem)] uppercase leading-[0.9] tracking-tight text-white"
-          stagger={0.04}
-        />
-
-        <div ref={ref} className="relative pl-8 md:pl-16">
-          {/* Track */}
-          <div className="absolute left-3 top-2 h-full w-px bg-white/10 md:left-7" />
-          <motion.div
-            style={{ height: lineHeight }}
-            className="absolute left-3 top-2 w-px origin-top bg-gradient-to-b from-blue-400 via-blue-600 to-blue-700 md:left-7"
-          />
-
-          <div className="space-y-20">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.n}
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-20%' }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="relative"
-              >
-                {/* Node dot */}
-                <span
-                  className="absolute -left-[1.65rem] top-2 grid h-6 w-6 place-items-center rounded-full bg-blue-600 shadow-[0_0_24px_rgba(37,99,235,0.55)] md:-left-[2.45rem]"
-                  aria-hidden
+                </Link>
+                <Link
+                  href="/customize"
+                  className="group inline-flex items-center gap-2 px-2 py-2 text-xs font-black uppercase tracking-[0.25em] text-white/70 transition-colors hover:text-white"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
+                  <span>Custom Request</span>
+                  <span className="block h-px w-8 origin-left bg-current transition-transform duration-300 group-hover:scale-x-150" />
+                </Link>
+              </div>
+            </div>
+          </div>
 
-                <div className="grid gap-6 md:grid-cols-[auto_1fr] md:gap-12">
-                  <div className="font-display text-7xl tracking-tight text-white/10 md:text-9xl">
-                    {step.n}
-                  </div>
-                  <div className="max-w-xl space-y-4">
-                    <h3 className="font-display text-4xl uppercase tracking-tight text-white md:text-6xl">
-                      {step.label}
-                    </h3>
-                    <p className="text-base font-medium leading-relaxed text-zinc-400">
-                      {step.copy}
-                    </p>
-                  </div>
+          {/* Scroll cue */}
+          <div className="hero-scroll pointer-events-none absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-white/35">
+            <span className="font-mono text-[9px] tracking-[0.4em] uppercase">
+              scroll
+            </span>
+            <div className="h-8 w-px bg-gradient-to-b from-white/40 to-transparent" />
+          </div>
+        </section>
+
+        {/* ───────────────────────────────────────────────────────────────
+         * FEATURED COLLECTION
+         * ───────────────────────────────────────────────────────────── */}
+        <section className="px-6 py-32 md:py-40">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-20 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <div
+                  data-reveal
+                  className="mb-4 flex items-center gap-3 text-blue-500"
+                >
+                  <div className="h-px w-10 bg-blue-500/60" />
+                  <span className="font-mono text-[10px] tracking-[0.5em] uppercase">
+                    The Collection
+                  </span>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------------------------------------------------------------
- * Closing CTA — large headline, magnetic link, secondary marquee
- * --------------------------------------------------------------------------*/
-
-function ClosingCTA() {
-  const { t } = useLanguage();
-
-  return (
-    <section className="relative w-full overflow-hidden bg-blue-600 text-white">
-      {/* Top hairline */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-white/30" />
-
-      {/* Top marquee — sub-brand statement */}
-      <Marquee speed="fast" className="border-b border-white/15 py-5">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-8 px-8 text-white/80">
-            <span className="font-display text-2xl uppercase tracking-tight md:text-3xl">
-              Make it personal
-            </span>
-            <span className="text-white/50">✦</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/60">
-              طلب تصميم خاص
-            </span>
-            <span className="text-white/50">✦</span>
-          </div>
-        ))}
-      </Marquee>
-
-      <div className="container mx-auto max-w-6xl px-6 py-32 text-center md:py-48">
-        <RevealText
-          as="h2"
-          text="Bring your car. We'll build the wall."
-          className="mx-auto max-w-5xl font-display text-balance text-[clamp(3rem,9.5vw,10rem)] uppercase leading-[0.85] tracking-tight"
-          stagger={0.05}
-        />
-
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.7 }}
-          className="mx-auto mt-10 max-w-xl text-base font-medium leading-relaxed text-white/80 md:text-lg"
-        >
-          Send the chassis number, the angle, the color you remember it in — we'll draw it.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5, duration: 0.7 }}
-          className="mt-14 flex flex-col items-center justify-center gap-6 md:flex-row"
-        >
-          <MagneticLink
-            href="/customize"
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white px-12 py-6 text-xs font-black uppercase tracking-widest text-blue-700 shadow-2xl"
-          >
-            <span className="flex items-center gap-3">
-              {t('customizeYourDesign')}
-              <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                <h2
+                  data-reveal
+                  className="font-display text-[clamp(2.75rem,9vw,8.5rem)] uppercase leading-[0.85] tracking-tight"
+                >
+                  Featured.
+                </h2>
+              </div>
+              <Link
+                data-reveal
+                href="/shop"
+                className="group inline-flex items-center gap-3 self-start text-xs font-black uppercase tracking-[0.25em] text-blue-500 transition-colors hover:text-blue-400 md:self-end"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
-              </svg>
-            </span>
-          </MagneticLink>
+                See all
+                <span className="block h-px w-10 origin-left bg-current transition-transform duration-300 group-hover:scale-x-150" />
+              </Link>
+            </div>
 
-          <Link
-            href="/shop"
-            className="group inline-flex items-center gap-3 text-xs font-black uppercase tracking-widest text-white/80 hover:text-white transition-colors"
-          >
-            <span>{t('exploreGallery')}</span>
-            <span className="block h-px w-10 origin-left bg-current transition-transform group-hover:scale-x-150" />
-          </Link>
-        </motion.div>
-      </div>
-
-      {/* Bottom marquee */}
-      <Marquee speed="normal" reverse className="border-t border-white/15 py-5">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-8 px-8 text-white/70">
-            <span className="font-display text-2xl uppercase tracking-tight md:text-3xl">
-              L7it Studio
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/50">
-              EST. Rabat — MA
-            </span>
-            <span className="text-white/50">●</span>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <WheelLoader size="lg" />
+              </div>
+            ) : (
+              <div className="products-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {products.slice(0, 6).map((p) => (
+                  <div
+                    key={p._id}
+                    className="product-card opacity-0"
+                    style={{ willChange: 'transform, opacity' }}
+                  >
+                    <ProductCard product={p} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </Marquee>
-    </section>
-  );
-}
+        </section>
 
-/* ----------------------------------------------------------------------------
- * Page
- * --------------------------------------------------------------------------*/
+        {/* ───────────────────────────────────────────────────────────────
+         * CLOSING — bring car / build wall
+         * ───────────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden px-6 py-32 md:py-48">
+          <div className="grain absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(37,99,235,0.14)_0%,_transparent_60%)]" />
 
-export default function Home() {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+          <div className="relative mx-auto max-w-6xl text-center">
+            <div
+              data-reveal
+              className="mb-8 inline-flex items-center gap-3 text-blue-500"
+            >
+              <div className="h-px w-10 bg-blue-500/60" />
+              <span className="font-mono text-[10px] tracking-[0.5em] uppercase">
+                Make it personal
+              </span>
+              <div className="h-px w-10 bg-blue-500/60" />
+            </div>
 
-  useEffect(() => {
-    let active = true;
-    async function loadProducts() {
-      try {
-        const data = await fetchProducts();
-        if (active) setFeaturedProducts(data);
-      } catch (err) {
-        console.error('Failed to load products:', err);
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    }
-    loadProducts();
-    return () => {
-      active = false;
-    };
-  }, []);
+            <h2 className="closing-headline font-display uppercase leading-[0.85] tracking-tight">
+              <SplitText
+                text="BRING THE CAR."
+                className="text-[clamp(2.5rem,10vw,9rem)]"
+              />
+              <SplitText
+                text="WE BUILD"
+                className="text-[clamp(2.5rem,10vw,9rem)]"
+              />
+              <SplitText
+                text="THE WALL."
+                className="bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 bg-clip-text text-[clamp(2.5rem,10vw,9rem)] text-transparent"
+              />
+            </h2>
 
-  return (
-    <>
-      <PorscheIntro />
-      <div className="flex w-full flex-col bg-white dark:bg-[#0a0a0a]">
-        <Hero />
-        <Manifesto />
-        <FeaturedSection products={featuredProducts} isLoading={isLoading} />
-        <ProcessSection />
-        <ClosingCTA />
+            <p
+              data-reveal
+              className="mx-auto mt-10 max-w-xl text-base font-medium leading-relaxed text-zinc-400 md:text-lg"
+            >
+              Send the angle. Send the color. We&apos;ll draw it, print it, and
+              ship it. Numbered for you.
+            </p>
+
+            <div
+              data-reveal
+              className="mt-12 flex flex-col items-center justify-center gap-6 md:flex-row"
+            >
+              <Link
+                href="/customize"
+                className="group inline-flex items-center gap-3 rounded-full bg-blue-600 px-10 py-5 text-xs font-black uppercase tracking-[0.25em] text-white transition-all duration-300 hover:bg-blue-500 active:scale-95"
+              >
+                Request Custom Art
+                <svg
+                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </Link>
+              <Link
+                href="/shop"
+                className="group inline-flex items-center gap-3 px-2 py-2 text-xs font-black uppercase tracking-[0.25em] text-white/70 transition-colors hover:text-white"
+              >
+                Or browse collection
+                <span className="block h-px w-8 origin-left bg-current transition-transform duration-300 group-hover:scale-x-150" />
+              </Link>
+            </div>
+          </div>
+        </section>
       </div>
     </>
   );
