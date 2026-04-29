@@ -14,6 +14,7 @@ import CompactProductCard from '@/components/CompactProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import WheelLoader from '@/components/WheelLoader';
 import PorscheCar from '@/components/PorscheCar';
+import IntroOverlay from '@/components/IntroOverlay';
 import { btnPrimary, btnAccent, btnGhostDark } from '@/lib/uiStyles';
 
 const useIsoLayoutEffect =
@@ -180,7 +181,9 @@ export default function Home() {
   }, [isLoading, products.length]);
 
   return (
-    <div ref={rootRef} className="bg-black text-white">
+    <>
+      <IntroOverlay />
+      <div ref={rootRef} className="bg-black text-white">
       {/* ─────────────────────────────────────────────────────────────────
        * HERO — full-screen, single cinematic moment
        * ───────────────────────────────────────────────────────────────── */}
@@ -377,6 +380,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
