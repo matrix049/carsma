@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { btnAccent } from '@/lib/uiStyles';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, calculateTotal } = useCart();
@@ -28,8 +29,8 @@ export default function CartPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12 sm:mb-20 space-y-3 sm:space-y-4"
         >
-          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] text-blue-600">Your Selection</span>
-          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase font-jakarta">
+          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-blue-600">Your Selection</span>
+          <h1 className="font-display text-[clamp(3rem,9vw,8rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
             {t('shoppingCart')}
           </h1>
           <div className="h-1.5 sm:h-2 w-24 sm:w-32 bg-blue-600 rounded-full" />
@@ -49,10 +50,7 @@ export default function CartPage() {
               </div>
             </div>
             <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-8">{t('emptyCart')}</h2>
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-10 py-5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-blue-500 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95 shadow-xl"
-            >
+            <Link href="/shop" className={btnAccent}>
               {t('continueShopping')}
             </Link>
           </motion.div>
@@ -91,7 +89,7 @@ export default function CartPage() {
                             {item.category}
                             {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
                           </p>
-                          <h3 className="text-base sm:text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 uppercase font-jakarta">{item.name}</h3>
+                          <h3 className="text-base sm:text-2xl font-display tracking-tight text-zinc-900 dark:text-zinc-50 uppercase">{item.name}</h3>
                         </div>
                         <p className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white font-serif">
                           {(item.price * item.quantity).toFixed(0)} <span className="text-[8px] sm:text-[10px] text-zinc-500 uppercase">MAD</span>
@@ -141,7 +139,7 @@ export default function CartPage() {
                 {/* Decorative Pattern */}
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-blue-600/5 blur-3xl" />
                 
-                <h2 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-6 sm:mb-10 font-jakarta">{t('orderSummary')}</h2>
+                <h2 className="font-display text-2xl sm:text-4xl text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-6 sm:mb-10">{t('orderSummary')}</h2>
                 
                 <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-10">
                   <div className="flex justify-between items-center text-zinc-500">
@@ -162,12 +160,9 @@ export default function CartPage() {
                 </div>
 
                 <div className="space-y-4 sm:space-y-6">
-                  <Link
-                    href="/checkout"
-                    className="flex w-full items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-[2rem] bg-blue-600 px-6 py-4 sm:px-8 sm:py-6 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-xl hover:bg-blue-500 hover:shadow-2xl hover:shadow-blue-500/30 transition-all active:scale-95 group/check"
-                  >
+                  <Link href="/checkout" className={`${btnAccent} w-full`}>
                     {t('proceedToCheckout')}
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                   </Link>
                   
                   <Link 

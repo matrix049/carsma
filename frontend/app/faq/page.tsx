@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { btnAccent } from '@/lib/uiStyles';
 
 interface FAQItem {
   question: string;
@@ -80,7 +81,7 @@ export default function FAQPage() {
           className="text-center mb-24 space-y-6"
         >
           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600">Support Center</span>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white uppercase font-jakarta">
+          <h1 className="font-display text-[clamp(3.5rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight text-white">
             FAQ
           </h1>
           <div className="h-2 w-32 bg-blue-600 rounded-full mx-auto shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
@@ -168,13 +169,10 @@ export default function FAQPage() {
           <p className="text-zinc-400 mb-8 max-w-xl mx-auto">
             Our team is here to help. Contact us and we'll get back to you as soon as possible.
           </p>
-          <a
-            href="/contact"
-            className="inline-flex items-center gap-3 rounded-2xl bg-blue-600 px-10 py-5 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-blue-500 shadow-3xl shadow-blue-500/20 active:scale-95"
-          >
+          <a href="/contact" className={btnAccent}>
             Contact Us • تواصل معنا
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </a>
         </motion.div>

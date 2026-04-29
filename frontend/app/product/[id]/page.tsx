@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnalyticsService from '@/lib/analyticsService';
+import { btnAccent, btnDark } from '@/lib/uiStyles';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -151,10 +152,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             className="flex flex-col justify-center"
           >
             <motion.div variants={itemVariants} className="space-y-8 mb-16">
-              <span className="inline-block text-[10px] font-black tracking-[0.6em] text-blue-600 uppercase">
+              <span className="inline-block font-mono text-[10px] tracking-[0.5em] text-blue-600 uppercase">
                 {product.category}
               </span>
-              <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black text-zinc-900 dark:text-zinc-50 tracking-tighter leading-[0.85] uppercase font-jakarta">
+              <h1 className="font-display text-[clamp(3.5rem,10vw,11rem)] uppercase leading-[0.82] tracking-tight text-zinc-900 dark:text-zinc-50">
                 {product.name}
               </h1>
               <div className="flex items-center gap-4">
@@ -192,16 +193,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   );
                 }}
                 disabled={!product.inStock}
-                className={`hidden md:flex items-center justify-center gap-4 w-full px-12 py-8 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-4xl transition-all active:scale-[0.98] ${
-                  product.inStock
-                    ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-blue-500/40 shadow-blue-600/20'
-                    : 'cursor-not-allowed bg-zinc-900 text-zinc-700'
-                }`}
+                className={`${btnAccent} hidden w-full md:flex`}
               >
                 {product.inStock ? (
                   <>
                     <span>Add to Cart • زيد للسلة</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                   </>
                 ) : t('unavailable')}
               </button>
@@ -216,16 +213,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   router.push('/checkout');
                 }}
                 disabled={!product.inStock}
-                className={`hidden md:flex items-center justify-center gap-4 w-full px-12 py-8 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-4xl transition-all active:scale-[0.98] ${
-                  product.inStock
-                    ? 'bg-zinc-900 text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-zinc-200'
-                    : 'cursor-not-allowed bg-zinc-900 text-zinc-700'
-                }`}
+                className={`${btnDark} hidden w-full md:flex`}
               >
                 {product.inStock ? (
                   <>
                     <span>Buy Now • شري دابا</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </>
                 ) : t('unavailable')}
               </button>

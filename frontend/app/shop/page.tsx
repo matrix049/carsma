@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import CompactProductCard from '@/components/CompactProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
+import { btnAccent } from '@/lib/uiStyles';
 
 export default function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -160,8 +161,8 @@ export default function ShopPage() {
               className="space-y-8"
             >
               <div className="space-y-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600">Digital Gallery</span>
-                <h1 className="text-6xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 sm:text-8xl uppercase font-jakarta">
+                <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-blue-600">Digital Gallery</span>
+                <h1 className="font-display text-[clamp(3.5rem,10vw,9rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
                   {t('shop')}
                 </h1>
                 <div className="h-2 w-32 bg-blue-600 rounded-full" />
@@ -274,8 +275,8 @@ export default function ShopPage() {
 
                           {/* Text */}
                           <div className="flex-1">
-                            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 mb-2">Custom Order</p>
-                            <h3 className="text-lg sm:text-2xl font-black tracking-tighter text-white uppercase leading-tight font-jakarta">
+                            <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.4em] text-blue-500 mb-2">Custom Order</p>
+                            <h3 className="font-display text-2xl sm:text-4xl uppercase leading-tight tracking-tight text-white">
                               Don't see your car?
                             </h3>
                             <p className="text-xs sm:text-sm text-zinc-500 font-medium mt-2 leading-relaxed">
@@ -324,7 +325,7 @@ export default function ShopPage() {
           </div>
           
           <div className="relative z-10 max-w-3xl space-y-12">
-            <h2 className="text-5xl font-black tracking-tighter text-white sm:text-8xl leading-[0.9] uppercase font-jakarta">
+            <h2 className="font-display text-[clamp(3rem,8vw,8rem)] uppercase leading-[0.9] tracking-tight text-white">
               {t('customDesignTitle')}
             </h2>
             <p className="text-xl text-zinc-500 font-medium leading-relaxed max-w-xl">
@@ -334,19 +335,11 @@ export default function ShopPage() {
               مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
             </p>
             <div className="pt-8">
-              <a 
-                href="/customize"
-                className="inline-flex items-center gap-4 rounded-2xl bg-blue-600 px-12 py-6 text-xs font-black uppercase tracking-[0.3em] text-white transition-all hover:bg-blue-500 shadow-3xl shadow-blue-500/20 active:scale-[0.98]"
-              >
-                <span className="flex flex-col items-center gap-1">
-                  <span className="flex items-center gap-2">
-                    {t('contactUsNow')}
-                    <svg className="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
-                  </span>
-                  <span className="text-xs opacity-80">طلب تصميم خاص</span>
-                </span>
+              <a href="/customize" className={btnAccent}>
+                {t('contactUsNow')}
+                <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </a>
             </div>
           </div>

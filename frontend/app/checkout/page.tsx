@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
 import { motion, AnimatePresence } from 'framer-motion';
+import { btnPrimary, btnAccent } from '@/lib/uiStyles';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -103,9 +104,9 @@ export default function CheckoutPage() {
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
           </svg>
         </motion.div>
-        <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase font-jakarta text-white">{t('orderConfirmed')}</h1>
+        <h1 className="font-display text-5xl md:text-8xl uppercase leading-[0.85] tracking-tight mb-6 text-white">{t('orderConfirmed')}</h1>
         <p className="text-zinc-500 text-xl font-medium mb-16 max-w-lg">{t('orderSuccessDesc')}</p>
-        <Link href="/" className="inline-flex items-center justify-center rounded-2xl bg-white text-black px-16 py-6 font-black uppercase tracking-[0.2em] transform transition-all hover:scale-105 active:scale-95 shadow-4xl text-xs">
+        <Link href="/" className={btnPrimary}>
           {t('home')}
         </Link>
       </div>
@@ -115,7 +116,7 @@ export default function CheckoutPage() {
   if (cart.length === 0) {
     return (
       <div className="container mx-auto px-6 py-48 text-center bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center">
-         <h1 className="text-6xl font-black uppercase tracking-tighter mb-8 font-jakarta text-white">{t('emptyCart')}</h1>
+         <h1 className="font-display text-6xl md:text-8xl uppercase leading-[0.85] tracking-tight mb-8 text-white">{t('emptyCart')}</h1>
          <Link href="/shop" className="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px] hover:underline underline-offset-8 transition-all">{t('continueShopping')}</Link>
       </div>
     );
@@ -129,8 +130,8 @@ export default function CheckoutPage() {
           animate={{ opacity: 1, y: 0 }} 
           className="mb-12 sm:mb-24 space-y-3 sm:space-y-4"
         >
-          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.5em] sm:tracking-[0.6em] text-blue-600">Secure Protocol</span>
-          <h1 className="text-4xl sm:text-6xl md:text-9xl font-black tracking-tighter font-jakarta uppercase leading-none">
+          <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-blue-600">Secure Protocol</span>
+          <h1 className="font-display text-[clamp(3rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight">
             Gallery<span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"> Checkout</span>
           </h1>
         </motion.div>
@@ -147,7 +148,7 @@ export default function CheckoutPage() {
             <motion.section variants={itemVariants} className="space-y-8 sm:space-y-12">
               <div className="flex items-center gap-4 sm:gap-6">
                 <div className="h-0.5 w-8 sm:w-12 bg-blue-600" />
-                <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight font-jakarta">01. Identity & Logistics</h2>
+                <h2 className="text-lg sm:text-2xl font-display uppercase tracking-tight">01. Identity & Logistics</h2>
               </div>
 
               <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:gap-10">
@@ -214,7 +215,7 @@ export default function CheckoutPage() {
             <motion.section variants={itemVariants} className="space-y-8 sm:space-y-12">
               <div className="flex items-center gap-4 sm:gap-6">
                 <div className="h-0.5 w-8 sm:w-12 bg-blue-600" />
-                <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight font-jakarta">02. Settlement</h2>
+                <h2 className="text-lg sm:text-2xl font-display uppercase tracking-tight">02. Settlement</h2>
               </div>
 
               <div className="relative p-6 sm:p-10 rounded-2xl sm:rounded-[2.5rem] border-2 border-blue-600 bg-blue-600/5 flex items-center gap-6 sm:gap-10 shadow-[0_0_40px_rgba(37,99,235,0.1)]">
@@ -315,15 +316,13 @@ export default function CheckoutPage() {
                 form="checkout-form"
                 type="submit"
                 disabled={isSubmitting}
-                className={`mt-10 sm:mt-16 w-full rounded-xl sm:rounded-[2rem] flex items-center justify-center py-5 sm:py-8 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white transition-all shadow-4xl active:scale-[0.98] ${
-                  isSubmitting ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20'
-                }`}
+                className={`${btnAccent} mt-10 sm:mt-16 w-full`}
               >
                 {isSubmitting ? t('processing') : (
-                  <span className="flex items-center gap-3 sm:gap-4">
+                  <>
                     <span>Finalize Order • أكمل الطلب</span>
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                  </span>
+                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  </>
                 )}
               </button>
               

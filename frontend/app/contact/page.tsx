@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { createContactMessage } from '@/lib/apiServices';
+import { btnAccent } from '@/lib/uiStyles';
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -151,7 +152,7 @@ export default function ContactPage() {
           className="max-w-4xl mx-auto flex flex-col items-center mb-24"
         >
           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-6">Concierge</span>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white mb-8 text-center uppercase font-jakarta">
+          <h1 className="font-display text-[clamp(3.5rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight text-white mb-8 text-center">
             {t('contact')}
           </h1>
           <div className="h-2 w-32 bg-blue-600 rounded-full mb-10 shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
@@ -237,7 +238,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-2xl bg-blue-600 py-6 text-xs font-black uppercase tracking-[0.3em] text-white transition-all hover:bg-blue-500 shadow-3xl shadow-blue-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`${btnAccent} w-full`}
                 >
                   {loading ? 'Sending...' : t('sendMessage')}
                 </button>

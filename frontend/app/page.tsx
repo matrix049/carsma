@@ -13,23 +13,10 @@ import ProductCard from '@/components/ProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import WheelLoader from '@/components/WheelLoader';
 import PorscheCar from '@/components/PorscheCar';
+import { btnPrimary, btnAccent, btnGhostDark } from '@/lib/uiStyles';
 
 const useIsoLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-/* ----------------------------------------------------------------------------
- * Reusable button styles — slightly rounded, large padding, premium hover.
- * Defined once so every CTA on the page reads the same.
- * --------------------------------------------------------------------------*/
-
-const btnPrimary =
-  'group inline-flex items-center justify-center gap-3 rounded-md bg-white px-12 py-5 text-sm font-bold uppercase tracking-[0.18em] text-black transition-all duration-300 hover:scale-[1.04] hover:opacity-95 active:scale-[1.00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
-
-const btnAccent =
-  'group inline-flex items-center justify-center gap-3 rounded-md bg-blue-600 px-12 py-5 text-sm font-bold uppercase tracking-[0.18em] text-white transition-all duration-300 hover:scale-[1.04] hover:bg-blue-500 active:scale-[1.00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
-
-const btnGhost =
-  'group inline-flex items-center justify-center gap-3 rounded-md border border-white/30 bg-transparent px-12 py-5 text-sm font-bold uppercase tracking-[0.18em] text-white transition-all duration-300 hover:scale-[1.04] hover:border-white/60 hover:bg-white/[0.04] active:scale-[1.00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
 
 const ArrowRight = () => (
   <svg
@@ -292,7 +279,7 @@ export default function Home() {
                 Featured.
               </h2>
             </div>
-            <Link data-reveal href="/shop" className={`${btnGhost} self-start md:self-end`}>
+            <Link data-reveal href="/shop" className={`${btnGhostDark} self-start md:self-end`}>
               See all
               <ArrowRight />
             </Link>
@@ -358,7 +345,7 @@ export default function Home() {
               Request Custom Art
               <ArrowRight />
             </Link>
-            <Link href="/shop" className={btnGhost}>
+            <Link href="/shop" className={btnGhostDark}>
               Browse Collection
             </Link>
           </div>

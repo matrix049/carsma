@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createCustomOrder } from '@/lib/apiServices';
 import { motion } from 'framer-motion';
+import { btnAccent } from '@/lib/uiStyles';
 
 export default function CustomizePage() {
   const { t, language } = useLanguage();
@@ -48,7 +49,7 @@ export default function CustomizePage() {
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-10 inline-flex h-24 w-24 items-center justify-center rounded-full bg-blue-600/20 text-blue-500 border border-blue-500/30">
           <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
         </motion.div>
-        <h1 className="text-4xl font-black tracking-tighter mb-4 uppercase font-jakarta">{t('requestSuccess')}</h1>
+        <h1 className="font-display text-5xl md:text-7xl uppercase leading-[0.85] tracking-tight mb-4">{t('requestSuccess')}</h1>
         <p className="text-zinc-400 font-medium mb-12">{t('requestSuccessDesc')}</p>
         <Link href="/" className="inline-flex items-center justify-center rounded-full bg-white text-black px-12 py-5 font-black uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 shadow-2xl">
           {t('home')}
@@ -65,8 +66,8 @@ export default function CustomizePage() {
           {/* Left Side: Hero Info */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
             <div className="space-y-6">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-500">Bespoke Commissions</span>
-              <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] font-jakarta uppercase">
+              <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-blue-500">Bespoke Commissions</span>
+              <h1 className="font-display text-[clamp(3.5rem,10vw,11rem)] uppercase leading-[0.85] tracking-tight">
                 Your <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">Car,</span><br />
                 <span className="text-blue-600">Our Art</span>
               </h1>
@@ -97,7 +98,7 @@ export default function CustomizePage() {
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">01. Vehicle Identity</h2>
+                    <h2 className="text-xl font-display uppercase tracking-tight">01. Vehicle Identity</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -117,7 +118,7 @@ export default function CustomizePage() {
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black uppercase tracking-tight font-jakarta">02. Kifach bghiti tswira dyal tomobil?</h2>
+                    <h2 className="text-xl font-display uppercase tracking-tight">02. Kifach bghiti tswira dyal tomobil?</h2>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     {[
@@ -143,7 +144,7 @@ export default function CustomizePage() {
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-0.5 w-8 bg-blue-600" />
-                    <h2 className="text-xl font-black tracking-tight font-jakarta">
+                    <h2 className="font-display text-2xl tracking-tight">
                       الملاحظات: (بغيتي تزيد شي حاجة؟)
                     </h2>
                   </div>
@@ -160,9 +161,7 @@ export default function CustomizePage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full rounded-2xl flex items-center justify-center py-6 text-xs font-black uppercase tracking-[0.2em] text-white transition-all shadow-[0_0_40px_rgba(37,99,235,0.2)] hover:shadow-[0_0_60px_rgba(37,99,235,0.4)] active:scale-[0.98] ${
-                      isSubmitting ? 'bg-blue-600/50 cursor-not-allowed' : 'bg-gradient-to-br from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400'
-                    }`}
+                    className={`${btnAccent} w-full`}
                   >
                     {isSubmitting ? t('processing') : 'Submit Request'}
                   </button>
