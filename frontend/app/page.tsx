@@ -116,6 +116,18 @@ export default function Home() {
         },
       );
 
+      // 1b. Idle drift — gentle vertical float once the car has settled.
+      //     Uses a separate "y" transform so it can't fight the entrance's
+      //     xPercent / scale / filter values.
+      gsap.to('.porsche', {
+        y: -10,
+        duration: 3.2,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        delay: 2.7,
+      });
+
       // 2. Hero text reveals — softer fade-up, slightly behind the Porsche
       //    so they read in sequence.
       gsap.from('.hero-text > *', {
