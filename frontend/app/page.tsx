@@ -247,23 +247,11 @@ export default function Home() {
             <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-zinc-400 md:mt-8 md:text-lg">
               Numbered automotive prints. Hand-drawn, made in Rabat.
             </p>
-            <p
-              dir="rtl"
-              className="mt-3 max-w-md text-sm font-medium leading-relaxed text-zinc-500 md:text-base"
-            >
-              تصاميم طوموبيلات معدودة، مرسومة باليد فالرباط
-            </p>
-            <div className="mt-10 flex flex-col items-center gap-3 md:mt-12">
+            <div className="mt-10 md:mt-12">
               <Link href="/shop" className={btnPrimary}>
                 Explore Collection
                 <ArrowRight />
               </Link>
-              <span
-                dir="rtl"
-                className="font-mono text-[11px] tracking-[0.3em] text-blue-500/80"
-              >
-                شوف الݣالوري
-              </span>
             </div>
           </div>
         </div>
@@ -300,18 +288,10 @@ export default function Home() {
                 Featured.
               </h2>
             </div>
-            <div data-reveal className="flex flex-col items-start gap-2 md:items-end">
-              <Link href="/shop" className={btnGhostDark}>
-                See all
-                <ArrowRight />
-              </Link>
-              <span
-                dir="rtl"
-                className="font-mono text-[10px] tracking-[0.3em] text-blue-500/80"
-              >
-                شوف الكل
-              </span>
-            </div>
+            <Link data-reveal href="/shop" className={`${btnGhostDark} self-start md:self-end`}>
+              See all
+              <ArrowRight />
+            </Link>
           </div>
 
           {isLoading ? (
@@ -332,12 +312,6 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <p
-                  dir="rtl"
-                  className="mt-4 px-6 text-center font-mono text-[10px] tracking-[0.3em] text-zinc-500"
-                >
-                  ← زلق باش تشوف الكل →
-                </p>
               </div>
 
               {/* Desktop: grid */}
@@ -383,55 +357,23 @@ export default function Home() {
 
           <p
             data-reveal
-            dir="rtl"
-            className="mx-auto mt-6 max-w-xl font-display text-2xl uppercase tracking-tight text-blue-500/90 md:text-3xl"
-          >
-            جيب الطوموبيل، حنا نزينو ليك الحيط
-          </p>
-
-          <p
-            data-reveal
             className="mx-auto mt-10 max-w-xl text-base font-medium leading-relaxed text-zinc-400 md:text-lg"
           >
             Send the angle, send the color. We&apos;ll draw it, print it, and
             ship it. Numbered for you.
           </p>
 
-          <p
-            data-reveal
-            dir="rtl"
-            className="mx-auto mt-3 max-w-xl text-sm font-medium leading-relaxed text-zinc-500 md:text-base"
-          >
-            صيفط الزاوية، صيفط اللون. غادي نرسموها، نطبعوها، ونصيفطوها معدودة بسميتك
-          </p>
-
           <div
             data-reveal
-            className="mt-12 flex flex-col items-center justify-center gap-6 md:flex-row md:items-start md:gap-10"
+            className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row md:gap-6"
           >
-            <div className="flex flex-col items-center gap-3">
-              <Link href="/customize" className={btnAccent}>
-                Request Custom Art
-                <ArrowRight />
-              </Link>
-              <span
-                dir="rtl"
-                className="font-mono text-[10px] tracking-[0.3em] text-blue-300/90"
-              >
-                طلب تصميم خاص
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <Link href="/shop" className={btnGhostDark}>
-                Browse Collection
-              </Link>
-              <span
-                dir="rtl"
-                className="font-mono text-[10px] tracking-[0.3em] text-white/60"
-              >
-                شوف الݣالوري
-              </span>
-            </div>
+            <Link href="/customize" className={btnAccent}>
+              Request Custom Art
+              <ArrowRight />
+            </Link>
+            <Link href="/shop" className={btnGhostDark}>
+              Browse Collection
+            </Link>
           </div>
         </div>
       </section>
