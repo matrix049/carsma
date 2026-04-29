@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import gsap from 'gsap';
-import PorscheCar from '@/components/PorscheCar';
 
 const useIsoLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
@@ -15,31 +14,40 @@ const useIsoLayoutEffect =
 const SESSION_KEY = 'l7it_intro_v2';
 
 /**
- * Asset chain — first valid src wins. Falls back to /porsche-911.png and
- * finally to the SVG silhouette so the intro never renders an empty frame.
- */
-const SOURCE_CHAIN = ['/911.png', '/porsche-911.png'];
-
-/**
  * IntroOverlay — Oil Stain Lab–inspired brutalist cinematic.
  *
- * Timeline (~2.55s total):
- *   0.00s  black screen, off-screen car, "DRIVEN BY ART" parked off-screen
- *   0.00s  speed lines whip past, bg text starts a slow parallax drift
- *   0.00s  car streaks in from the left under heavy motion blur (power3.out)
- *   0.95s  hits centre — drift: -5° rotation, blur clears, container shake
- *   1.35s  hold for 0.2s
- *   1.55s  car exits hard right (-10° rotation, blur returns), bg text drifts
- *   2.05s  white strobe (4 quick flashes)
- *   2.30s  overlay fades, page underneath revealed
+ * Layering (z-index):
+ *   - Grid texture / vignette ── z-0   (ambient)
+ *   - "DRIVEN BY ART" + speed lines + meta bar ── z-10  (background)
+ *   - Porsche 911 ── z-20  (foreground — drives OVER the text)
+ *   - Strobe flash ── z-30  (above everything within the overlay)
  *
- * Plays once per session (sessionStorage). Skipped entirely for users who
- * prefer reduced motion. Locks body scroll while running.
+ * Centring strategy: the car uses a TWO-DIV setup so GSAP can't fight CSS.
+ *   Outer wrapper handles static centering via `top:50%; left:50%;
+ *   transform: translate(-50%, -50%)` (set as inline style — GSAP doesn't
+ *   touch it). The inner wrapper (`carRef`) is what GSAP animates with
+ *   xPercent / scale / rotation / filter — those transforms compose on top
+ *   of the centred outer box and slide the car around it.
+ *
+ * Timeline (~2.55s total):
+ *   0.00s  black overlay drops in. Speed lines whip past, "DRIVEN BY ART"
+ *          parallaxes in slowly, industrial meta bar fades in.
+ *   0.00s  car streaks in from off-screen left under blur(20px) → blur(2px),
+ *          opacity 0.6 → 1, scale 1.15 → 1.05, ease power3.out.
+ *   0.85s  drift: rotation 0 → -5°, scale 1.05 → 1, blur clears completely,
+ *          container shake (mechanical pixel jitter).
+ *   1.20s  HOLD for 0.45s — sharp, full opacity, no blur, the art reads.
+ *   1.65s  exit: car flies hard right, rotation -10°, blur 15px, opacity 0.5.
+ *          Bg text drifts the opposite way, meta bar fades out.
+ *   2.10s  strobe — four fast white flashes (40ms each).
+ *   2.30s  overlay fades to opacity 0, page revealed underneath.
+ *
+ * Plays once per session via sessionStorage. prefers-reduced-motion path
+ * sets phase 'done' synchronously inside useLayoutEffect so subsequent
+ * loads never flash the overlay.
  */
 export default function IntroOverlay() {
   const [phase, setPhase] = useState<'init' | 'playing' | 'done'>('init');
-  const [srcIndex, setSrcIndex] = useState(0);
-  const [imgFailed, setImgFailed] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,9 +63,6 @@ export default function IntroOverlay() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const played = sessionStorage.getItem(SESSION_KEY);
 
-    // Skip path: reduced motion or already played this session.
-    // Setting phase synchronously inside useLayoutEffect means the next
-    // render runs before paint, so subsequent loads never flash the overlay.
     if (reduced || played) {
       setPhase('done');
       return;
@@ -70,13 +75,13 @@ export default function IntroOverlay() {
     document.body.style.overflow = 'hidden';
 
     const ctx = gsap.context(() => {
-      // ── Initial states (applied before first paint) ─────────────────
+      // ── Initial states (applied before first paint) ───────────────
       gsap.set(carRef.current, {
         xPercent: -160,
         scale: 1.15,
         rotation: 0,
         filter: 'blur(20px)',
-        opacity: 0.5,
+        opacity: 0.6,
       });
       gsap.set(bgTextRef.current, { xPercent: 80, opacity: 0 });
       gsap.set(flashRef.current, { opacity: 0 });
@@ -95,33 +100,29 @@ export default function IntroOverlay() {
         },
       });
 
-      // ── Phase 1: Entry (0 → 0.95s) ──────────────────────────────────
-      // Speed lines whip past
+      // ── Phase 1: Entry (0 → 0.85s) ────────────────────────────────
+      // Speed lines streaking past
       if (lines && lines.length) {
         tl.to(
           lines,
           {
             xPercent: -130,
             opacity: 1,
-            duration: 0.5,
+            duration: 0.45,
             stagger: 0.04,
             ease: 'power2.in',
           },
           0,
-        ).to(
-          lines,
-          { opacity: 0, duration: 0.2 },
-          0.55,
-        );
+        ).to(lines, { opacity: 0, duration: 0.2 }, 0.5);
       }
 
-      // Background text — slow parallax in
+      // Background text — parallax in slowly (slower than the car)
       tl.to(
         bgTextRef.current,
         {
           xPercent: 0,
           opacity: 1,
-          duration: 1.5,
+          duration: 1.4,
           ease: 'power3.out',
         },
         0,
@@ -134,31 +135,32 @@ export default function IntroOverlay() {
         0.2,
       );
 
-      // Car streaks in
+      // Car streaks in — heavy blur on the way in for the speed feel
       tl.to(
         carRef.current,
         {
           xPercent: 0,
           scale: 1.05,
-          filter: 'blur(3px)',
+          filter: 'blur(2px)',
           opacity: 1,
-          duration: 0.95,
+          duration: 0.85,
           ease: 'power3.out',
         },
         0,
       );
 
-      // ── Phase 2: Drift + camera shake (0.95 → 1.35s) ────────────────
+      // ── Phase 2: Drift (0.85 → 1.20s) ─────────────────────────────
+      // Harsh deceleration into a -5° drift pose. Blur clears completely.
       tl.to(carRef.current, {
         rotation: -5,
         scale: 1,
         filter: 'blur(0px)',
-        duration: 0.4,
+        opacity: 1,
+        duration: 0.35,
         ease: 'expo.out',
       });
 
-      // Container jitter — read as harsh mechanical shake.
-      // Keyframes are tiny pixel offsets sampled non-monotonically.
+      // Container jitter shake — mechanical, not smooth
       tl.to(
         containerRef.current,
         {
@@ -166,32 +168,33 @@ export default function IntroOverlay() {
             x: [0, -6, 7, -5, 6, -4, 5, -3, 4, -2, 0],
             y: [0, 4, -5, 3, -4, 2, -3, 2, -2, 1, 0],
           },
-          duration: 0.4,
+          duration: 0.35,
           ease: 'none',
         },
         '<',
       );
 
-      // ── Phase 3: Hold (1.35 → 1.55s) ───────────────────────────────
-      tl.to({}, { duration: 0.2 });
+      // ── Phase 3: HOLD (1.20 → 1.65s) ──────────────────────────────
+      // Force filter completely off so no GPU residue lingers, then dwell.
+      tl.set(carRef.current, { filter: 'none' });
+      tl.to({}, { duration: 0.45 });
 
-      // ── Phase 4: Exit (1.55 → 2.05s) ───────────────────────────────
+      // ── Phase 4: Exit (1.65 → 2.10s) ──────────────────────────────
       tl.to(carRef.current, {
         xPercent: 180,
         rotation: -10,
         scale: 1.15,
         filter: 'blur(15px)',
-        opacity: 0.4,
-        duration: 0.5,
+        opacity: 0.5,
+        duration: 0.45,
         ease: 'power3.in',
       });
-      // BG text drifts off in the opposite direction
       tl.to(
         bgTextRef.current,
         {
           xPercent: -30,
           opacity: 0,
-          duration: 0.5,
+          duration: 0.45,
           ease: 'power2.in',
         },
         '<',
@@ -202,15 +205,14 @@ export default function IntroOverlay() {
         '<',
       );
 
-      // ── Phase 5: Strobe (2.05 → 2.30s) ─────────────────────────────
-      // Hard white/black flicker. Short durations sell the "shutter" feel.
+      // ── Phase 5: Strobe (2.10 → 2.30s) ────────────────────────────
       tl.to(flashRef.current, { opacity: 1, duration: 0.04 })
         .to(flashRef.current, { opacity: 0, duration: 0.04 })
         .to(flashRef.current, { opacity: 1, duration: 0.04 })
         .to(flashRef.current, { opacity: 0, duration: 0.04 })
         .to(flashRef.current, { opacity: 0.9, duration: 0.04 });
 
-      // ── Phase 6: Reveal (2.30 → 2.55s) ─────────────────────────────
+      // ── Phase 6: Reveal (2.30 → 2.55s) ────────────────────────────
       tl.to(overlayRef.current, {
         opacity: 0,
         duration: 0.25,
@@ -224,15 +226,6 @@ export default function IntroOverlay() {
     };
   }, []);
 
-  const handleImgError = () => {
-    if (srcIndex + 1 < SOURCE_CHAIN.length) {
-      setSrcIndex((i) => i + 1);
-    } else {
-      setImgFailed(true);
-    }
-  };
-
-  // Once finished, unmount entirely
   if (phase === 'done') return null;
 
   return (
@@ -241,9 +234,9 @@ export default function IntroOverlay() {
       className="pointer-events-none fixed inset-0 z-[200] overflow-hidden bg-black"
       aria-hidden="true"
     >
-      {/* Industrial blueprint grid texture */}
+      {/* Industrial blueprint grid — ambient, behind everything */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 z-0"
         style={{
           backgroundImage:
             'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
@@ -253,26 +246,26 @@ export default function IntroOverlay() {
       />
 
       {/* Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.85)_100%)]" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.85)_100%)]" />
 
       <div
         ref={containerRef}
         className="relative h-full w-full will-change-transform"
       >
-        {/* Background "DRIVEN BY ART" — large, low-contrast, parallax-slow */}
+        {/* "DRIVEN BY ART" — z-10 (BACKGROUND) */}
         <div
           ref={bgTextRef}
-          className="absolute top-1/2 left-0 right-0 flex -translate-y-1/2 justify-center will-change-transform"
+          className="absolute inset-0 z-10 flex items-center justify-center will-change-transform"
         >
           <span className="select-none whitespace-nowrap font-display text-[clamp(4rem,22vw,22rem)] uppercase leading-none tracking-tighter text-white/[0.07]">
             DRIVEN BY ART
           </span>
         </div>
 
-        {/* Speed lines streaking left */}
+        {/* Speed lines — z-10 (still background, behind the car) */}
         <div
           ref={speedLinesRef}
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 z-10"
         >
           {Array.from({ length: 8 }).map((_, i) => {
             const top = 22 + i * 7;
@@ -291,31 +284,36 @@ export default function IntroOverlay() {
           })}
         </div>
 
-        {/* The car — wrapper takes the GSAP transforms; image rides inside */}
+        {/*
+          The Porsche — z-20 (FOREGROUND, drives OVER the bg text).
+          OUTER wrapper: static centering only (top/left 50%, translate-50%).
+          INNER wrapper (carRef): GSAP transforms (slide / rotate / blur).
+          GSAP can't fight the CSS centering because they're on different
+          elements.
+        */}
         <div
-          ref={carRef}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 will-change-transform"
+          className="absolute z-20"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
         >
-          {imgFailed ? (
-            <div className="w-[80vw] max-w-[280px] sm:max-w-md md:max-w-2xl lg:max-w-3xl">
-              <PorscheCar />
-            </div>
-          ) : (
+          <div ref={carRef} className="will-change-transform">
             <img
-              src={SOURCE_CHAIN[srcIndex]}
-              onError={handleImgError}
+              src="/911.png"
               alt=""
               draggable={false}
               loading="eager"
-              className="block h-auto w-[80vw] max-w-[280px] select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] sm:max-w-md md:max-w-2xl lg:max-w-3xl"
+              className="block h-auto w-[80vw] max-w-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] md:w-[55vw] lg:w-[50vw] xl:w-[45vw]"
             />
-          )}
+          </div>
         </div>
 
-        {/* Industrial bottom meta bar */}
+        {/* Industrial meta bar — z-10 */}
         <div
           ref={metaBarRef}
-          className="absolute bottom-8 left-6 right-6 flex items-center justify-between text-white/40 will-change-[opacity] lg:bottom-12 lg:left-12 lg:right-12"
+          className="absolute bottom-8 left-6 right-6 z-10 flex items-center justify-between text-white/40 will-change-[opacity] lg:bottom-12 lg:left-12 lg:right-12"
         >
           <div className="flex items-center gap-3">
             <div className="h-px w-10 bg-white/40" />
@@ -332,10 +330,10 @@ export default function IntroOverlay() {
         </div>
       </div>
 
-      {/* Strobe flash overlay — sits above everything inside the overlay */}
+      {/* Strobe flash — z-30, above everything inside the overlay */}
       <div
         ref={flashRef}
-        className="pointer-events-none absolute inset-0 bg-white"
+        className="pointer-events-none absolute inset-0 z-30 bg-white"
       />
     </div>
   );
