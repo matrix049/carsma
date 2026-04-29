@@ -14,8 +14,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
           {/* Brand Section */}
           <div className="md:col-span-1 space-y-6">
-            <Link href="/" className="inline-block font-black text-3xl tracking-tighter text-blue-600 font-jakarta">
-              L7it
+            <Link href="/" className="inline-block font-display text-5xl leading-none tracking-tight text-blue-600">
+              L7IT
             </Link>
             <p className="text-zinc-500 text-xs leading-relaxed font-medium">
               Premium automotive wall art for the modern enthusiast. Exclusive designs, gallery-grade quality, and worldwide shipping from Morocco.

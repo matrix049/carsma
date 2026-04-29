@@ -75,7 +75,7 @@ export default function Navbar() {
     <header className={`fixed top-0 left-0 right-0 z-[60] w-full transition-all duration-500 ${scrolled ? 'bg-black/80 backdrop-blur-2xl py-2 border-b border-zinc-900 shadow-2xl' : 'bg-transparent py-6 border-b border-transparent'}`}>
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <Link href="/" onClick={closeMenu} className="inline-block font-black text-4xl tracking-tighter text-white font-jakarta group">
+          <Link href="/" onClick={closeMenu} className="group inline-block font-display text-[2.75rem] leading-none tracking-tight text-white">
             L7IT<span className="text-blue-600 transition-all group-hover:drop-shadow-[0_0_10px_rgba(37,99,235,0.8)]">.</span>
           </Link>
         </motion.div>
@@ -190,7 +190,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Link href={link.path} onClick={closeMenu} className={`text-3xl font-black tracking-tight font-jakarta uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
+                  <Link href={link.path} onClick={closeMenu} className={`font-display text-5xl tracking-tight uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
                     {link.name}
                   </Link>
                 </motion.div>

@@ -18,6 +18,7 @@ import WheelButton from '@/components/WheelButton';
 import Marquee from '@/components/Marquee';
 import RevealText from '@/components/RevealText';
 import MagneticLink from '@/components/MagneticLink';
+import PorscheIntro from '@/components/PorscheIntro';
 
 /* ----------------------------------------------------------------------------
  * Hero
@@ -117,25 +118,8 @@ function Hero() {
         style={{ y: copyY, opacity: copyOpacity }}
         className="relative z-10 flex h-full w-full items-center justify-center px-6 text-center"
       >
-        <div className="max-w-5xl space-y-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="flex justify-center"
-          >
-            <span className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-2 backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
-              </span>
-              <span className="text-shimmer text-[10px] font-black uppercase tracking-[0.4em]">
-                {t('exclusiveTitle')}
-              </span>
-            </span>
-          </motion.div>
-
-          <h1 className="font-jakarta text-balance text-[clamp(3rem,9vw,8rem)] font-black leading-[0.85] tracking-tighter text-white uppercase">
+        <div className="max-w-6xl space-y-8 md:space-y-10">
+          <h1 className="font-display text-balance text-[clamp(3.5rem,11vw,9.5rem)] font-normal leading-[0.85] tracking-tight text-white uppercase">
             <RevealText
               as="span"
               text={t('premiumWall')}
@@ -221,7 +205,7 @@ function Hero() {
             'Koenigsegg',
           ].map((b, i) => (
             <div key={i} className="flex items-center gap-12 px-6 text-white/30">
-              <span className="font-jakarta text-2xl font-black uppercase tracking-tight md:text-4xl">
+              <span className="font-display text-3xl uppercase tracking-tight md:text-5xl">
                 {b}
               </span>
               <span className="text-blue-500">●</span>
@@ -268,7 +252,7 @@ function Manifesto() {
         <RevealText
           as="h2"
           text="Not posters. Not prints. Quiet declarations bolted to the wall — drawn for the obsessed, finished for the few."
-          className="font-jakarta text-balance text-[clamp(2rem,5.5vw,5.5rem)] font-black uppercase leading-[0.95] tracking-tighter text-white"
+          className="font-display text-balance text-[clamp(2.5rem,6.5vw,6.5rem)] uppercase leading-[0.9] tracking-tight text-white"
           stagger={0.04}
         />
 
@@ -307,7 +291,7 @@ function Manifesto() {
               <span className="font-mono text-[10px] tracking-[0.4em] text-blue-500/80 uppercase">
                 {row.k}
               </span>
-              <div className="font-jakarta text-7xl font-black tracking-tighter text-white">
+              <div className="font-display text-7xl tracking-tight text-white md:text-8xl">
                 {row.n}
               </div>
               <p className="text-sm leading-relaxed text-zinc-400 font-medium">
@@ -352,7 +336,7 @@ function FeaturedSection({
           <RevealText
             as="h2"
             text={t('featuredSelection')}
-            className="font-jakarta text-[clamp(2.5rem,8vw,8rem)] font-black uppercase leading-[0.85] tracking-tighter text-zinc-900 dark:text-zinc-50"
+            className="font-display text-[clamp(2.75rem,9vw,9rem)] uppercase leading-[0.82] tracking-tight text-zinc-900 dark:text-zinc-50"
             stagger={0.05}
           />
           <motion.div
@@ -470,7 +454,7 @@ function ProcessSection() {
         <RevealText
           as="h2"
           text="From sketch to your wall — four hands, four checks, zero shortcuts."
-          className="mb-24 font-jakarta text-balance text-[clamp(2rem,5vw,4.5rem)] font-black uppercase leading-[0.95] tracking-tighter text-white"
+          className="mb-24 font-display text-balance text-[clamp(2.25rem,5.5vw,5rem)] uppercase leading-[0.9] tracking-tight text-white"
           stagger={0.04}
         />
 
@@ -501,11 +485,11 @@ function ProcessSection() {
                 </span>
 
                 <div className="grid gap-6 md:grid-cols-[auto_1fr] md:gap-12">
-                  <div className="font-jakarta text-6xl font-black tracking-tighter text-white/10 md:text-8xl">
+                  <div className="font-display text-7xl tracking-tight text-white/10 md:text-9xl">
                     {step.n}
                   </div>
                   <div className="max-w-xl space-y-4">
-                    <h3 className="font-jakarta text-3xl font-black uppercase tracking-tight text-white md:text-5xl">
+                    <h3 className="font-display text-4xl uppercase tracking-tight text-white md:text-6xl">
                       {step.label}
                     </h3>
                     <p className="text-base font-medium leading-relaxed text-zinc-400">
@@ -538,7 +522,7 @@ function ClosingCTA() {
       <Marquee speed="fast" className="border-b border-white/15 py-5">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-8 px-8 text-white/80">
-            <span className="font-jakarta text-xl font-black uppercase tracking-tight md:text-2xl">
+            <span className="font-display text-2xl uppercase tracking-tight md:text-3xl">
               Make it personal
             </span>
             <span className="text-white/50">✦</span>
@@ -554,7 +538,7 @@ function ClosingCTA() {
         <RevealText
           as="h2"
           text="Bring your car. We'll build the wall."
-          className="mx-auto max-w-4xl font-jakarta text-balance text-[clamp(2.5rem,8vw,8rem)] font-black uppercase leading-[0.9] tracking-tighter"
+          className="mx-auto max-w-5xl font-display text-balance text-[clamp(3rem,9.5vw,10rem)] uppercase leading-[0.85] tracking-tight"
           stagger={0.05}
         />
 
@@ -611,7 +595,7 @@ function ClosingCTA() {
       <Marquee speed="normal" reverse className="border-t border-white/15 py-5">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex items-center gap-8 px-8 text-white/70">
-            <span className="font-jakarta text-xl font-black uppercase tracking-tight md:text-2xl">
+            <span className="font-display text-2xl uppercase tracking-tight md:text-3xl">
               L7it Studio
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/50">
@@ -652,12 +636,15 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex w-full flex-col bg-white dark:bg-[#0a0a0a]">
-      <Hero />
-      <Manifesto />
-      <FeaturedSection products={featuredProducts} isLoading={isLoading} />
-      <ProcessSection />
-      <ClosingCTA />
-    </div>
+    <>
+      <PorscheIntro />
+      <div className="flex w-full flex-col bg-white dark:bg-[#0a0a0a]">
+        <Hero />
+        <Manifesto />
+        <FeaturedSection products={featuredProducts} isLoading={isLoading} />
+        <ProcessSection />
+        <ClosingCTA />
+      </div>
+    </>
   );
 }

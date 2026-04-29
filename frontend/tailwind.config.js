@@ -16,6 +16,11 @@ module.exports = {
       fontFamily: {
         jakarta: 'var(--font-jakarta)',
         inter: 'var(--font-inter)',
+        // "display" = the big condensed poster face used for headlines.
+        // Aliased as both `font-display` and `font-anton` so old refs keep working.
+        display: ['var(--font-anton)', 'Impact', 'Anton', 'sans-serif'],
+        anton: ['var(--font-anton)', 'Impact', 'Anton', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       animation: {
         'wheel-spin': 'wheel-spin 1s linear infinite',
