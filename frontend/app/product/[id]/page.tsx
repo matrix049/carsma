@@ -153,7 +153,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             animate="visible"
             className="flex flex-col justify-center"
           >
-            <motion.div variants={itemVariants} className="space-y-4 mb-6 md:space-y-8 md:mb-16">
+            <motion.div variants={itemVariants} className="space-y-3 mb-4 md:space-y-8 md:mb-16">
               <span className="inline-block font-mono text-xs md:text-[10px] tracking-[0.35em] md:tracking-[0.5em] text-blue-600 uppercase">
                 {product.category}
               </span>
@@ -170,7 +170,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
             
-            <motion.div variants={itemVariants} className="space-y-3 mb-4 md:space-y-4 md:mb-10">
+            <motion.div variants={itemVariants} className="space-y-2 mb-3 md:space-y-4 md:mb-10">
               <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                 Size
               </label>
@@ -179,7 +179,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="space-y-3 mb-6 md:space-y-4 md:mb-16">
+            <motion.div variants={itemVariants} className="space-y-2 mb-4 md:space-y-4 md:mb-16">
               <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                 Quantity
               </label>
@@ -207,7 +207,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="mb-6 md:mb-16">
+            <motion.div variants={itemVariants} className="mb-3 md:mb-16">
               <p className="text-sm md:text-xl text-zinc-500 dark:text-zinc-500 leading-relaxed font-medium max-w-xl">
                 {product.description || 'Syynthesized automotive fidelity architected for high-end curation. Every detail captured with museum-grade precision.'}
               </p>
