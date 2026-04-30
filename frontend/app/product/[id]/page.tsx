@@ -19,10 +19,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Fixed size - Medium (120cm x 35cm) - Price is now included in base product price
-  const fixedSize = { id: 'M', label: '120cm x 35cm', priceMod: 0 };
-  const totalPrice = product ? product.price : 0;
+
+  // Available sizes — picked to match the consumer-POV mobile reference
+  const sizes = [
+    { id: 'S', label: '21x30cm' },
+    { id: 'L', label: '35x45cm' },
+  ];
+  const [selectedSizeId, setSelectedSizeId] = useState<string>('S');
+  const [quantity, setQuantity] = useState<number>(1);
+  const selectedSize = sizes.find((s) => s.id === selectedSizeId) ?? sizes[0];
+  const unitPrice = product ? product.price : 0;
+  const totalPrice = unitPrice * quantity;
 
   useEffect(() => {
     async function loadProduct() {
@@ -163,17 +170,61 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   {Math.ceil(product.price * 1.2)} MAD
                 </span>
                 <p className="text-4xl sm:text-5xl font-black text-zinc-950 dark:text-white leading-none">
-                  {totalPrice} <span className="text-base font-black text-zinc-400">MAD</span>
+                  {unitPrice} <span className="text-base font-black text-zinc-400">MAD</span>
                 </p>
               </div>
             </motion.div>
             
-            <motion.div variants={itemVariants} className="space-y-8 mb-16">
-              <div className="flex justify-center">
-                <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-blue-600 bg-blue-600/5 text-blue-600 shadow-[0_15px_40px_-10px_rgba(37,99,235,0.2)] py-6 px-12 transition-all duration-500">
-                  <span className="text-lg font-black uppercase tracking-tighter">Standard Size</span>
-                  <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">{fixedSize.label}</span>
-                </div>
+            <motion.div variants={itemVariants} className="space-y-4 mb-10">
+              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                Size
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {sizes.map((size) => {
+                  const active = selectedSizeId === size.id;
+                  return (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={() => setSelectedSizeId(size.id)}
+                      className={`rounded-full px-6 py-3 text-sm font-semibold transition-all ${
+                        active
+                          ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                          : 'border border-zinc-300 text-zinc-900 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-100 dark:hover:border-zinc-500'
+                      }`}
+                    >
+                      {size.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="space-y-4 mb-16">
+              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                Quantity
+              </label>
+              <div className="inline-flex items-center gap-1 rounded-full border border-zinc-300 dark:border-zinc-700 px-2 py-1">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-zinc-700 hover:bg-zinc-100 disabled:opacity-30 disabled:hover:bg-transparent dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <span className="min-w-[2.5rem] text-center text-base font-medium text-zinc-900 dark:text-zinc-100">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
               </div>
             </motion.div>
 
@@ -186,11 +237,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <motion.div variants={itemVariants} className="space-y-4">
               <button
                 onClick={() => {
-                  addToCart(
-                    { ...product, price: totalPrice },
-                    fixedSize.id,
-                    fixedSize.label
-                  );
+                  for (let i = 0; i < quantity; i++) {
+                    addToCart(
+                      { ...product, price: unitPrice },
+                      selectedSize.id,
+                      selectedSize.label
+                    );
+                  }
                 }}
                 disabled={!product.inStock}
                 className={`${btnAccent} hidden w-full md:flex`}
@@ -205,11 +258,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               <button
                 onClick={() => {
-                  addToCart(
-                    { ...product, price: totalPrice },
-                    fixedSize.id,
-                    fixedSize.label
-                  );
+                  for (let i = 0; i < quantity; i++) {
+                    addToCart(
+                      { ...product, price: unitPrice },
+                      selectedSize.id,
+                      selectedSize.label
+                    );
+                  }
                   router.push('/checkout');
                 }}
                 disabled={!product.inStock}
@@ -238,18 +293,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {fixedSize.id} ({fixedSize.label})</span>
+                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {selectedSize.label} • Qty: {quantity}</span>
                        <span className="text-xl font-black text-white">{totalPrice} MAD</span>
                     </div>
                  </div>
                  <div className="grid grid-cols-2 gap-3">
                     <button
                      onClick={() => {
-                       addToCart(
-                         { ...product, price: totalPrice },
-                         fixedSize.id,
-                         fixedSize.label
-                       );
+                       for (let i = 0; i < quantity; i++) {
+                         addToCart(
+                           { ...product, price: unitPrice },
+                           selectedSize.id,
+                           selectedSize.label
+                         );
+                       }
                      }}
                      disabled={!product.inStock}
                      className={`px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
@@ -267,11 +324,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                    </button>
                    <button
                      onClick={() => {
-                       addToCart(
-                         { ...product, price: totalPrice },
-                         fixedSize.id,
-                         fixedSize.label
-                       );
+                       for (let i = 0; i < quantity; i++) {
+                         addToCart(
+                           { ...product, price: unitPrice },
+                           selectedSize.id,
+                           selectedSize.label
+                         );
+                       }
                        router.push('/checkout');
                      }}
                      disabled={!product.inStock}
