@@ -20,14 +20,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Available sizes — picked to match the consumer-POV mobile reference
-  const sizes = [
-    { id: 'S', label: '21x30cm' },
-    { id: 'L', label: '35x45cm' },
-  ];
-  const [selectedSizeId, setSelectedSizeId] = useState<string>('S');
+  // Single standard size — every product ships at the same fixed dimensions.
+  const standardSize = { id: 'M', label: '120cm x 35cm' };
   const [quantity, setQuantity] = useState<number>(1);
-  const selectedSize = sizes.find((s) => s.id === selectedSizeId) ?? sizes[0];
   const unitPrice = product ? product.price : 0;
   const totalPrice = unitPrice * quantity;
 
@@ -179,24 +174,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                 Size
               </label>
-              <div className="flex flex-wrap gap-3">
-                {sizes.map((size) => {
-                  const active = selectedSizeId === size.id;
-                  return (
-                    <button
-                      key={size.id}
-                      type="button"
-                      onClick={() => setSelectedSizeId(size.id)}
-                      className={`rounded-full px-6 py-3 text-sm font-semibold transition-all ${
-                        active
-                          ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-                          : 'border border-zinc-300 text-zinc-900 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-100 dark:hover:border-zinc-500'
-                      }`}
-                    >
-                      {size.label}
-                    </button>
-                  );
-                })}
+              <div className="inline-flex items-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">
+                {standardSize.label}
               </div>
             </motion.div>
 
@@ -240,8 +219,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   for (let i = 0; i < quantity; i++) {
                     addToCart(
                       { ...product, price: unitPrice },
-                      selectedSize.id,
-                      selectedSize.label
+                      standardSize.id,
+                      standardSize.label
                     );
                   }
                 }}
@@ -261,8 +240,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   for (let i = 0; i < quantity; i++) {
                     addToCart(
                       { ...product, price: unitPrice },
-                      selectedSize.id,
-                      selectedSize.label
+                      standardSize.id,
+                      standardSize.label
                     );
                   }
                   router.push('/checkout');
@@ -293,7 +272,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {selectedSize.label} • Qty: {quantity}</span>
+                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {standardSize.label} • Qty: {quantity}</span>
                        <span className="text-xl font-black text-white">{totalPrice} MAD</span>
                     </div>
                  </div>
@@ -303,8 +282,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                        for (let i = 0; i < quantity; i++) {
                          addToCart(
                            { ...product, price: unitPrice },
-                           selectedSize.id,
-                           selectedSize.label
+                           standardSize.id,
+                           standardSize.label
                          );
                        }
                      }}
@@ -327,8 +306,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                        for (let i = 0; i < quantity; i++) {
                          addToCart(
                            { ...product, price: unitPrice },
-                           selectedSize.id,
-                           selectedSize.label
+                           standardSize.id,
+                           standardSize.label
                          );
                        }
                        router.push('/checkout');
