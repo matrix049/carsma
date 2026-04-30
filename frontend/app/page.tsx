@@ -224,7 +224,7 @@ export default function Home() {
               alt="Porsche 911"
               loading="eager"
               draggable={false}
-              className="block h-auto max-h-[42vh] w-auto max-w-3xl select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[48vh] md:max-w-4xl"
+              className="block h-auto max-h-[28vh] w-auto max-w-sm select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[48vh] md:max-w-4xl"
             />
           </div>
 

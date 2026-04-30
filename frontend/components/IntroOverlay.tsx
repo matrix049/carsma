@@ -305,7 +305,7 @@ export default function IntroOverlay() {
               alt=""
               draggable={false}
               loading="eager"
-              className="block h-auto w-[80vw] max-w-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] md:w-[55vw] lg:w-[50vw] xl:w-[45vw]"
+              className="block h-auto w-[95vw] max-w-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] md:w-[70vw] lg:w-[62vw] xl:w-[55vw]"
             />
           </div>
         </div>
