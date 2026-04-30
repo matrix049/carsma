@@ -13,7 +13,6 @@ import ProductCard from '@/components/ProductCard';
 import CompactProductCard from '@/components/CompactProductCard';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import WheelLoader from '@/components/WheelLoader';
-import PorscheCar from '@/components/PorscheCar';
 import IntroOverlay from '@/components/IntroOverlay';
 import { btnPrimary, btnAccent, btnGhostDark } from '@/lib/uiStyles';
 
@@ -44,9 +43,6 @@ export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // If /porsche-911.png hasn't been added to /public yet, fall back to the
-  // hand-drawn SVG silhouette so the hero never breaks.
-  const [imgFailed, setImgFailed] = useState(false);
 
   // Load products
   useEffect(() => {
@@ -221,22 +217,15 @@ export default function Home() {
         {/* Centered hero content — Porsche stacks above the headline */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-6">
           {/* Porsche — slides L → R on load. The wrapper takes the GSAP
-              transform; the photo (or SVG fallback) sits inside undisturbed. */}
+              transform; the photo sits inside undisturbed. */}
           <div className="porsche mb-4 flex w-full justify-center will-change-transform md:mb-6">
-            {imgFailed ? (
-              <div className="w-full max-w-3xl px-6">
-                <PorscheCar />
-              </div>
-            ) : (
-              <img
-                src="/porsche-911.png"
-                alt="Porsche 911"
-                loading="eager"
-                draggable={false}
-                onError={() => setImgFailed(true)}
-                className="block h-auto max-h-[42vh] w-auto max-w-3xl select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[48vh] md:max-w-4xl"
-              />
-            )}
+            <img
+              src="/911.png"
+              alt="Porsche 911"
+              loading="eager"
+              draggable={false}
+              className="block h-auto max-h-[42vh] w-auto max-w-3xl select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[48vh] md:max-w-4xl"
+            />
           </div>
 
           {/* Hero text */}
