@@ -3,20 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --surface: #f8fafc;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --surface: #171717;
   --primary: #2563eb;
   --font-jakarta: var(--font-jakarta);
   --font-inter: var(--font-inter);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ffffff;
-    --surface: #171717;
-  }
 }
 
 body {

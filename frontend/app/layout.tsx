@@ -53,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${inter.variable} ${anton.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`dark ${plusJakartaSans.variable} ${inter.variable} ${anton.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white dark:bg-[#0a0a0a] text-zinc-950 dark:text-zinc-50 font-inter">
         <LanguageProvider>
