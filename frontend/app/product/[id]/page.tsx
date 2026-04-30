@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import AnalyticsService from '@/lib/analyticsService';
 import { btnAccent, btnDark } from '@/lib/uiStyles';
 
@@ -107,7 +107,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 py-32 lg:py-48 max-w-7xl pb-40 md:pb-0">
+      <div className="container mx-auto px-6 py-32 lg:py-48 max-w-7xl">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -154,10 +154,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             className="flex flex-col justify-center"
           >
             <motion.div variants={itemVariants} className="space-y-8 mb-16">
-              <span className="inline-block font-mono text-[10px] tracking-[0.5em] text-blue-600 uppercase">
+              <span className="inline-block font-mono text-xs md:text-[10px] tracking-[0.35em] md:tracking-[0.5em] text-blue-600 uppercase">
                 {product.category}
               </span>
-              <h1 className="font-display text-[clamp(3.5rem,10vw,11rem)] uppercase leading-[0.82] tracking-tight text-zinc-900 dark:text-zinc-50">
+              <h1 className="font-display text-[clamp(2.25rem,7vw,11rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
                 {product.name}
               </h1>
               <div className="flex items-center gap-4">
@@ -225,7 +225,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   }
                 }}
                 disabled={!product.inStock}
-                className={`${btnAccent} hidden w-full md:flex`}
+                className={`${btnAccent} flex w-full`}
               >
                 {product.inStock ? (
                   <>
@@ -247,7 +247,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   router.push('/checkout');
                 }}
                 disabled={!product.inStock}
-                className={`${btnDark} hidden w-full md:flex`}
+                className={`${btnDark} flex w-full`}
               >
                 {product.inStock ? (
                   <>
@@ -264,71 +264,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
 
-            {/* Mobile Fixed CTA */}
-            <AnimatePresence>
-              <motion.div 
-                initial={{ y: 100 }} animate={{ y: 0 }}
-                className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-3xl border-t border-zinc-900 p-4 pb-6"
-              >
-                 <div className="flex items-center justify-between mb-3">
-                    <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Size: {standardSize.label} • Qty: {quantity}</span>
-                       <span className="text-xl font-black text-white">{totalPrice} MAD</span>
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-3">
-                    <button
-                     onClick={() => {
-                       for (let i = 0; i < quantity; i++) {
-                         addToCart(
-                           { ...product, price: unitPrice },
-                           standardSize.id,
-                           standardSize.label
-                         );
-                       }
-                     }}
-                     disabled={!product.inStock}
-                     className={`px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
-                       product.inStock
-                         ? 'bg-blue-600 text-white'
-                         : 'bg-zinc-800 text-zinc-600'
-                     }`}
-                   >
-                     {product.inStock ? (
-                       <div className="flex flex-col items-center gap-0.5">
-                         <span>ADD TO CART</span>
-                         <span className="text-xs opacity-80">زيد للسلة</span>
-                       </div>
-                     ) : t('unavailable')}
-                   </button>
-                   <button
-                     onClick={() => {
-                       for (let i = 0; i < quantity; i++) {
-                         addToCart(
-                           { ...product, price: unitPrice },
-                           standardSize.id,
-                           standardSize.label
-                         );
-                       }
-                       router.push('/checkout');
-                     }}
-                     disabled={!product.inStock}
-                     className={`px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
-                       product.inStock
-                         ? 'bg-white text-black'
-                         : 'bg-zinc-800 text-zinc-600'
-                     }`}
-                   >
-                     {product.inStock ? (
-                       <div className="flex flex-col items-center gap-0.5">
-                         <span>BUY NOW</span>
-                         <span className="text-xs opacity-80">شري دابا</span>
-                       </div>
-                     ) : t('unavailable')}
-                   </button>
-                 </div>
-              </motion.div>
-            </AnimatePresence>
           </motion.div>
         </div>
       </div>
