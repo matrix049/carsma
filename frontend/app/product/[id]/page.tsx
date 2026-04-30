@@ -107,11 +107,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 py-32 lg:py-48 max-w-7xl">
+      <div className="container mx-auto px-6 py-20 md:py-32 lg:py-48 max-w-7xl">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="mb-16"
+          className="mb-6 md:mb-16"
         >
           <Link href="/shop" className="inline-flex items-center text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 hover:text-blue-600 transition-colors group">
             <svg className={`${alignIconClass} h-3.5 w-3.5 transition-transform group-hover:-translate-x-2`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -119,13 +119,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 lg:gap-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-24 lg:gap-32">
           {/* Kinetic Image Reveal */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden rounded-[4rem] bg-zinc-900 border border-zinc-800 shadow-4xl group"
+            className="relative aspect-square w-full max-w-md md:max-w-none mx-auto md:mx-0 overflow-hidden rounded-3xl md:rounded-[4rem] bg-zinc-900 border border-zinc-800 shadow-4xl group"
           >
             <motion.img
               whileHover={{ scale: 1.05 }}
@@ -139,7 +139,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-20 transition-opacity duration-1000" />
             
-            <div className="absolute bottom-12 left-12">
+            <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12">
                <span className="flex items-center gap-3 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-3 text-[10px] font-black tracking-[0.4em] text-white uppercase shadow-3xl">
                   <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_10px_rgba(37,99,235,1)]" />
                   Limited Edition
@@ -153,7 +153,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             animate="visible"
             className="flex flex-col justify-center"
           >
-            <motion.div variants={itemVariants} className="space-y-8 mb-16">
+            <motion.div variants={itemVariants} className="space-y-4 mb-6 md:space-y-8 md:mb-16">
               <span className="inline-block font-mono text-xs md:text-[10px] tracking-[0.35em] md:tracking-[0.5em] text-blue-600 uppercase">
                 {product.category}
               </span>
@@ -170,7 +170,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
             
-            <motion.div variants={itemVariants} className="space-y-4 mb-10">
+            <motion.div variants={itemVariants} className="space-y-3 mb-4 md:space-y-4 md:mb-10">
               <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                 Size
               </label>
@@ -179,7 +179,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="space-y-4 mb-16">
+            <motion.div variants={itemVariants} className="space-y-3 mb-6 md:space-y-4 md:mb-16">
               <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
                 Quantity
               </label>
@@ -207,8 +207,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="mb-16">
-              <p className="text-xl text-zinc-500 dark:text-zinc-500 leading-relaxed font-medium max-w-xl">
+            <motion.div variants={itemVariants} className="mb-6 md:mb-16">
+              <p className="text-sm md:text-xl text-zinc-500 dark:text-zinc-500 leading-relaxed font-medium max-w-xl">
                 {product.description || 'Syynthesized automotive fidelity architected for high-end curation. Every detail captured with museum-grade precision.'}
               </p>
             </motion.div>
