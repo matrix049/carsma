@@ -183,7 +183,7 @@ export default function Home() {
       {/* ─────────────────────────────────────────────────────────────────
        * HERO — full-screen, single cinematic moment
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-black">
+      <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-black md:pt-24 md:pb-20">
         {/* Ambient dot grid */}
         <div
           className="absolute inset-0 opacity-30"
@@ -218,13 +218,13 @@ export default function Home() {
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-6">
           {/* Porsche — slides L → R on load. The wrapper takes the GSAP
               transform; the photo sits inside undisturbed. */}
-          <div className="porsche mb-4 flex w-full justify-center will-change-transform md:mb-6">
+          <div className="porsche mb-4 flex w-full justify-center will-change-transform md:mb-4">
             <img
               src="/911.png"
               alt="Porsche 911"
               loading="eager"
               draggable={false}
-              className="block h-auto max-h-[28vh] w-auto max-w-sm select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[48vh] md:max-w-4xl"
+              className="block h-auto max-h-[28vh] w-auto max-w-sm select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)] md:max-h-[38vh] md:max-w-3xl"
             />
           </div>
 
