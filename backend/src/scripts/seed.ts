@@ -26,7 +26,7 @@ const seedData = async () => {
     const products = [
       {
         name: 'Audi Wall Art',
-        price: 200,
+        price: 199,
         image: '/images/car1.jpg',
         description: 'Premium Audi logo wall decoration, perfect for car enthusiasts',
         category: 'Audi',
@@ -34,7 +34,7 @@ const seedData = async () => {
       },
       {
         name: 'BMW Wall Art',
-        price: 200,
+        price: 199,
         image: '/images/car2.jpg',
         description: 'Elegant BMW logo wall art, ideal for modern interiors',
         category: 'BMW',
@@ -42,7 +42,7 @@ const seedData = async () => {
       },
       {
         name: 'Mercedes Wall Art',
-        price: 200,
+        price: 199,
         image: '/images/car3.jpg',
         description: 'Luxury Mercedes-Benz logo wall decoration for sophisticated spaces',
         category: 'Mercedes',
