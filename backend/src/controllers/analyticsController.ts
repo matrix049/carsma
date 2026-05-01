@@ -6,6 +6,7 @@ import AnalyticsCache from '../services/analyticsCache';
 
 // Valid page types enum
 const VALID_PAGE_TYPES = ['home', 'shop', 'product', 'contact', 'faq', 'cart', 'checkout', 'customize'] as const;
+type PageType = typeof VALID_PAGE_TYPES[number];
 
 // Interface for tracking request
 interface TrackPageViewRequest {
@@ -81,9 +82,10 @@ export const trackPageView = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Create page view record
+    // Create page view record. The validation above guarantees pageType is in
+    // VALID_PAGE_TYPES, so the cast to the narrowed union is sound.
     const pageViewData = {
-      pageType,
+      pageType: pageType as PageType,
       productId: productId ? new mongoose.Types.ObjectId(productId) : undefined,
       sessionId,
       userAgent: req.get('User-Agent')?.substring(0, 500), // Truncate to max length
