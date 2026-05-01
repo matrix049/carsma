@@ -7,20 +7,20 @@ import DatabaseConnection from '../config/database';
 dotenv.config();
 
 const updatePrices = async () => {
-  console.log('💰 Updating product prices to 199 MAD...\n');
+  console.log('💰 Updating product prices to 200 MAD...\n');
 
   try {
     // Connect to database
     const dbConnection = new DatabaseConnection();
     await dbConnection.connect();
 
-    // Update all products to 199 MAD
+    // Update all products to 200 MAD
     const result = await Product.updateMany(
       {}, // Update all products
-      { $set: { price: 199 } }
+      { $set: { price: 200 } }
     );
 
-    console.log(`✓ Updated ${result.modifiedCount} products to 199 MAD\n`);
+    console.log(`✓ Updated ${result.modifiedCount} products to 200 MAD\n`);
 
     // Display updated products
     const products = await Product.find({});
