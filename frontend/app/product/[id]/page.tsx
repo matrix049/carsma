@@ -164,7 +164,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <span className="text-2xl font-black text-zinc-500 line-through leading-none">
                   {Math.ceil(product.price * 1.2)} MAD
                 </span>
-                <p className="text-4xl sm:text-5xl font-black text-zinc-950 dark:text-white leading-none">
+                <p className="text-4xl sm:text-5xl font-black text-blue-600 leading-none">
                   {unitPrice} <span className="text-base font-black text-zinc-400">MAD</span>
                 </p>
               </div>

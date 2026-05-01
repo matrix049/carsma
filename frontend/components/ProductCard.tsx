@@ -70,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <span className="text-[10px] font-black text-zinc-400 line-through tracking-widest decoration-blue-500/50">
                 {Math.ceil(product.price * 1.2)} <span className="text-[8px]">MAD</span>
               </span>
-              <span className="text-3xl font-black text-zinc-900 dark:text-white font-jakarta">
+              <span className="text-3xl font-black text-blue-600 font-jakarta">
                 {product.price} <span className="text-[10px] font-black text-zinc-500 ml-0.5 uppercase">MAD</span>
               </span>
             </div>
