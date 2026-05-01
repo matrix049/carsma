@@ -16,6 +16,11 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Home page sits over a dark hero image — keep the original dark/transparent
+  // navbar there. Every other route uses the light theme so the nav stays
+  // visible against white page backgrounds.
+  const isHome = pathname === '/';
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -72,10 +77,18 @@ export default function Navbar() {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-[60] w-full transition-all duration-500 ${scrolled ? 'bg-white/90 backdrop-blur-2xl py-2 border-b border-zinc-200 shadow-lg' : 'bg-white/50 backdrop-blur-md py-6 border-b border-zinc-200/40'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-[60] w-full transition-all duration-500 ${
+      scrolled
+        ? isHome
+          ? 'bg-black/80 backdrop-blur-2xl py-2 border-b border-zinc-900 shadow-2xl'
+          : 'bg-white/90 backdrop-blur-2xl py-2 border-b border-zinc-200 shadow-lg'
+        : isHome
+          ? 'bg-transparent py-6 border-b border-transparent'
+          : 'bg-white/50 backdrop-blur-md py-6 border-b border-zinc-200/40'
+    }`}>
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <Link href="/" onClick={closeMenu} className="group inline-block font-display text-[2.75rem] leading-none tracking-tight text-zinc-900">
+          <Link href="/" onClick={closeMenu} className={`group inline-block font-display text-[2.75rem] leading-none tracking-tight ${isHome ? 'text-white' : 'text-zinc-900'}`}>
             L7IT<span className="text-blue-600 transition-all group-hover:drop-shadow-[0_0_10px_rgba(37,99,235,0.8)]">.</span>
           </Link>
         </motion.div>
@@ -91,11 +104,15 @@ export default function Navbar() {
             >
               <Link
                 href={link.path}
-                className={`group relative px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-colors hover:text-zinc-900 ${isActive(link.path) ? 'text-zinc-900' : 'text-zinc-500'}`}
+                className={`group relative px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+                  isHome
+                    ? `hover:text-white ${isActive(link.path) ? 'text-white' : 'text-zinc-500'}`
+                    : `hover:text-zinc-900 ${isActive(link.path) ? 'text-zinc-900' : 'text-zinc-500'}`
+                }`}
               >
                 <span className="relative inline-block">
                   {link.name}
-                  <span className="pointer-events-none absolute -bottom-2 left-0 right-0 h-px scale-x-0 bg-zinc-400 origin-left transition-transform duration-500 group-hover:scale-x-100" />
+                  <span className={`pointer-events-none absolute -bottom-2 left-0 right-0 h-px scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100 ${isHome ? 'bg-zinc-500' : 'bg-zinc-400'}`} />
                 </span>
                 {isActive(link.path) && (
                   <motion.div
@@ -111,7 +128,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-4">
-            <Link href="/cart" className="relative p-2 text-zinc-600 hover:text-zinc-900 transition-all hover:scale-110">
+            <Link href="/cart" className={`relative p-2 transition-all hover:scale-110 ${isHome ? 'text-zinc-500 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
                 <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
@@ -127,7 +144,7 @@ export default function Navbar() {
             </Link>
 
             <button
-              className="md:hidden p-2 text-zinc-700 hover:text-zinc-900"
+              className={`md:hidden p-2 ${isHome ? 'text-zinc-400 hover:text-white' : 'text-zinc-700 hover:text-zinc-900'}`}
               onClick={toggleMenu}
             >
               <div className="space-y-1.5">
