@@ -8,7 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import ConditionalShell from "@/components/ConditionalShell";
 import TikTokPageTracker from "@/components/TikTokPageTracker";
 
-const TIKTOK_PIXEL_ID = "D7QV3ABC77U6QAB8086G";
+const TIKTOK_PIXEL_ID = "D7QVDHJC77U6RHF4VBVG";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
