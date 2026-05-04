@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '@/lib/apiServices';
+import { trackAddToCart } from '@/lib/metaPixel';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -69,6 +70,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     const sizeInfo = selectedSize ? ` (${sizeLabel || selectedSize})` : '';
     showToast(`Added ${product.name}${sizeInfo} to cart`);
+    trackAddToCart({
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+    });
   };
 
   // Remove product from cart completely

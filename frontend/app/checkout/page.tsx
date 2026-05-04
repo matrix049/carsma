@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
 import { motion, AnimatePresence } from 'framer-motion';
 import { btnPrimary, btnAccent } from '@/lib/uiStyles';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -34,6 +35,21 @@ export default function CheckoutPage() {
   const SHIPPING_COST = 0;
   const subtotal = Math.round(calculateTotal());
   const finalTotal = subtotal;
+
+  // Fire InitiateCheckout once per checkout-page load when there's a non-empty
+  // cart. The ref prevents re-firing when the cart contents shift before the
+  // user submits (e.g. quantity tweaks, item removal).
+  const initiateCheckoutFired = useRef(false);
+  useEffect(() => {
+    if (initiateCheckoutFired.current) return;
+    if (cart.length === 0) return;
+    initiateCheckoutFired.current = true;
+    trackInitiateCheckout({
+      productIds: cart.map((item) => item._id),
+      numItems: cart.reduce((n, item) => n + item.quantity, 0),
+      value: subtotal,
+    });
+  }, [cart, subtotal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +82,11 @@ export default function CheckoutPage() {
         paymentMethod: 'cod' 
       };
       await createOrder(orderData);
+      trackPurchase({
+        productIds: cart.map((item) => item._id),
+        numItems: cart.reduce((n, item) => n + item.quantity, 0),
+        value: finalTotal,
+      });
       setSuccess(true);
       clearCart();
       // Scroll to top to show success message

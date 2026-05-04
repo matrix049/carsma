@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import AnalyticsService from '@/lib/analyticsService';
+import { trackViewContent } from '@/lib/metaPixel';
 import { btnAccent, btnDark } from '@/lib/uiStyles';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,8 +58,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           console.warn('Product view tracking failed:', error);
         }
       };
-      
+
       trackView();
+      trackViewContent({
+        productId: product._id,
+        name: product.name,
+        category: product.category,
+        price: product.price,
+      });
     }
   }, [product, isLoading, error]);
 
