@@ -166,18 +166,18 @@ export async function notifyNewCustomOrder(customOrderData: {
  */
 export async function notifyNewContactMessage(contactData: {
   customerName: string;
-  email: string;
+  phone: string;
   messagePreview: string;
 }): Promise<void> {
-  const adminUrl = process.env.FRONTEND_URL 
+  const adminUrl = process.env.FRONTEND_URL
     ? `${process.env.FRONTEND_URL}/admin/contact-messages`
     : undefined;
 
   await sendNotification({
     title: '📧 New Contact Message',
-    message: `From ${contactData.customerName} (${contactData.email}): ${contactData.messagePreview}`,
+    message: `From ${contactData.customerName} (${contactData.phone}): ${contactData.messagePreview}`,
     priority: 'default',
-    tags: ['email', 'speech_balloon'],
+    tags: ['telephone', 'speech_balloon'],
     click: adminUrl,
   });
 }

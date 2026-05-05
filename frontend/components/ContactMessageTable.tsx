@@ -79,7 +79,12 @@ export default function ContactMessageTable({ messages, onStatusUpdate }: Contac
                   <p className="text-[11px] font-black uppercase tracking-tight text-white">
                     {message.customer.name}
                   </p>
-                  <p className="text-[9px] text-zinc-700 mt-0.5">{message.customer.email}</p>
+                  {message.customer.phone && (
+                    <p className="text-[10px] text-zinc-400 font-bold mt-0.5">{message.customer.phone}</p>
+                  )}
+                  {message.customer.email && (
+                    <p className="text-[9px] text-zinc-700 mt-0.5">{message.customer.email}</p>
+                  )}
                 </td>
                 <td className="px-8 py-7">
                   <p className="text-[10px] leading-relaxed max-w-md whitespace-pre-wrap text-zinc-500 line-clamp-3">
@@ -137,7 +142,12 @@ export default function ContactMessageTable({ messages, onStatusUpdate }: Contac
             <p className="text-[13px] font-black uppercase tracking-tight text-white">
               {message.customer.name}
             </p>
-            <p className="text-[10px] text-zinc-700 mt-0.5">{message.customer.email}</p>
+            {message.customer.phone && (
+              <p className="text-[11px] text-zinc-400 font-bold mt-0.5">{message.customer.phone}</p>
+            )}
+            {message.customer.email && (
+              <p className="text-[10px] text-zinc-700 mt-0.5">{message.customer.email}</p>
+            )}
 
             {/* Message */}
             <div className="mt-3 pt-3 border-t border-zinc-900/60">

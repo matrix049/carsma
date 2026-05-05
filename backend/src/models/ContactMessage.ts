@@ -3,7 +3,9 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IContactMessage extends Document {
   customer: {
     name: string;
-    email: string;
+    phone: string;
+    /** Legacy field — historic records used email. New records leave it blank. */
+    email?: string;
   };
   message: string;
   status: 'unread' | 'read' | 'resolved' | 'archived';
@@ -21,12 +23,21 @@ const ContactMessageSchema = new Schema<IContactMessage>(
         minlength: [2, 'Name must be at least 2 characters'],
         maxlength: [100, 'Name cannot exceed 100 characters']
       },
+      // Phone is the primary contact channel — the storefront form only
+      // collects name, phone and message. Email stays on the schema as an
+      // optional legacy field so existing records remain readable.
+      phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
+        trim: true,
+        minlength: [4, 'Phone number is too short'],
+        maxlength: [40, 'Phone number is too long']
+      },
       email: {
         type: String,
-        required: [true, 'Email is required'],
         trim: true,
         lowercase: true,
-        match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
+        default: ''
       }
     },
     message: {

@@ -62,7 +62,7 @@ async function testNotifications() {
     console.log('4️⃣ Sending test contact message notification...');
     await notifyNewContactMessage({
       customerName: 'Alice Johnson',
-      email: 'alice@example.com',
+      phone: '+212600000000',
       messagePreview: 'I have a question about shipping to Casablanca...',
     });
     console.log('✅ Contact message notification sent\n');

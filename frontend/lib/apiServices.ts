@@ -125,7 +125,9 @@ export interface ContactMessage {
   _id: string;
   customer: {
     name: string;
-    email: string;
+    phone?: string;
+    /** Legacy field — older records used email instead of phone. */
+    email?: string;
   };
   message: string;
   status: 'unread' | 'read' | 'resolved' | 'archived';
@@ -135,7 +137,7 @@ export interface ContactMessage {
 
 export interface CreateContactMessageRequest {
   name: string;
-  email: string;
+  phone: string;
   message: string;
 }
 

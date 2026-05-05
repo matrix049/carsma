@@ -8,20 +8,22 @@ import { notifyNewContactMessage } from '../services/notificationService';
  */
 export async function createContactMessage(req: Request, res: Response): Promise<void> {
   try {
-    const { name, email, message } = req.body;
+    // Accept `phone` (primary) — fall back to legacy `email` if any older
+    // client is still posting that key, just so we don't 400 mid-deploy.
+    const { name, phone, email, message } = req.body;
+    const contactValue: string | undefined = phone || email;
 
-    // Validate required fields
-    if (!name || !email || !message) {
+    if (!name || !contactValue || !message) {
       res.status(400).json({
         error: true,
-        message: 'Name, email, and message are required'
+        message: 'Name, phone number, and message are required'
       });
       return;
     }
 
     // Create contact message with status "unread"
     const newContactMessage = await ContactMessage.create({
-      customer: { name, email },
+      customer: { name, phone: contactValue },
       message,
       status: 'unread'
     });
@@ -29,7 +31,7 @@ export async function createContactMessage(req: Request, res: Response): Promise
     // Send notification to admin
     await notifyNewContactMessage({
       customerName: name,
-      email,
+      phone: contactValue,
       messagePreview: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
     });
 

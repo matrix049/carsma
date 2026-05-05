@@ -12,7 +12,7 @@ export default function ContactPage() {
   // Form state management (Task 9.1)
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    phone: '',
     message: ''
   });
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function ContactPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState({
     name: '',
-    email: '',
+    phone: '',
     message: ''
   });
 
@@ -45,32 +45,36 @@ export default function ContactPage() {
   const validateForm = (): boolean => {
     const errors = {
       name: '',
-      email: '',
+      phone: '',
       message: ''
     };
     let isValid = true;
 
     // Validate name
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = 'Smiya khassa — name is required';
       isValid = false;
     }
 
-    // Validate email
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+    // Validate phone — accept anything with at least 6 digits, allow + - spaces
+    const trimmed = formData.phone.trim();
+    if (!trimmed) {
+      errors.phone = 'Tilifon khass — phone is required';
       isValid = false;
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      errors.email = 'Please provide a valid email address';
-      isValid = false;
+    } else {
+      const digits = trimmed.replace(/[^0-9]/g, '');
+      if (digits.length < 6) {
+        errors.phone = 'Hada machi numero s7i7 — please enter a valid phone number';
+        isValid = false;
+      }
     }
 
     // Validate message
     if (!formData.message.trim()) {
-      errors.message = 'Message is required';
+      errors.message = 'Lmessage khass — message is required';
       isValid = false;
     } else if (formData.message.trim().length < 10) {
-      errors.message = 'Message must be at least 10 characters';
+      errors.message = 'Zid chwiya tafassil (10 ḥarf 3la l9el)';
       isValid = false;
     }
 
@@ -96,22 +100,22 @@ export default function ContactPage() {
     try {
       const response = await createContactMessage({
         name: formData.name.trim(),
-        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         message: formData.message.trim()
       });
 
       // Display success message
       setSuccessMessage(response.message || 'Your message has been sent successfully!');
-      
+
       // Clear form fields on success
       setFormData({
         name: '',
-        email: '',
+        phone: '',
         message: ''
       });
       setValidationErrors({
         name: '',
-        email: '',
+        phone: '',
         message: ''
       });
     } catch (error: any) {
@@ -188,14 +192,15 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
-                      Identity
+                      Smiya dyalk • Your name
                     </label>
-                    <input 
+                    <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="e.g. Adam Benz"
+                      placeholder="مثال: Mohamed El Idrissi"
+                      autoComplete="name"
                       className={`w-full bg-zinc-950 border ${validationErrors.name ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700`}
                     />
                     {validationErrors.name && (
@@ -204,31 +209,33 @@ export default function ContactPage() {
                   </div>
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
-                      {t('email')}
+                      Tilifon dyalk • Phone number
                     </label>
-                    <input 
-                      type="text"
-                      name="email"
-                      value={formData.email}
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="adam@benz.ma"
-                      className={`w-full bg-zinc-950 border ${validationErrors.email ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700`}
+                      placeholder="06XXXXXXXX"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      className={`w-full bg-zinc-950 border ${validationErrors.phone ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700`}
                     />
-                    {validationErrors.email && (
-                      <p className="text-xs text-red-400 ml-1">{validationErrors.email}</p>
+                    {validationErrors.phone && (
+                      <p className="text-xs text-red-400 ml-1">{validationErrors.phone}</p>
                     )}
                   </div>
                 </div>
                 <div className="space-y-3">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">
-                    Matter of Inquiry
+                    Chno bghiti? • Your message
                   </label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
-                    rows={6} 
-                    placeholder="Describe your vision or inquiry details..."
+                    rows={6}
+                    placeholder="كتب الرسالة ديالك هنا — write your inquiry here..."
                     className={`w-full bg-zinc-950 border ${validationErrors.message ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700 resize-none`}
                   />
                   {validationErrors.message && (
