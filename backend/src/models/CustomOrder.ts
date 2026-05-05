@@ -3,13 +3,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ICustomOrder extends Document {
   customer: {
     firstName: string;
-    lastName: string;
+    lastName?: string;
     phone: string;
-    email: string;
+    email?: string;
   };
   carDetails: {
     carName: string;
-    model: string;
+    model?: string;
     year: string;
   };
   status: 'pending' | 'reviewed' | 'contacted' | 'completed' | 'cancelled';
@@ -21,6 +21,10 @@ export interface ICustomOrder extends Document {
 const CustomOrderSchema = new Schema<ICustomOrder>(
   {
     customer: {
+      // Only the first name + phone are mandatory now — the customize form on
+      // the storefront collects just those two fields. Last name + email are
+      // kept on the schema for back-compat with existing records but are no
+      // longer required.
       firstName: {
         type: String,
         required: [true, 'First name is required'],
@@ -28,8 +32,8 @@ const CustomOrderSchema = new Schema<ICustomOrder>(
       },
       lastName: {
         type: String,
-        required: [true, 'Last name is required'],
-        trim: true
+        trim: true,
+        default: ''
       },
       phone: {
         type: String,
@@ -38,9 +42,9 @@ const CustomOrderSchema = new Schema<ICustomOrder>(
       },
       email: {
         type: String,
-        required: [true, 'Email is required'],
         trim: true,
-        lowercase: true
+        lowercase: true,
+        default: ''
       }
     },
     carDetails: {
@@ -49,10 +53,12 @@ const CustomOrderSchema = new Schema<ICustomOrder>(
         required: [true, 'Car brand/name is required'],
         trim: true
       },
+      // The form collects a single combined "brand + model" string into
+      // carName, so the separate model field is optional.
       model: {
         type: String,
-        required: [true, 'Car model is required'],
-        trim: true
+        trim: true,
+        default: ''
       },
       year: {
         type: String,

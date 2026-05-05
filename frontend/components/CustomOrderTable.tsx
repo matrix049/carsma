@@ -71,14 +71,18 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
                 </td>
                 <td className="px-8 py-7">
                   <p className="text-[11px] font-black uppercase tracking-tight text-white">
-                    {order.customer.firstName} {order.customer.lastName}
+                    {[order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ')}
                   </p>
                   <p className="text-[10px] text-zinc-500 font-bold mt-1">{order.customer.phone}</p>
-                  <p className="text-[9px] text-zinc-700 mt-0.5">{order.customer.email}</p>
+                  {order.customer.email && (
+                    <p className="text-[9px] text-zinc-700 mt-0.5">{order.customer.email}</p>
+                  )}
                 </td>
                 <td className="px-8 py-7">
                   <p className="text-[11px] font-black text-white truncate max-w-[150px]">{order.carDetails.carName}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">{order.carDetails.model}</p>
+                  {order.carDetails.model && order.carDetails.model !== order.carDetails.carName && (
+                    <p className="text-[10px] text-zinc-500 mt-1">{order.carDetails.model}</p>
+                  )}
                   <span className="mt-2 inline-block rounded bg-zinc-800 px-2 py-0.5 text-[9px] font-black text-zinc-400">
                     {order.carDetails.year}
                   </span>
@@ -138,16 +142,20 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
 
             {/* Customer */}
             <p className="text-[13px] font-black uppercase tracking-tight text-white">
-              {order.customer.firstName} {order.customer.lastName}
+              {[order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ')}
             </p>
             <p className="text-[11px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
-            <p className="text-[10px] text-zinc-700 mt-0.5">{order.customer.email}</p>
+            {order.customer.email && (
+              <p className="text-[10px] text-zinc-700 mt-0.5">{order.customer.email}</p>
+            )}
 
             {/* Car */}
             <div className="mt-3 pt-3 border-t border-zinc-900/60">
               <p className="text-[11px] font-black text-white">{order.carDetails.carName}</p>
               <div className="flex items-center gap-2 mt-1">
-                <p className="text-[10px] text-zinc-500">{order.carDetails.model}</p>
+                {order.carDetails.model && order.carDetails.model !== order.carDetails.carName && (
+                  <p className="text-[10px] text-zinc-500">{order.carDetails.model}</p>
+                )}
                 <span className="rounded bg-zinc-800 px-2 py-0.5 text-[9px] font-black text-zinc-400">
                   {order.carDetails.year}
                 </span>

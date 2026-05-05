@@ -11,16 +11,26 @@ export async function createCustomOrder(req: Request, res: Response): Promise<vo
     const { firstName, lastName, phone, email, carName, model, year, notes } = req.body;
 
     const newCustomOrder = await CustomOrder.create({
-      customer: { firstName, lastName, phone, email },
-      carDetails: { carName, model, year },
-      notes
+      customer: {
+        firstName,
+        lastName: lastName || '',
+        phone,
+        email: email || '',
+      },
+      carDetails: {
+        carName,
+        model: model || '',
+        year,
+      },
+      notes,
     });
 
-    // Send notification to admin
+    // Send notification to admin — only join lastName when we actually got one
+    const customerName = lastName ? `${firstName} ${lastName}` : firstName;
     await notifyNewCustomOrder({
-      customerName: `${firstName} ${lastName}`,
+      customerName,
       carName,
-      model,
+      model: model || '',
       year,
     });
 

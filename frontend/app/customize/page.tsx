@@ -15,8 +15,6 @@ export default function CustomizePage() {
 
   const [formData, setFormData] = useState({
     firstName: '',
-    lastName: '',
-    email: '',
     phone: '',
     carName: '',
     year: '',
@@ -44,11 +42,8 @@ export default function CustomizePage() {
 
       await createCustomOrder({
         firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
         phone: formData.phone.trim(),
         carName: formData.carName.trim(),
-        model: formData.carName.trim(),
         year: formData.year.trim(),
         notes: noteParts.join('\n'),
       });
@@ -180,23 +175,13 @@ export default function CustomizePage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">First name • السمية</label>
-                      <input required type="text" name="firstName" placeholder="Mohamed" value={formData.firstName} onChange={handleChange} autoComplete="given-name"
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Smiya dyalk • Your name</label>
+                      <input required type="text" name="firstName" placeholder="Mohamed" value={formData.firstName} onChange={handleChange} autoComplete="name"
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Last name • النسب</label>
-                      <input required type="text" name="lastName" placeholder="El Idrissi" value={formData.lastName} onChange={handleChange} autoComplete="family-name"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Phone • التيليفون</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Tilifon • Phone</label>
                       <input required type="tel" name="phone" placeholder="06XXXXXXXX" value={formData.phone} onChange={handleChange} autoComplete="tel"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Email • الإيميل</label>
-                      <input required type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} autoComplete="email"
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                   </div>

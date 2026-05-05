@@ -103,11 +103,14 @@ export interface CustomOrder {
 
 export interface CreateCustomOrderRequest {
   firstName: string;
-  lastName: string;
+  /** Optional — the customize form only collects a single name field. */
+  lastName?: string;
   phone: string;
-  email: string;
+  /** Optional — the customize form skips email; admins see whatever's stored. */
+  email?: string;
   carName: string;
-  model: string;
+  /** Optional — frontend folds brand + model into `carName`. */
+  model?: string;
   year: string;
   notes?: string;
 }
