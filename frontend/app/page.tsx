@@ -220,7 +220,7 @@ export default function Home() {
               transform; the photo sits inside undisturbed. */}
           <div className="porsche mb-4 flex w-full justify-center will-change-transform md:mb-4">
             <img
-              src="/911.png"
+              src="https://res.cloudinary.com/dwknjjv0b/image/upload/f_auto,q_auto/l7it/site/home-hero-911.png"
               alt="Porsche 911"
               loading="eager"
               draggable={false}
