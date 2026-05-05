@@ -53,10 +53,15 @@ export async function adminLogin(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    // Admin session lifetime — kept long so the dashboard isn't constantly
+     // logging the operator out. Override per-deploy via ADMIN_TOKEN_TTL
+     // (any value `jsonwebtoken` accepts: e.g. '7d', '12h', '30d').
+    const tokenTtl = process.env.ADMIN_TOKEN_TTL || '7d';
+
     const token = jwt.sign(
       { id: admin._id.toString(), email: admin.email },
       secret,
-      { expiresIn: '24h' }
+      { expiresIn: tokenTtl as jwt.SignOptions['expiresIn'] }
     );
 
     // Return success response with token
