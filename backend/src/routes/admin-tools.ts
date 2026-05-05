@@ -108,6 +108,45 @@ router.get('/prices', authenticateToken, async (req: Request, res: Response) => 
 });
 
 /**
+ * Push the home-page hero image (public/911.png on the frontend) into
+ * Cloudinary so it's served from the CDN with auto WebP/AVIF, instead
+ * of being shipped as a 2.9 MB PNG inside the Next.js bundle.
+ *
+ * Uses a fixed public_id so the resulting URL is stable and can be
+ * hardcoded on the frontend.
+ *
+ * GET /api/admin-tools/migrate-home-hero
+ * Public, idempotent — overwrites the existing asset on every call.
+ */
+router.get('/migrate-home-hero', async (_req: Request, res: Response) => {
+  try {
+    const result = await cloudinary.uploader.upload('https://l7it.art/911.png', {
+      folder: 'l7it/site',
+      public_id: 'home-hero-911',
+      overwrite: true,
+      invalidate: true,
+      resource_type: 'image',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Home hero uploaded to Cloudinary',
+      imageUrl: result.secure_url,
+      publicId: result.public_id,
+      bytes: result.bytes,
+      format: result.format,
+    });
+  } catch (error: any) {
+    console.error('Home hero migration error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Failed to upload home hero',
+      details: error?.message,
+    });
+  }
+});
+
+/**
  * Migrate all product images from external hosts (Imgur, /uploads, etc.)
  * into Cloudinary. Skips products whose image is already on Cloudinary.
  *
