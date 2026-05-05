@@ -1,117 +1,85 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, `product-${uniqueSuffix}${extension}`);
-  }
+// Configure Cloudinary from env vars (set on Railway). Reads:
+//   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
 });
 
-// File filter to only allow images
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
-  }
-};
+const CLOUDINARY_FOLDER = 'l7it/products';
 
+// Buffer the upload in memory so we can stream it straight to Cloudinary
+// without touching the Railway container's disk (which is ephemeral).
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
+    }
+  },
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
+    fileSize: 10 * 1024 * 1024, // 10MB — Cloudinary will compress on the fly
+  },
 });
+
+function uploadBufferToCloudinary(buffer: Buffer): Promise<UploadApiResponse> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: CLOUDINARY_FOLDER,
+        resource_type: 'image',
+      },
+      (err, result) => {
+        if (err || !result) {
+          reject(err ?? new Error('Cloudinary upload returned no result'));
+          return;
+        }
+        resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+}
 
 /**
  * Upload product image
  * POST /api/upload/image
- * Admin only - uploads a single image file
+ * Admin only — streams the file to Cloudinary and returns the CDN URL.
  */
-router.post('/image', authenticateToken, upload.single('image'), (req: Request, res: Response) => {
+router.post('/image', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({
         error: true,
-        message: 'No image file provided'
+        message: 'No image file provided',
       });
       return;
     }
 
-    // Return the file path that can be used as image URL
-    // For production, use full URL; for development, use relative path
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.API_BASE_URL || 'https://api.l7it.art')
-      : '';
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    
-    // Log upload details for debugging
-    console.log('File uploaded successfully:', {
-      filename: req.file.filename,
-      originalname: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      imageUrl,
-      baseUrl,
-      nodeEnv: process.env.NODE_ENV
-    });
+    const result = await uploadBufferToCloudinary(req.file.buffer);
 
     res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
-      imageUrl,
-      filename: req.file.filename
+      imageUrl: result.secure_url,
+      filename: result.public_id, // we use public_id so the delete endpoint can target the right asset
     });
   } catch (error: any) {
-    console.error('Image upload error:', error);
+    console.error('Cloudinary upload error:', error);
     res.status(500).json({
       error: true,
-      message: 'Failed to upload image'
-    });
-  }
-});
-
-/**
- * Test endpoint to check uploaded files
- * GET /api/upload/test
- * Admin only - lists uploaded files for debugging
- */
-router.get('/test', authenticateToken, (req: Request, res: Response) => {
-  try {
-    const files = fs.readdirSync(uploadsDir);
-    res.status(200).json({
-      success: true,
-      uploadsDir,
-      files,
-      count: files.length
-    });
-  } catch (error: any) {
-    console.error('Test endpoint error:', error);
-    res.status(500).json({
-      error: true,
-      message: 'Failed to read uploads directory',
-      uploadsDir
+      message: 'Failed to upload image',
     });
   }
 });
@@ -119,44 +87,40 @@ router.get('/test', authenticateToken, (req: Request, res: Response) => {
 /**
  * Delete uploaded image
  * DELETE /api/upload/image/:filename
- * Admin only - deletes an uploaded image file
+ * Admin only — `:filename` is the Cloudinary public_id we returned at upload time
+ * (URL-encoded because it contains slashes from the folder prefix).
  */
-router.delete('/image/:filename', authenticateToken, (req: Request, res: Response) => {
+router.delete('/image/:filename', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { filename } = req.params;
-    
-    // Ensure filename is a string
-    if (typeof filename !== 'string') {
+    if (typeof filename !== 'string' || !filename) {
       res.status(400).json({
         error: true,
-        message: 'Invalid filename parameter'
+        message: 'Invalid filename parameter',
       });
       return;
     }
 
-    const filePath = path.join(uploadsDir, filename);
+    const publicId = decodeURIComponent(filename);
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
 
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      res.status(404).json({
+    if (result.result !== 'ok' && result.result !== 'not found') {
+      res.status(500).json({
         error: true,
-        message: 'Image file not found'
+        message: `Cloudinary destroy returned: ${result.result}`,
       });
       return;
     }
-
-    // Delete the file
-    fs.unlinkSync(filePath);
 
     res.status(200).json({
       success: true,
-      message: 'Image deleted successfully'
+      message: 'Image deleted successfully',
     });
   } catch (error: any) {
-    console.error('Image deletion error:', error);
+    console.error('Cloudinary delete error:', error);
     res.status(500).json({
       error: true,
-      message: 'Failed to delete image'
+      message: 'Failed to delete image',
     });
   }
 });
