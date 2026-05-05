@@ -18,10 +18,10 @@ export default function CustomizePage() {
     lastName: '',
     email: '',
     phone: '',
-    model: '',
+    carName: '',
     year: '',
     notes: '',
-    perspective: 'side' // front, side, rear
+    perspective: 'side', // front, side, rear
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -34,7 +34,24 @@ export default function CustomizePage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await createCustomOrder(formData as any);
+      // Reshape into the payload the backend expects. The perspective
+      // choice isn't part of the schema, so it gets folded into notes
+      // so admins still see which angle the customer picked.
+      const noteParts = [
+        `Perspective: ${formData.perspective}`,
+        formData.notes.trim(),
+      ].filter(Boolean);
+
+      await createCustomOrder({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        carName: formData.carName.trim(),
+        model: formData.carName.trim(),
+        year: formData.year.trim(),
+        notes: noteParts.join('\n'),
+      });
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || t('somethingWentWrong'));
@@ -103,7 +120,7 @@ export default function CustomizePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                        <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Smiya dyal tomobil w model dyalha</label>
-                       <input required type="text" name="model" placeholder="مثال: BMW M3 2020" value={formData.model} onChange={handleChange}
+                       <input required type="text" name="carName" placeholder="مثال: BMW M3" value={formData.carName} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
@@ -152,6 +169,36 @@ export default function CustomizePage() {
                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Ay haja khra bghiti tzidha</label>
                      <textarea name="notes" rows={4} placeholder="اكتب أي تفاصيل إضافية تريد إضافتها للطلب..." value={formData.notes} onChange={handleChange}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all resize-none" />
+                  </div>
+                </section>
+
+                {/* 04. Contact info */}
+                <section className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="h-0.5 w-8 bg-blue-600" />
+                    <h2 className="font-display text-2xl uppercase tracking-tight">04. M3lomat dyalk — Your contact</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">First name • السمية</label>
+                      <input required type="text" name="firstName" placeholder="Mohamed" value={formData.firstName} onChange={handleChange} autoComplete="given-name"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Last name • النسب</label>
+                      <input required type="text" name="lastName" placeholder="El Idrissi" value={formData.lastName} onChange={handleChange} autoComplete="family-name"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Phone • التيليفون</label>
+                      <input required type="tel" name="phone" placeholder="06XXXXXXXX" value={formData.phone} onChange={handleChange} autoComplete="tel"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Email • الإيميل</label>
+                      <input required type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} autoComplete="email"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-blue-600 focus:outline-none transition-all" />
+                    </div>
                   </div>
                 </section>
 
