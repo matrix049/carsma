@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Product from '../models/Product';
+import cloudinary, { CLOUDINARY_FOLDER } from '../config/cloudinary';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -102,6 +103,77 @@ router.get('/prices', authenticateToken, async (req: Request, res: Response) => 
       error: true,
       message: 'Failed to get prices',
       details: error.message
+    });
+  }
+});
+
+/**
+ * Migrate all product images from external hosts (Imgur, /uploads, etc.)
+ * into Cloudinary. Skips products whose image is already on Cloudinary.
+ *
+ * GET /api/admin-tools/migrate-images-to-cloudinary
+ * Public, idempotent — safe to re-run; already-migrated products are skipped.
+ */
+router.get('/migrate-images-to-cloudinary', async (_req: Request, res: Response) => {
+  const summary: {
+    migrated: { name: string; before: string; after: string }[];
+    skipped: { name: string; image: string; reason: string }[];
+    failed: { name: string; image: string; error: string }[];
+  } = { migrated: [], skipped: [], failed: [] };
+
+  try {
+    const products = await Product.find({});
+
+    for (const product of products) {
+      const current = product.image?.trim() ?? '';
+
+      if (!current) {
+        summary.skipped.push({ name: product.name, image: '', reason: 'empty image field' });
+        continue;
+      }
+
+      if (current.includes('res.cloudinary.com') || current.includes('cloudinary.com')) {
+        summary.skipped.push({ name: product.name, image: current, reason: 'already on Cloudinary' });
+        continue;
+      }
+
+      try {
+        // Cloudinary fetches the URL itself (server-side) and stores the asset,
+        // so we don't need to download/re-upload from this process.
+        const result = await cloudinary.uploader.upload(current, {
+          folder: CLOUDINARY_FOLDER,
+          resource_type: 'image',
+        });
+
+        product.image = result.secure_url;
+        await product.save();
+
+        summary.migrated.push({
+          name: product.name,
+          before: current,
+          after: result.secure_url,
+        });
+      } catch (err: any) {
+        summary.failed.push({
+          name: product.name,
+          image: current,
+          error: err?.message ?? String(err),
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Migrated ${summary.migrated.length}, skipped ${summary.skipped.length}, failed ${summary.failed.length}`,
+      ...summary,
+    });
+  } catch (error: any) {
+    console.error('Image migration error:', error);
+    res.status(500).json({
+      error: true,
+      message: 'Failed to migrate images',
+      details: error?.message,
+      ...summary,
     });
   }
 });

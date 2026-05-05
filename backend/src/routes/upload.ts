@@ -1,20 +1,10 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { UploadApiResponse } from 'cloudinary';
+import cloudinary, { CLOUDINARY_FOLDER } from '../config/cloudinary';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
-
-// Configure Cloudinary from env vars (set on Railway). Reads:
-//   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
-
-const CLOUDINARY_FOLDER = 'l7it/products';
 
 // Buffer the upload in memory so we can stream it straight to Cloudinary
 // without touching the Railway container's disk (which is ephemeral).
