@@ -301,7 +301,7 @@ export default function IntroOverlay() {
         >
           <div ref={carRef} className="will-change-transform">
             <img
-              src="/911.png"
+              src="https://res.cloudinary.com/dwknjjv0b/image/upload/f_auto,q_auto/l7it/site/home-hero-911.png"
               alt=""
               draggable={false}
               loading="eager"
