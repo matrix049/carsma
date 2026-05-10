@@ -177,12 +177,54 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </motion.div>
             
-            <motion.div variants={itemVariants} className="space-y-2 mb-3 md:space-y-4 md:mb-10">
-              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                Size
-              </label>
-              <div className="inline-flex items-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">
-                {standardSize.label}
+            {/* Description — moved up so customers read about the piece
+                before specs / quantity. Falls back to a meaningful blurb that
+                surfaces the Alocobond material when no per-product copy exists. */}
+            <motion.div variants={itemVariants} className="mb-5 md:mb-10">
+              <p className="max-w-xl text-sm leading-relaxed font-medium text-zinc-600 dark:text-zinc-400 md:text-lg">
+                {product.description?.trim() ||
+                  `${product.name} — premium automotive wall art, laser-cut from 3 mm Alocobond aluminium composite. Hand-finished in Rabat, pre-drilled and ready to mount.`}
+              </p>
+            </motion.div>
+
+            {/* Spec panel — replaces the old "Size" pill. Reads as info,
+                not as a clickable choice. Always surfaces dimensions, the
+                Alocobond material, and finish details. */}
+            <motion.div variants={itemVariants} className="mb-5 md:mb-10">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40">
+                <div className="px-5 py-4 sm:px-6 sm:py-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
+                    Dimensions
+                  </p>
+                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
+                    {standardSize.label}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
+                    Standard format — every piece ships at this size.
+                  </p>
+                </div>
+                <div className="px-5 py-4 sm:px-6 sm:py-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
+                    Material
+                  </p>
+                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
+                    Alocobond — 3 mm aluminium composite
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
+                    Premium panel — lightweight, rigid, weather-resistant.
+                  </p>
+                </div>
+                <div className="px-5 py-4 sm:px-6 sm:py-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
+                    Finish & mounting
+                  </p>
+                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
+                    UV-printed · Matte · Pre-drilled
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
+                    Ready to bolt to the wall — no extra hardware needed.
+                  </p>
+                </div>
               </div>
             </motion.div>
 
@@ -212,12 +254,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   +
                 </button>
               </div>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="mb-3 md:mb-16">
-              <p className="text-sm md:text-xl text-zinc-500 dark:text-zinc-500 leading-relaxed font-medium max-w-xl">
-                {product.description || 'Syynthesized automotive fidelity architected for high-end curation. Every detail captured with museum-grade precision.'}
-              </p>
             </motion.div>
 
             <motion.div variants={itemVariants} className="space-y-4">
