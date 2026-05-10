@@ -187,14 +187,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </p>
             </motion.div>
 
-            {/* Spec panel — replaces the old "Size" pill. Reads as info,
-                not as a clickable choice. Always surfaces dimensions, the
-                Alocobond material, and finish details. */}
+            {/* Spec panel — replaces the old "Size" pill. Single Dimensions
+                row. Material + finish moved below the CTAs as descriptive
+                blocks (see end of column). */}
             <motion.div variants={itemVariants} className="mb-5 md:mb-10">
               <div
                 role="region"
-                aria-label="Product specifications"
-                className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40"
+                aria-label="Product dimensions"
+                className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40"
               >
                 <div className="px-5 py-4 sm:px-6 sm:py-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
@@ -205,28 +205,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </p>
                   <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
                     Standard format — every piece ships at this size.
-                  </p>
-                </div>
-                <div className="px-5 py-4 sm:px-6 sm:py-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Material
-                  </p>
-                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
-                    Alocobond — 3 mm aluminium composite
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
-                    Premium panel — lightweight, rigid, weather-resistant.
-                  </p>
-                </div>
-                <div className="px-5 py-4 sm:px-6 sm:py-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Finish & mounting
-                  </p>
-                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
-                    UV-printed · Matte · Pre-drilled
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
-                    Ready to bolt to the wall — no extra hardware needed.
                   </p>
                 </div>
               </div>
@@ -308,6 +286,34 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
                  <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                  {t('codAvailability')}
+              </div>
+
+              {/* Material + finish — descriptive blocks under the CTAs.
+                  No card chrome, just clean stacked typography separated
+                  from the buttons by a thin top divider. */}
+              <div className="mt-8 space-y-6 border-t border-zinc-200 pt-8 dark:border-zinc-800">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
+                    Material
+                  </p>
+                  <p className="mt-2 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
+                    Alocobond — 3 mm aluminium composite
+                  </p>
+                  <p className="mt-1.5 text-xs font-medium leading-relaxed text-zinc-500 dark:text-zinc-500 sm:text-sm">
+                    Premium panel — lightweight, rigid, weather-resistant.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
+                    Finish & mounting
+                  </p>
+                  <p className="mt-2 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
+                    UV-printed · Matte · Pre-drilled
+                  </p>
+                  <p className="mt-1.5 text-xs font-medium leading-relaxed text-zinc-500 dark:text-zinc-500 sm:text-sm">
+                    Ready to bolt to the wall — no extra hardware needed.
+                  </p>
+                </div>
               </div>
             </motion.div>
 
