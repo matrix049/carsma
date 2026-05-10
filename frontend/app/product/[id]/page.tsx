@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import AnalyticsService from '@/lib/analyticsService';
 import { trackViewContent } from '@/lib/metaPixel';
-import { btnAccent, btnDark } from '@/lib/uiStyles';
+import { btnAccent, btnDark, btnCompactGhost } from '@/lib/uiStyles';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -93,7 +93,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const imageUrl = product.image || 'https://via.placeholder.com/800x600?text=No+Image';
-  const alignIconClass = language === 'ar' ? 'ml-2 rotate-180' : 'mr-2';
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -115,13 +114,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
       <div className="container mx-auto px-6 py-20 md:py-32 lg:py-48 max-w-7xl">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="mb-6 md:mb-16"
         >
-          <Link href="/shop" className="inline-flex items-center text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 hover:text-blue-600 transition-colors group">
-            <svg className={`${alignIconClass} h-3.5 w-3.5 transition-transform group-hover:-translate-x-2`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          <Link href="/shop" className={btnCompactGhost} aria-label={t('backToArtworks')}>
+            <svg
+              className={`h-3.5 w-3.5 transition-transform ${language === 'ar' ? 'rotate-180 group-hover:translate-x-1' : 'group-hover:-translate-x-1'}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
             {t('backToArtworks')}
           </Link>
         </motion.div>
