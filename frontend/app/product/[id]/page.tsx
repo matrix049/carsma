@@ -191,7 +191,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 not as a clickable choice. Always surfaces dimensions, the
                 Alocobond material, and finish details. */}
             <motion.div variants={itemVariants} className="mb-5 md:mb-10">
-              <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40">
+              <div
+                role="region"
+                aria-label="Product specifications"
+                className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40"
+              >
                 <div className="px-5 py-4 sm:px-6 sm:py-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
                     Dimensions
