@@ -15,5 +15,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="admin-shell">{children}</div>;
+  return <div className="admin-shell min-h-screen">{children}</div>;
 }
