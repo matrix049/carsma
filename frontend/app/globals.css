@@ -46,3 +46,129 @@ body {
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
+
+/* ============================================================================
+ * Admin shell — light theme override
+ *
+ * Admin pages were authored in dark colours (bg-black, text-white,
+ * bg-zinc-900, etc.) without dark: variants, so they can't be flipped via
+ * Tailwind's dark mode toggle. Instead, we tag the admin tree with
+ * .admin-shell in app/admin/layout.tsx and override only the colour
+ * utilities here, scoped to that ancestor. Storefront pages stay dark
+ * because they live outside .admin-shell.
+ *
+ * We intentionally leave coloured utilities alone (text-blue-500,
+ * bg-emerald-500/10, etc.) because those are status badges / accent
+ * highlights that should keep their meaning in either theme.
+ * ========================================================================== */
+
+.admin-shell {
+  background-color: #fafafa;
+  color: #18181b;
+}
+
+/* ── Backgrounds ─────────────────────────────────────────────────────── */
+.admin-shell .bg-black,
+.admin-shell .bg-zinc-950,
+.admin-shell .bg-\[\#0a0a0a\],
+.admin-shell .bg-\[\#0d0d0d\] {
+  background-color: #ffffff !important;
+}
+.admin-shell .bg-zinc-900,
+.admin-shell .bg-zinc-900\/40,
+.admin-shell .bg-zinc-900\/50,
+.admin-shell .bg-zinc-900\/60 {
+  background-color: #f4f4f5 !important;
+}
+.admin-shell .bg-zinc-800,
+.admin-shell .bg-zinc-800\/40,
+.admin-shell .bg-zinc-800\/50 {
+  background-color: #e4e4e7 !important;
+}
+.admin-shell .bg-black\/80,
+.admin-shell .bg-black\/90,
+.admin-shell .bg-black\/95 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  color: #18181b !important;
+  backdrop-filter: blur(20px);
+}
+
+/* Hover backgrounds */
+.admin-shell .hover\:bg-zinc-800:hover,
+.admin-shell .hover\:bg-zinc-800\/10:hover,
+.admin-shell .hover\:bg-zinc-800\/40:hover,
+.admin-shell .hover\:bg-zinc-900:hover {
+  background-color: #f4f4f5 !important;
+}
+
+/* ── Text ────────────────────────────────────────────────────────────── */
+.admin-shell .text-white {
+  color: #18181b !important;
+}
+.admin-shell .text-zinc-100 {
+  color: #27272a !important;
+}
+.admin-shell .text-zinc-200 {
+  color: #3f3f46 !important;
+}
+.admin-shell .text-zinc-300 {
+  color: #52525b !important;
+}
+.admin-shell .text-zinc-400 {
+  color: #71717a !important;
+}
+.admin-shell .text-zinc-500 {
+  color: #52525b !important;
+}
+.admin-shell .text-zinc-600 {
+  color: #71717a !important;
+}
+.admin-shell .text-zinc-700 {
+  color: #a1a1aa !important;
+}
+
+/* Hover text colours */
+.admin-shell .hover\:text-white:hover {
+  color: #18181b !important;
+}
+.admin-shell .hover\:text-zinc-100:hover,
+.admin-shell .hover\:text-zinc-200:hover,
+.admin-shell .hover\:text-zinc-300:hover {
+  color: #27272a !important;
+}
+
+/* ── Borders ─────────────────────────────────────────────────────────── */
+.admin-shell .border-zinc-900,
+.admin-shell .border-zinc-900\/60,
+.admin-shell .border-zinc-800 {
+  border-color: #e4e4e7 !important;
+}
+.admin-shell .border-zinc-700 {
+  border-color: #d4d4d8 !important;
+}
+.admin-shell .border-b-zinc-900,
+.admin-shell .border-t-zinc-900 {
+  border-color: #e4e4e7 !important;
+}
+.admin-shell .hover\:border-zinc-700:hover,
+.admin-shell .hover\:border-blue-500\/30:hover {
+  border-color: #a1a1aa !important;
+}
+
+/* Divide colours (the `divide-y divide-zinc-900` table separators) */
+.admin-shell .divide-zinc-900\/60 > :not([hidden]) ~ :not([hidden]),
+.admin-shell .divide-zinc-900 > :not([hidden]) ~ :not([hidden]),
+.admin-shell .divide-zinc-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e4e4e7 !important;
+}
+
+/* ── Form controls ───────────────────────────────────────────────────── */
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea {
+  color: #18181b;
+}
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #a1a1aa;
+}
