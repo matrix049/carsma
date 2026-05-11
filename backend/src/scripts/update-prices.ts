@@ -8,14 +8,14 @@ dotenv.config();
 /**
  * Bulk-update product prices.
  *
- *   - Every product is set to `BASE_PRICE` (250 MAD)
+ *   - Every product is set to `BASE_PRICE` (229 MAD)
  *   - Then any product whose `name` matches the Mercedes G63 / G-Class
- *     AMG pattern is bumped to `G63_PRICE` (280 MAD)
+ *     AMG pattern is bumped to `G63_PRICE` (259 MAD)
  *
  * Run with:  npx ts-node src/scripts/update-prices.ts
  */
-const BASE_PRICE = 250;
-const G63_PRICE = 280;
+const BASE_PRICE = 229;
+const G63_PRICE = 259;
 
 // Case-insensitive — catches "G63", "G 63", "G-63", "G-Class", "G Class".
 const G63_REGEX = /(?:^|[^a-z0-9])g[\s-]*63(?:[^0-9]|$)|g[\s-]*class/i;
