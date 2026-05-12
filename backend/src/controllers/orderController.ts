@@ -160,33 +160,104 @@ export async function getOrders(req: AuthRequest, res: Response): Promise<void> 
 }
 
 /**
- * Update order status (admin only)
+ * Update an order (admin only)
  * PUT /api/orders/:id
- * Updates the status of an existing order
+ *
+ * Accepts a partial update — any combination of:
+ *   - `status`   : 'pending' | 'confirmed' | 'delivered' | 'cancelled'
+ *   - `finish`   : 'brilliant' | 'matte' | null
+ *   - `products` : full replacement of the line items
+ *                  (server recalculates `totalPrice` server-side so the
+ *                  total can't drift out of sync with the items).
+ *
+ * Only the fields present in the body are touched; missing fields stay
+ * as they were.
  */
-export async function updateOrderStatus(req: AuthRequest, res: Response): Promise<void> {
+export async function updateOrder(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, finish, products } = req.body as {
+      status?: string;
+      finish?: 'brilliant' | 'matte' | null;
+      products?: Array<{
+        productId: string;
+        name: string;
+        price: number;
+        quantity: number;
+      }>;
+    };
 
-    // Validate status value
-    const validStatuses = ['pending', 'confirmed', 'delivered', 'cancelled'];
-    if (!status || !validStatuses.includes(status)) {
+    const updates: Record<string, unknown> = {};
+
+    if (status !== undefined) {
+      const validStatuses = ['pending', 'confirmed', 'delivered', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        res.status(400).json({
+          error: true,
+          message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+        });
+        return;
+      }
+      updates.status = status;
+    }
+
+    if (finish !== undefined) {
+      const validFinishes = ['brilliant', 'matte', null];
+      if (!validFinishes.includes(finish as 'brilliant' | 'matte' | null)) {
+        res.status(400).json({
+          error: true,
+          message: `Invalid finish. Must be one of: brilliant, matte, null`
+        });
+        return;
+      }
+      updates.finish = finish;
+    }
+
+    if (products !== undefined) {
+      if (!Array.isArray(products) || products.length === 0) {
+        res.status(400).json({
+          error: true,
+          message: 'Products must be a non-empty array'
+        });
+        return;
+      }
+      for (const p of products) {
+        if (
+          !p || typeof p !== 'object' ||
+          !p.productId ||
+          typeof p.name !== 'string' || !p.name.trim() ||
+          typeof p.price !== 'number' || p.price < 0 ||
+          typeof p.quantity !== 'number' || p.quantity < 1 || !Number.isFinite(p.quantity)
+        ) {
+          res.status(400).json({
+            error: true,
+            message: 'Each product needs productId, name, non-negative price, and integer quantity >= 1'
+          });
+          return;
+        }
+      }
+      updates.products = products;
+      // Recalculate total so it can't drift from the items.
+      updates.totalPrice = products.reduce(
+        (sum, p) => sum + p.price * p.quantity,
+        0,
+      );
+    }
+
+    if (Object.keys(updates).length === 0) {
       res.status(400).json({
         error: true,
-        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+        message: 'No updatable fields provided'
       });
       return;
     }
 
-    // Find and update order
     const order = await Order.findByIdAndUpdate(
       id,
-      { status },
+      updates,
       { new: true, runValidators: true }
     );
 
-    // Handle order not found
     if (!order) {
       res.status(404).json({
         error: true,
@@ -195,15 +266,13 @@ export async function updateOrderStatus(req: AuthRequest, res: Response): Promis
       return;
     }
 
-    // Return updated order
     res.status(200).json({
       success: true,
       order
     });
   } catch (error: any) {
-    console.error('Update order status error:', error);
-    
-    // Handle invalid ObjectId
+    console.error('Update order error:', error);
+
     if (error.name === 'CastError') {
       res.status(400).json({
         error: true,
@@ -214,7 +283,11 @@ export async function updateOrderStatus(req: AuthRequest, res: Response): Promis
 
     res.status(500).json({
       error: true,
-      message: 'Failed to update order status'
+      message: 'Failed to update order'
     });
   }
 }
+
+// Legacy alias — the route used to bind only this name. New code should
+// import `updateOrder` directly.
+export const updateOrderStatus = updateOrder;

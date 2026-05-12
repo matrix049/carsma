@@ -17,6 +17,11 @@ export interface IOrder extends Document {
   totalPrice: number;
   paymentMethod: string;
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+  /**
+   * Finish chosen for the wall art panels — set by admins after talking
+   * to the customer. Old orders have no finish set yet.
+   */
+  finish?: 'brilliant' | 'matte' | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +90,11 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       enum: ['pending', 'confirmed', 'delivered', 'cancelled'],
       default: 'pending'
+    },
+    finish: {
+      type: String,
+      enum: ['brilliant', 'matte', null],
+      default: null
     }
   },
   {

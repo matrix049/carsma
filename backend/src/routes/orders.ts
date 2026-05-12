@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createOrder, getOrders, updateOrderStatus } from '../controllers/orderController';
+import { createOrder, getOrders, updateOrder } from '../controllers/orderController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -10,7 +10,7 @@ router.post('/', createOrder);
 // GET /api/orders - Get all orders (admin protected)
 router.get('/', authenticateToken, getOrders);
 
-// PUT /api/orders/:id - Update order status (admin protected)
-router.put('/:id', authenticateToken, updateOrderStatus);
+// PUT /api/orders/:id - Update order (status / finish / products) admin only
+router.put('/:id', authenticateToken, updateOrder);
 
 export default router;

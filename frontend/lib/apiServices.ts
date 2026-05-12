@@ -35,6 +35,8 @@ export interface Customer {
   address: string;
 }
 
+export type OrderFinish = 'brilliant' | 'matte' | null;
+
 export interface Order {
   _id: string;
   orderNumber: number;
@@ -43,8 +45,16 @@ export interface Order {
   totalPrice: number;
   paymentMethod: string;
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+  /** Finish chosen for the wall art — set by admins after confirming with the customer. */
+  finish?: OrderFinish;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateOrderRequest {
+  status?: Order['status'];
+  finish?: OrderFinish;
+  products?: OrderProduct[];
 }
 
 export interface CreateOrderRequest {
@@ -237,25 +247,35 @@ export async function fetchStats(): Promise<DashboardStats> {
 }
 
 /**
- * Update order status (admin only)
- * Requires authentication token
- * @param orderId - ID of the order to update
- * @param status - New status value
- * @returns Updated order
+ * Update an order (admin only).
+ *
+ * Accepts any subset of `status`, `finish`, `products`. Server recalculates
+ * totalPrice when products change so it can't drift.
  */
-export async function updateOrderStatus(
+export async function updateOrder(
   orderId: string,
-  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled'
+  updates: UpdateOrderRequest,
 ): Promise<Order> {
   const response = await apiRequest<UpdateOrderStatusResponse>(
     `/api/orders/${orderId}`,
     {
       method: 'PUT',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(updates),
     },
-    true // Requires authentication
+    true,
   );
   return response.order;
+}
+
+/**
+ * Update only the status — kept for back-compat with existing call sites.
+ * New code should use {@link updateOrder} directly.
+ */
+export async function updateOrderStatus(
+  orderId: string,
+  status: Order['status'],
+): Promise<Order> {
+  return updateOrder(orderId, { status });
 }
 
 /**

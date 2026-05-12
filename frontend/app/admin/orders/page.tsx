@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
-import { fetchOrders, updateOrderStatus, Order } from '@/lib/apiServices';
+import { fetchOrders, updateOrderStatus, updateOrder, Order, OrderFinish } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
@@ -56,6 +56,12 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<Status | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  // Editable working copy of the open order. All admin edits (item quantities,
+  // item removal, finish choice) write to `draftOrder`. The Save button
+  // diffs draft vs selectedOrder and commits via updateOrder.
+  const [draftOrder, setDraftOrder] = useState<Order | null>(null);
+  const [isSavingEdits, setIsSavingEdits] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
   const { logout } = useAuth();
 
   const loadOrders = useCallback(async () => {
@@ -180,6 +186,85 @@ export default function AdminOrdersPage() {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  // ── Order editing (items + finish) ────────────────────────────────────────
+  // Sync the editable draft any time the admin opens a different order.
+  useEffect(() => {
+    setDraftOrder(selectedOrder ? { ...selectedOrder, products: selectedOrder.products.map((p) => ({ ...p })) } : null);
+    setEditError(null);
+  }, [selectedOrder]);
+
+  const draftTotal = useMemo(() => {
+    if (!draftOrder) return 0;
+    return draftOrder.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  }, [draftOrder]);
+
+  // Compare draft vs selected to know whether the Save button should appear.
+  const isDirty = useMemo(() => {
+    if (!selectedOrder || !draftOrder) return false;
+    if ((selectedOrder.finish ?? null) !== (draftOrder.finish ?? null)) return true;
+    if (selectedOrder.products.length !== draftOrder.products.length) return true;
+    return selectedOrder.products.some((p, i) => {
+      const d = draftOrder.products[i];
+      return !d || d.productId !== p.productId || d.quantity !== p.quantity;
+    });
+  }, [selectedOrder, draftOrder]);
+
+  const adjustDraftQuantity = (idx: number, delta: number) => {
+    setDraftOrder((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, products: prev.products.map((p) => ({ ...p })) };
+      const item = next.products[idx];
+      if (!item) return prev;
+      const newQty = Math.max(1, item.quantity + delta);
+      if (newQty === item.quantity) return prev;
+      item.quantity = newQty;
+      return next;
+    });
+  };
+
+  const removeDraftItem = (idx: number) => {
+    setDraftOrder((prev) => {
+      if (!prev) return prev;
+      // Don't allow the admin to leave an order with zero items — that would
+      // fail the backend's "non-empty array" guard anyway.
+      if (prev.products.length <= 1) {
+        setEditError('An order needs at least one item. Cancel the order instead if it should be voided.');
+        return prev;
+      }
+      return { ...prev, products: prev.products.filter((_, i) => i !== idx) };
+    });
+  };
+
+  const setDraftFinish = (finish: OrderFinish) => {
+    setDraftOrder((prev) => (prev ? { ...prev, finish } : prev));
+  };
+
+  const handleSaveEdits = async () => {
+    if (!draftOrder || !selectedOrder) return;
+    setIsSavingEdits(true);
+    setEditError(null);
+    try {
+      const updated = await updateOrder(selectedOrder._id, {
+        products: draftOrder.products,
+        finish: draftOrder.finish ?? null,
+      });
+      // Reflect server-authoritative state into both the modal and the table.
+      setSelectedOrder(updated);
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+    } catch (err: any) {
+      setEditError(err?.message || 'Failed to save changes. Try again.');
+    } finally {
+      setIsSavingEdits(false);
+    }
+  };
+
+  const resetDraft = () => {
+    if (selectedOrder) {
+      setDraftOrder({ ...selectedOrder, products: selectedOrder.products.map((p) => ({ ...p })) });
+    }
+    setEditError(null);
   };
 
   const filtered = useMemo(() => {
@@ -578,13 +663,18 @@ export default function AdminOrdersPage() {
 
                 {/* Header */}
                 <div className="hidden sm:block mb-6 sm:mb-8 md:mb-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter font-jakarta uppercase">
                       Order Details
                     </h2>
                     <span className={`px-3 sm:px-5 py-1 sm:py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${statusStyle(selectedOrder.status)} self-start`}>
                       {selectedOrder.status}
                     </span>
+                    {selectedOrder.finish && (
+                      <span className="px-3 sm:px-5 py-1 sm:py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-blue-500/30 bg-blue-500/10 text-blue-300 self-start">
+                        {selectedOrder.finish}
+                      </span>
+                    )}
                   </div>
                   <p className="text-blue-500 text-lg sm:text-xl font-black">
                     #{selectedOrder.orderNumber}
@@ -663,36 +753,147 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
-                {/* Products */}
+                {/* Products — editable */}
                 <div className="rounded-2xl sm:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 md:mb-10">
-                  <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-4 sm:mb-6">
-                    Ordered Items
-                  </h3>
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">
+                      Ordered Items
+                    </h3>
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      Tap − / + to adjust quantity
+                    </span>
+                  </div>
                   <div className="space-y-3 sm:space-y-4">
-                    {selectedOrder.products.map((product, idx) => (
-                      <div 
-                        key={idx}
-                        className="flex items-center justify-between p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl bg-zinc-950 border border-zinc-900"
+                    {(draftOrder ?? selectedOrder).products.map((product, idx) => (
+                      <div
+                        key={`${product.productId}-${idx}`}
+                        className="flex items-center justify-between gap-3 p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl bg-zinc-950 border border-zinc-900"
                       >
-                        <div className="flex items-center gap-3 sm:gap-4 md:gap-5 flex-1 min-w-0">
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-lg sm:rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm sm:text-lg md:text-xl font-black text-blue-500">{product.quantity}</span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm sm:text-base font-black text-white truncate">{product.name}</p>
-                            <p className="text-xs sm:text-sm text-zinc-600 font-bold mt-0.5 sm:mt-1">Qty: {product.quantity}</p>
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0 ml-2">
-                          <p className="text-sm sm:text-base md:text-lg font-black text-white">
-                            {(product.price * product.quantity).toFixed(0)}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm sm:text-base font-black text-white truncate">{product.name}</p>
+                          <p className="text-xs sm:text-sm text-zinc-600 font-bold mt-0.5 sm:mt-1">
+                            {product.price.toFixed(0)} MAD × {product.quantity} = {(product.price * product.quantity).toFixed(0)} MAD
                           </p>
-                          <p className="text-[10px] sm:text-xs text-zinc-600 font-bold">MAD</p>
                         </div>
+                        {/* Quantity stepper */}
+                        <div className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+                          <button
+                            type="button"
+                            onClick={() => adjustDraftQuantity(idx, -1)}
+                            disabled={isSavingEdits || product.quantity <= 1}
+                            aria-label="Decrease quantity"
+                            className="h-8 w-8 sm:h-9 sm:w-9 rounded-md sm:rounded-lg flex items-center justify-center text-sm sm:text-base font-black text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[1.5rem] sm:min-w-[2rem] text-center text-sm sm:text-base font-black text-white">
+                            {product.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => adjustDraftQuantity(idx, +1)}
+                            disabled={isSavingEdits}
+                            aria-label="Increase quantity"
+                            className="h-8 w-8 sm:h-9 sm:w-9 rounded-md sm:rounded-lg flex items-center justify-center text-sm sm:text-base font-black text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-30"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {/* Remove line */}
+                        <button
+                          type="button"
+                          onClick={() => removeDraftItem(idx)}
+                          disabled={isSavingEdits || (draftOrder?.products.length ?? selectedOrder.products.length) <= 1}
+                          aria-label="Remove item"
+                          title="Remove item"
+                          className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-md sm:rounded-lg flex items-center justify-center text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                {/* Finish — Brilliant / Matte (per-order) */}
+                <div className="rounded-2xl sm:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 md:mb-10">
+                  <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2">
+                    Finish · الوجه
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-zinc-500 mb-4 sm:mb-5">
+                    Confirmed with the customer · ttabt m3a l-customer
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {(['brilliant', 'matte'] as const).map((opt) => {
+                      const active = (draftOrder?.finish ?? null) === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setDraftFinish(opt)}
+                          disabled={isSavingEdits}
+                          className={`rounded-xl sm:rounded-2xl border-2 p-4 sm:p-5 text-left transition-all ${
+                            active
+                              ? 'border-blue-600 bg-blue-600/10 shadow-[0_0_20px_rgba(37,99,235,0.15)]'
+                              : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
+                          } ${isSavingEdits ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <p className={`text-sm sm:text-base font-black uppercase tracking-widest ${active ? 'text-blue-400' : 'text-zinc-200'}`}>
+                            {opt}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">
+                            {opt === 'brilliant' ? 'Glossy · lamɛa' : 'No shine · bla lamɛa'}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {(draftOrder?.finish ?? null) !== null && (
+                    <button
+                      type="button"
+                      onClick={() => setDraftFinish(null)}
+                      disabled={isSavingEdits}
+                      className="mt-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-30"
+                    >
+                      Clear selection
+                    </button>
+                  )}
+                </div>
+
+                {/* Edit action bar — only shows when draft differs from saved */}
+                {isDirty && (
+                  <div className="rounded-2xl sm:rounded-3xl border-2 border-amber-500/30 bg-amber-950/20 p-4 sm:p-5 md:p-6 mb-6 sm:mb-8 md:mb-10 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div className="flex-1">
+                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">
+                        Unsaved changes
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-zinc-400 mt-1">
+                        New total: <span className="text-white font-bold">{draftTotal.toFixed(0)} MAD</span>
+                      </p>
+                      {editError && (
+                        <p className="text-[10px] sm:text-xs text-rose-400 mt-1">{editError}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={resetDraft}
+                        disabled={isSavingEdits}
+                        className="rounded-lg sm:rounded-xl border border-zinc-800 bg-zinc-950 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-300 hover:bg-zinc-900 transition-colors disabled:opacity-30"
+                      >
+                        Discard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveEdits}
+                        disabled={isSavingEdits}
+                        className="rounded-lg sm:rounded-xl bg-blue-600 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white hover:bg-blue-500 transition-colors disabled:opacity-50"
+                      >
+                        {isSavingEdits ? 'Saving…' : 'Save changes'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Total */}
                 <div className="rounded-2xl sm:rounded-3xl border-2 border-blue-600/30 bg-blue-950/20 p-4 sm:p-6 md:p-8">
