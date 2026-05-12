@@ -21,8 +21,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Single standard size — every product ships at the same fixed dimensions.
-  const standardSize = { id: 'M', label: '120cm x 35cm' };
+  // Standard dimensions per product. Most artworks ship at 120cm x 35cm, but
+  // the G-Class / G63 silhouette is much taller (SUV proportions), so it
+  // gets a 120cm x 50cm frame. Pattern mirrors the regex used in the price
+  // script so the two stay in lockstep if naming changes.
+  const G63_REGEX = /(?:^|[^a-z0-9])g[\s-]*63(?:[^0-9]|$)|g[\s-]*class/i;
+  const standardSize = product && G63_REGEX.test(product.name)
+    ? { id: 'L', label: '120cm x 50cm' }
+    : { id: 'M', label: '120cm x 35cm' };
   const [quantity, setQuantity] = useState<number>(1);
   const unitPrice = product ? product.price : 0;
   const totalPrice = unitPrice * quantity;
