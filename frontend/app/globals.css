@@ -102,29 +102,37 @@ body {
 }
 
 /* ── Text ────────────────────────────────────────────────────────────── */
+/* Map every dark-theme zinc text shade to a readable colour on white.
+ * Earlier mappings preserved the dark-theme hierarchy (lower zinc = lighter)
+ * which inverted on a light background — zinc-700 ended up lighter than
+ * zinc-500, and zinc-500/600 came out as low-contrast mid-greys. Flip the
+ * scale so heavier zinc = darker text, and pull everything toward near-black
+ * so secondary copy stays legible (the order list, dates, address lines,
+ * "Qty:" / "MAD" labels were unreadable before).
+ */
 .admin-shell .text-white {
   color: #18181b !important;
 }
 .admin-shell .text-zinc-100 {
-  color: #27272a !important;
+  color: #18181b !important;
 }
 .admin-shell .text-zinc-200 {
-  color: #3f3f46 !important;
+  color: #18181b !important;
 }
 .admin-shell .text-zinc-300 {
-  color: #52525b !important;
+  color: #27272a !important;
 }
 .admin-shell .text-zinc-400 {
-  color: #71717a !important;
+  color: #27272a !important;
 }
 .admin-shell .text-zinc-500 {
-  color: #52525b !important;
+  color: #3f3f46 !important;
 }
 .admin-shell .text-zinc-600 {
-  color: #71717a !important;
+  color: #3f3f46 !important;
 }
 .admin-shell .text-zinc-700 {
-  color: #a1a1aa !important;
+  color: #18181b !important;
 }
 
 /* Hover text colours */
