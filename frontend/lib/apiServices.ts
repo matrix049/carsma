@@ -496,3 +496,71 @@ export async function deleteProduct(productId: string): Promise<{ success: boole
     true // Requires authentication
   );
 }
+
+// ============================================================================
+// Ledger / Bookkeeping (Admin only)
+// ============================================================================
+
+export type LedgerStatus = 'payee' | 'annuler' | 'en_attente' | null;
+export type LedgerSource = 'manual' | 'whatsapp' | 'instagram' | 'website' | 'other';
+
+export interface LedgerEntry {
+  _id: string;
+  date: string;
+  cost: number;
+  commande: string;
+  city: string;
+  deliveryCost: number;
+  customerOwes: number;
+  status: LedgerStatus;
+  totalDhs: number | null;
+  apport: number;
+  source: LedgerSource;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LedgerEntryInput {
+  date: string;
+  cost?: number;
+  commande?: string;
+  city?: string;
+  deliveryCost?: number;
+  customerOwes?: number;
+  status?: LedgerStatus;
+  totalDhs?: number | null;
+  apport?: number;
+  source?: LedgerSource;
+  notes?: string;
+}
+
+export async function fetchLedger(): Promise<LedgerEntry[]> {
+  const res = await apiRequest<{ entries: LedgerEntry[] }>('/api/ledger', { method: 'GET' }, true);
+  return res.entries;
+}
+
+export async function createLedgerEntry(input: LedgerEntryInput): Promise<LedgerEntry> {
+  const res = await apiRequest<{ entry: LedgerEntry }>(
+    '/api/ledger',
+    { method: 'POST', body: JSON.stringify(input) },
+    true,
+  );
+  return res.entry;
+}
+
+export async function updateLedgerEntry(
+  id: string,
+  patch: Partial<LedgerEntryInput>,
+): Promise<LedgerEntry> {
+  const res = await apiRequest<{ entry: LedgerEntry }>(
+    `/api/ledger/${id}`,
+    { method: 'PUT', body: JSON.stringify(patch) },
+    true,
+  );
+  return res.entry;
+}
+
+export async function deleteLedgerEntry(id: string): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>(`/api/ledger/${id}`, { method: 'DELETE' }, true);
+}

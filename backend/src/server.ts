@@ -17,6 +17,7 @@ import uploadRoutes from './routes/upload';
 import adminToolsRoutes from './routes/admin-tools';
 import testRoutes from './routes/testRoutes';
 import analyticsRoutes from './routes/analytics';
+import ledgerRoutes from './routes/ledger';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +80,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin-tools', adminToolsRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ledger', ledgerRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api', seedRoutes);
 app.use('/api', healthRoutes);
