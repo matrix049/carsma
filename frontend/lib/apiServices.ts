@@ -517,6 +517,8 @@ export interface LedgerEntry {
   apport: number;
   source: LedgerSource;
   notes: string;
+  /** Set when this row mirrors a website Order; null for manually-entered rows. */
+  orderRef?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -533,6 +535,7 @@ export interface LedgerEntryInput {
   apport?: number;
   source?: LedgerSource;
   notes?: string;
+  orderRef?: string | null;
 }
 
 export async function fetchLedger(): Promise<LedgerEntry[]> {

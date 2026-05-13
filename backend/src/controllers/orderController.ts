@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import Order from '../models/Order';
+import LedgerEntry from '../models/LedgerEntry';
 import { AuthRequest } from '../middleware/auth';
 import { notifyNewOrder } from '../services/notificationService';
 
@@ -69,6 +70,44 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
 
     console.log('💾 Saving order to database...');
     await order.save();
+
+    // Mirror the order into the admin ledger so /admin/ledger stays in sync
+    // with /admin/orders. Failure here must NOT block order creation — the
+    // checkout flow has already succeeded for the customer at this point.
+    try {
+      const summary = order.products
+        .map((p: any) => `${p.quantity}× ${p.name}`)
+        .join(', ');
+      const orderStatus: 'payee' | 'en_attente' | 'annuler' =
+        order.status === 'delivered' ? 'payee'
+        : order.status === 'cancelled' ? 'annuler'
+        : 'en_attente';
+      // Address might carry a "| Notes:" suffix from the checkout form.
+      const [rawAddress, ...noteParts] = String(customer.address).split('| Notes:');
+      const addressNote = noteParts.length ? `Notes: ${noteParts.join('| Notes:').trim()}` : '';
+      const customerLine = `${customer.firstName} ${customer.lastName} · ${customer.phone}`;
+      const notesField = [addressNote, customerLine, rawAddress.trim()]
+        .filter(Boolean)
+        .join(' — ');
+
+      await LedgerEntry.create({
+        date: order.createdAt ?? new Date(),
+        cost: 0,
+        commande: summary.length > 80 ? `${summary.slice(0, 77)}…` : summary,
+        city: '', // admin can fill the city in /admin/ledger if the address parsing isn't clean
+        deliveryCost: 0,
+        customerOwes: order.totalPrice,
+        status: orderStatus,
+        apport: 0,
+        source: 'website',
+        notes: notesField,
+        orderRef: order._id,
+      });
+      console.log('🧾 Ledger entry created for order', order._id.toString());
+    } catch (ledgerErr) {
+      console.error('⚠️ Failed to mirror order into ledger (order still succeeded):', ledgerErr);
+    }
+
     console.log('📦 ===== ORDER CREATED SUCCESSFULLY =====');
     console.log('📦 Order ID:', order._id.toString());
     console.log('📦 Order Number:', order.orderNumber);

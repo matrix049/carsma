@@ -17,6 +17,7 @@ interface LedgerPayload {
   apport?: number;
   source?: LedgerSource;
   notes?: string;
+  orderRef?: string | null;
 }
 
 function normalize(body: LedgerPayload) {
@@ -60,6 +61,9 @@ function normalize(body: LedgerPayload) {
     updates.source = body.source;
   }
   if (body.notes !== undefined) updates.notes = String(body.notes).trim();
+  if (body.orderRef !== undefined) {
+    updates.orderRef = body.orderRef === null || body.orderRef === '' ? null : body.orderRef;
+  }
 
   return updates;
 }

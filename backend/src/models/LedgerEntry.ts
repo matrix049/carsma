@@ -32,6 +32,12 @@ export interface ILedgerEntry extends Document {
   apport: number;
   source: LedgerSource;
   notes?: string;
+  /**
+   * If this ledger row was generated from a website Order, this is the
+   * Order's `_id`. Used to skip duplicates on backfill and to link back
+   * to the order detail in admin UI.
+   */
+  orderRef?: mongoose.Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,6 +95,12 @@ const LedgerEntrySchema = new Schema<ILedgerEntry>(
       type: String,
       trim: true,
       default: '',
+    },
+    orderRef: {
+      type: Schema.Types.ObjectId,
+      ref: 'Order',
+      default: null,
+      index: true,
     },
   },
   { timestamps: true },

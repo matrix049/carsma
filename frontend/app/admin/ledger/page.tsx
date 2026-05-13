@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -451,8 +452,19 @@ export default function AdminLedgerPage() {
                       <td className="px-4 py-3 whitespace-nowrap font-bold text-emerald-500">
                         {caisseValues[idx].toFixed(0)} DH
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                        {SOURCE_LABELS[entry.source]}
+                      <td className="px-4 py-3 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest">
+                        {entry.orderRef ? (
+                          <Link
+                            href="/admin/orders"
+                            className="inline-flex items-center gap-1 rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-blue-500 hover:bg-blue-500/20"
+                            title="Open in Orders"
+                          >
+                            {SOURCE_LABELS[entry.source]}
+                            <span aria-hidden>↗</span>
+                          </Link>
+                        ) : (
+                          <span className="text-zinc-500">{SOURCE_LABELS[entry.source]}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
                         <div className="flex justify-end gap-2">
