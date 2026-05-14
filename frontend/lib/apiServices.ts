@@ -17,6 +17,11 @@ export interface Product {
   description?: string;
   category: string;
   inStock: boolean;
+  /**
+   * Free-form size string shown on the product page. Defaults to
+   * `120cm x 35cm` on the backend; admins can override per product.
+   */
+  dimensions?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -443,6 +448,7 @@ export async function createProduct(productData: {
   description?: string;
   category: string;
   inStock?: boolean;
+  dimensions?: string;
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     '/api/products',
@@ -469,6 +475,7 @@ export async function updateProduct(productId: string, productData: {
   description?: string;
   category: string;
   inStock?: boolean;
+  dimensions?: string;
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     `/api/products/${productId}`,

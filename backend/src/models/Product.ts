@@ -7,6 +7,12 @@ export interface IProduct extends Document {
   description?: string;
   category: string;
   inStock: boolean;
+  /**
+   * Free-form size string shown on the product page (e.g. "120cm x 35cm",
+   * "120cm x 50cm"). Defaults to the standard catalogue size; the admin
+   * can override per product (e.g. larger format for the G-Class).
+   */
+  dimensions: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +45,11 @@ const ProductSchema = new Schema<IProduct>(
     inStock: {
       type: Boolean,
       default: true
+    },
+    dimensions: {
+      type: String,
+      trim: true,
+      default: '120cm x 35cm'
     }
   },
   {

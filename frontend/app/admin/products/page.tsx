@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
 import { fetchProducts, createProduct, updateProduct, deleteProduct, uploadProductImage, Product } from '@/lib/apiServices';
@@ -18,14 +18,19 @@ export default function AdminProductsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const { logout } = useAuth();
 
+  // Free-text search filter over name + category
+  const [search, setSearch] = useState('');
+
   // Form state
+  const DEFAULT_DIMENSIONS = '120cm x 35cm';
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     image: '',
     description: '',
     category: '',
-    inStock: true
+    inStock: true,
+    dimensions: DEFAULT_DIMENSIONS,
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,6 +54,21 @@ export default function AdminProductsPage() {
     loadProducts();
   }, [loadProducts]);
 
+  // Filter the grid by a single free-text query that matches across name,
+  // category, and dimensions (so the operator can type "g class" or
+  // "120cm x 50cm" and narrow the list).
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => {
+      const haystack = [p.name, p.category, p.dimensions, p.description]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [products, search]);
+
   const handleOpenModal = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
@@ -58,7 +78,8 @@ export default function AdminProductsPage() {
         image: product.image,
         description: product.description || '',
         category: product.category,
-        inStock: product.inStock
+        inStock: product.inStock,
+        dimensions: product.dimensions || DEFAULT_DIMENSIONS,
       });
       setPreviewUrl(product.image);
     } else {
@@ -69,7 +90,8 @@ export default function AdminProductsPage() {
         image: '',
         description: '',
         category: '',
-        inStock: true
+        inStock: true,
+        dimensions: DEFAULT_DIMENSIONS,
       });
       setPreviewUrl('');
     }
@@ -88,7 +110,8 @@ export default function AdminProductsPage() {
       image: '',
       description: '',
       category: '',
-      inStock: true
+      inStock: true,
+      dimensions: DEFAULT_DIMENSIONS,
     });
   };
 
@@ -123,7 +146,8 @@ export default function AdminProductsPage() {
         image: imageUrl,
         description: formData.description.trim(),
         category: formData.category.trim(),
-        inStock: formData.inStock
+        inStock: formData.inStock,
+        dimensions: formData.dimensions.trim() || DEFAULT_DIMENSIONS,
       };
 
       if (editingProduct) {
@@ -244,6 +268,51 @@ export default function AdminProductsPage() {
             </div>
           </header>
 
+          {/* Search bar — filters the grid by name / category / dimensions */}
+          <div className="mb-6 md:mb-8">
+            <div className="relative max-w-xl">
+              <svg
+                className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, category, dimensions…"
+                aria-label="Search products"
+                className="w-full rounded-xl md:rounded-2xl border border-zinc-800 bg-zinc-900/60 pl-11 pr-10 py-2.5 md:py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-600 transition-colors"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {search && (
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                {filteredProducts.length} of {products.length} match “{search}”
+              </p>
+            )}
+          </div>
+
           {/* Error */}
           {error && (
             <div className="mb-8 rounded-2xl border border-rose-900/50 bg-rose-950/20 p-6">
@@ -276,9 +345,21 @@ export default function AdminProductsPage() {
                     Add Your First Product
                   </button>
                 </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="py-24 text-center">
+                  <p className="text-zinc-600 text-sm font-black uppercase tracking-widest mb-6">
+                    No products match “{search}”
+                  </p>
+                  <button
+                    onClick={() => setSearch('')}
+                    className="px-6 py-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[10px] font-black uppercase tracking-widest transition-all"
+                  >
+                    Clear search
+                  </button>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                  {products.map((product, idx) => (
+                  {filteredProducts.map((product, idx) => (
                     <motion.div
                       key={product._id}
                       initial={{ opacity: 0, y: 20 }}
@@ -338,6 +419,9 @@ export default function AdminProductsPage() {
                             </p>
                             <p className="text-[10px] md:text-xs text-zinc-600 font-bold uppercase tracking-widest">
                               {product.category}
+                            </p>
+                            <p className="text-[10px] md:text-xs text-zinc-700 font-bold mt-1">
+                              {product.dimensions || '120cm x 35cm'}
                             </p>
                           </div>
                           <div className={`h-2.5 w-2.5 md:h-3 md:w-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -425,6 +509,43 @@ export default function AdminProductsPage() {
                           placeholder="e.g. BMW, Audi, Mercedes"
                         />
                       </div>
+                    </div>
+
+                    {/* Dimensions — defaults to the standard 120cm x 35cm,
+                        admin can override per product (e.g. larger format
+                        for the G-Class line). */}
+                    <div>
+                      <label className="block text-sm font-bold text-zinc-400 mb-2">
+                        Dimensions
+                      </label>
+                      <input
+                        type="text"
+                        name="dimensions"
+                        value={formData.dimensions}
+                        onChange={handleInputChange}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all"
+                        placeholder="120cm x 35cm"
+                      />
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        <span>Quick fill:</span>
+                        {['120cm x 35cm', '120cm x 50cm', '150cm x 40cm'].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, dimensions: preset }))}
+                            className={`rounded-md px-2 py-1 border transition-colors ${
+                              formData.dimensions === preset
+                                ? 'border-blue-600 bg-blue-600/15 text-blue-400'
+                                : 'border-zinc-800 hover:border-zinc-700 text-zinc-400'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-zinc-600 mt-2">
+                        Defaults to <span className="font-bold text-zinc-400">120cm x 35cm</span>. Shown to customers on the product page.
+                      </p>
                     </div>
 
                     {/* Image Upload */}

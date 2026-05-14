@@ -21,14 +21,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Standard dimensions per product. Most artworks ship at 120cm x 35cm, but
-  // the G-Class / G63 silhouette is much taller (SUV proportions), so it
-  // gets a 120cm x 50cm frame. Pattern mirrors the regex used in the price
-  // script so the two stay in lockstep if naming changes.
-  const G63_REGEX = /(?:^|[^a-z0-9])g[\s-]*63(?:[^0-9]|$)|g[\s-]*class/i;
-  const standardSize = product && G63_REGEX.test(product.name)
-    ? { id: 'L', label: '120cm x 50cm' }
-    : { id: 'M', label: '120cm x 35cm' };
+  // Dimensions come from the product itself, set per-product by admins
+  // in /admin/products. Falls back to the catalogue standard if a legacy
+  // product hasn't had the field saved yet.
+  const DEFAULT_DIMENSIONS = '120cm x 35cm';
+  const dimensionsLabel = (product?.dimensions || '').trim() || DEFAULT_DIMENSIONS;
+  // Keep the same `standardSize` shape downstream code consumes — the
+  // `id` is just an internal sku-like marker for the cart.
+  const standardSize = { id: 'M', label: dimensionsLabel };
   const [quantity, setQuantity] = useState<number>(1);
   const unitPrice = product ? product.price : 0;
   const totalPrice = unitPrice * quantity;

@@ -58,7 +58,7 @@ export async function getProductById(req: Request, res: Response): Promise<void>
  */
 export async function createProduct(req: Request, res: Response): Promise<void> {
   try {
-    const { name, price, image, description, category, inStock } = req.body;
+    const { name, price, image, description, category, inStock, dimensions } = req.body;
 
     // Validate required fields
     if (!name || !price || !image || !category) {
@@ -69,6 +69,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       return;
     }
 
+    const trimmedDimensions = typeof dimensions === 'string' ? dimensions.trim() : '';
+
     // Create new product
     const product = await Product.create({
       name: name.trim(),
@@ -76,7 +78,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       image: image.trim(),
       description: description?.trim() || '',
       category: category.trim(),
-      inStock: inStock !== undefined ? Boolean(inStock) : true
+      inStock: inStock !== undefined ? Boolean(inStock) : true,
+      dimensions: trimmedDimensions || '120cm x 35cm'
     });
 
     res.status(201).json({
@@ -101,7 +104,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, price, image, description, category, inStock } = req.body;
+    const { name, price, image, description, category, inStock, dimensions } = req.body;
 
     // Find and update product
     const product = await Product.findByIdAndUpdate(
@@ -112,7 +115,10 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
         ...(image && { image: image.trim() }),
         ...(description !== undefined && { description: description.trim() }),
         ...(category && { category: category.trim() }),
-        ...(inStock !== undefined && { inStock: Boolean(inStock) })
+        ...(inStock !== undefined && { inStock: Boolean(inStock) }),
+        ...(typeof dimensions === 'string' && dimensions.trim()
+          ? { dimensions: dimensions.trim() }
+          : {})
       },
       { new: true, runValidators: true }
     );
