@@ -32,7 +32,7 @@ export default function ProductCard({ product, mostPopular = false }: ProductCar
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       whileHover={{ y: -10 }}
-      className="group flex flex-col overflow-hidden rounded-[2.5rem] border border-zinc-200 bg-white shadow-sm transition-all duration-500 hover:shadow-2xl hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-zinc-700 w-full relative"
+      className="group flex h-full w-full flex-col overflow-hidden rounded-[2.5rem] border border-zinc-200 bg-white shadow-sm transition-all duration-500 hover:shadow-2xl hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-zinc-700 relative"
     >
       <Link href={`/product/${product._id}`} className="flex flex-col flex-1 cursor-pointer">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-950">

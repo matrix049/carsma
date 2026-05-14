@@ -313,7 +313,7 @@ export default function Home() {
               {/* Desktop: grid */}
               <div className="products-grid hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
                 {products.slice(0, 6).map((p) => (
-                  <div key={p._id} className="product-card">
+                  <div key={p._id} className="product-card h-full">
                     <ProductCard
                       product={p}
                       mostPopular={getPinnedIndex(p.name) >= 0}
