@@ -8,6 +8,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
 import { btnAccent } from '@/lib/uiStyles';
 
+/**
+ * Products that should always appear at the top of the gallery, in this
+ * exact order. Patterns are matched case-insensitively against
+ * `product.name`. If multiple products match one pattern the first one
+ * wins; non-pinned products keep their natural order after all pins.
+ */
+const PINNED_NAME_PATTERNS: RegExp[] = [
+  /911\s*GT3\s*RS/i,                      // 911 GT3 RS
+  /\bg[\s-]*class\b|\bg[\s-]*63\b/i,      // G-Class / G63
+  /\brs\s*6\b/i,                           // RS6
+  /\bbmw\b.*\bm3\b/i,                      // BMW E30 M3 1991 (closest catalogue match)
+];
+
+/** Stable-sort the filtered list so pinned products come first in order. */
+function applyPin<T extends { name: string }>(items: T[]): T[] {
+  const pinned: (T | undefined)[] = new Array(PINNED_NAME_PATTERNS.length).fill(undefined);
+  const rest: T[] = [];
+  for (const item of items) {
+    const idx = PINNED_NAME_PATTERNS.findIndex((re) => re.test(item.name));
+    if (idx >= 0 && !pinned[idx]) {
+      pinned[idx] = item;
+    } else {
+      rest.push(item);
+    }
+  }
+  return [...(pinned.filter(Boolean) as T[]), ...rest];
+}
+
 export default function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -23,10 +51,11 @@ export default function ShopPage() {
     async function loadData() {
       try {
         const data = await fetchProducts();
-        setAllProducts(data);
-        setFilteredProducts(data);
-        
-        const uniqueCategories = Array.from(new Set(data.map(p => p.category))).filter(Boolean);
+        const ordered = applyPin(data);
+        setAllProducts(ordered);
+        setFilteredProducts(ordered);
+
+        const uniqueCategories = Array.from(new Set(ordered.map(p => p.category))).filter(Boolean);
         setCategories(uniqueCategories);
       } catch (err: any) {
         console.error('Failed to load shop products:', err);
@@ -40,28 +69,29 @@ export default function ShopPage() {
 
   useEffect(() => {
     let filtered = allProducts;
-    
+
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(p => p.category === selectedCategory);
     }
-    
+
     // Filter by stock
     if (inStockOnly) {
       filtered = filtered.filter(p => p.inStock);
     }
-    
+
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.name.toLowerCase().includes(query) ||
         p.category.toLowerCase().includes(query) ||
         (p.description && p.description.toLowerCase().includes(query))
       );
     }
-    
-    setFilteredProducts(filtered);
+
+    // Pinned products always float to the top of whatever's left.
+    setFilteredProducts(applyPin(filtered));
   }, [selectedCategory, inStockOnly, searchQuery, allProducts]);
 
   const containerVariants = {
