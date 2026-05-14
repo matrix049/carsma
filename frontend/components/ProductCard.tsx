@@ -9,9 +9,11 @@ import { motion } from 'framer-motion';
 
 interface ProductCardProps {
   product: Product;
+  /** When true, render a "Most Popular" accent badge in the top-right corner. */
+  mostPopular?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, mostPopular = false }: ProductCardProps) {
   const { addToCart } = useCart();
   const { t } = useLanguage();
 
@@ -52,6 +54,15 @@ export default function ProductCard({ product }: ProductCardProps) {
                 Limited Edition
              </span>
           </div>
+
+          {mostPopular && (
+            <div className="absolute top-6 right-6 z-10">
+              <span className="flex items-center gap-2 rounded-full bg-blue-600 border border-blue-400/40 px-4 py-2 text-[8px] font-black tracking-widest text-white uppercase shadow-2xl shadow-blue-500/30">
+                <div className="h-1 w-1 rounded-full bg-white animate-pulse" />
+                Most Popular
+              </span>
+            </div>
+          )}
 
           {!product.inStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[4px] z-20">

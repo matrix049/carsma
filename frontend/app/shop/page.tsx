@@ -7,39 +7,7 @@ import CompactProductCard from '@/components/CompactProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import WheelLoader from '@/components/WheelLoader';
 import { btnAccent } from '@/lib/uiStyles';
-
-/**
- * Products that should always appear at the top of the gallery, in this
- * exact order. Patterns are matched case-insensitively against
- * `product.name`. If multiple products match one pattern the first one
- * wins; non-pinned products keep their natural order after all pins.
- */
-const PINNED_NAME_PATTERNS: RegExp[] = [
-  /911\s*GT3\s*RS/i,                      // 911 GT3 RS
-  /\bg[\s-]*class\b|\bg[\s-]*63\b/i,      // G-Class / G63
-  /\brs\s*6\b/i,                           // RS6
-  /\bbmw\b.*\be93\b/i,                     // BMW E93 M3 Convertible
-];
-
-/** Returns the pin slot a name matches, or -1 if it isn't pinned. */
-function getPinnedIndex(name: string): number {
-  return PINNED_NAME_PATTERNS.findIndex((re) => re.test(name));
-}
-
-/** Stable-sort the filtered list so pinned products come first in order. */
-function applyPin<T extends { name: string }>(items: T[]): T[] {
-  const pinned: (T | undefined)[] = new Array(PINNED_NAME_PATTERNS.length).fill(undefined);
-  const rest: T[] = [];
-  for (const item of items) {
-    const idx = getPinnedIndex(item.name);
-    if (idx >= 0 && !pinned[idx]) {
-      pinned[idx] = item;
-    } else {
-      rest.push(item);
-    }
-  }
-  return [...(pinned.filter(Boolean) as T[]), ...rest];
-}
+import { applyPin, getPinnedIndex } from '@/lib/pinnedProducts';
 
 export default function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);

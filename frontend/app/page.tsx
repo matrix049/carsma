@@ -15,6 +15,7 @@ import { fetchProducts, Product } from '@/lib/apiServices';
 import WheelLoader from '@/components/WheelLoader';
 import IntroOverlay from '@/components/IntroOverlay';
 import { btnPrimary, btnAccent, btnGhostDark } from '@/lib/uiStyles';
+import { applyPin, getPinnedIndex } from '@/lib/pinnedProducts';
 
 const useIsoLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
@@ -49,7 +50,7 @@ export default function Home() {
     let active = true;
     fetchProducts()
       .then((data) => {
-        if (active) setProducts(data);
+        if (active) setProducts(applyPin(data));
       })
       .catch((err) => console.error('Failed to load products:', err))
       .finally(() => {
@@ -300,7 +301,10 @@ export default function Home() {
                       key={p._id}
                       className="product-card w-[68vw] max-w-[260px] flex-shrink-0 snap-center"
                     >
-                      <CompactProductCard product={p} />
+                      <CompactProductCard
+                        product={p}
+                        mostPopular={getPinnedIndex(p.name) >= 0}
+                      />
                     </div>
                   ))}
                 </div>
@@ -310,7 +314,10 @@ export default function Home() {
               <div className="products-grid hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
                 {products.slice(0, 6).map((p) => (
                   <div key={p._id} className="product-card">
-                    <ProductCard product={p} />
+                    <ProductCard
+                      product={p}
+                      mostPopular={getPinnedIndex(p.name) >= 0}
+                    />
                   </div>
                 ))}
               </div>
