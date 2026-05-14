@@ -18,7 +18,7 @@ const PINNED_NAME_PATTERNS: RegExp[] = [
   /911\s*GT3\s*RS/i,                      // 911 GT3 RS
   /\bg[\s-]*class\b|\bg[\s-]*63\b/i,      // G-Class / G63
   /\brs\s*6\b/i,                           // RS6
-  /\bbmw\b.*\bm3\b/i,                      // BMW E30 M3 1991 (closest catalogue match)
+  /\bbmw\b.*\be93\b/i,                     // BMW E93 M3 Convertible
 ];
 
 /** Stable-sort the filtered list so pinned products come first in order. */
