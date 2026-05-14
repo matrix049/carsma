@@ -8,9 +8,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CompactProductCardProps {
   product: Product;
+  /** When true, render a "Most Popular" accent badge in the top-right corner. */
+  mostPopular?: boolean;
 }
 
-export default function CompactProductCard({ product }: CompactProductCardProps) {
+export default function CompactProductCard({ product, mostPopular = false }: CompactProductCardProps) {
   const { addToCart } = useCart();
   const { t } = useLanguage();
 
@@ -41,6 +43,15 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
                Limited Edition
              </span>
           </div>
+
+          {mostPopular && (
+            <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10 transition-transform duration-500 group-hover:-translate-y-1">
+              <span className="rounded-full bg-blue-600 border border-blue-400/40 px-2 py-0.5 md:px-3 md:py-1 text-[7px] md:text-[8px] font-black tracking-widest text-white uppercase shadow-xl shadow-blue-500/30 inline-flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
+                Most Popular
+              </span>
+            </div>
+          )}
 
           {!product.inStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[4px] z-20">

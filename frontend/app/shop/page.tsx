@@ -21,12 +21,17 @@ const PINNED_NAME_PATTERNS: RegExp[] = [
   /\bbmw\b.*\be93\b/i,                     // BMW E93 M3 Convertible
 ];
 
+/** Returns the pin slot a name matches, or -1 if it isn't pinned. */
+function getPinnedIndex(name: string): number {
+  return PINNED_NAME_PATTERNS.findIndex((re) => re.test(name));
+}
+
 /** Stable-sort the filtered list so pinned products come first in order. */
 function applyPin<T extends { name: string }>(items: T[]): T[] {
   const pinned: (T | undefined)[] = new Array(PINNED_NAME_PATTERNS.length).fill(undefined);
   const rest: T[] = [];
   for (const item of items) {
-    const idx = PINNED_NAME_PATTERNS.findIndex((re) => re.test(item.name));
+    const idx = getPinnedIndex(item.name);
     if (idx >= 0 && !pinned[idx]) {
       pinned[idx] = item;
     } else {
@@ -281,7 +286,10 @@ export default function ShopPage() {
                 >
                   {filteredProducts.map((product) => (
                     <motion.div key={product._id} variants={itemVariants}>
-                      <CompactProductCard product={product} />
+                      <CompactProductCard
+                        product={product}
+                        mostPopular={getPinnedIndex(product.name) >= 0}
+                      />
                     </motion.div>
                   ))}
 
