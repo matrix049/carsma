@@ -119,7 +119,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 py-20 md:py-32 lg:py-48 max-w-7xl">
+      <div className="container mx-auto px-6 pt-32 pb-20 md:py-32 lg:py-48 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
