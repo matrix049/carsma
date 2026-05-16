@@ -38,8 +38,8 @@ export default function FAQPage() {
     {
       question: "What sizes are available?",
       questionAr: "شنو هي المقاسات المتوفرة؟",
-      answer: "We offer only one standard size which is 120cm x 35cm. This carefully selected size is perfect for modern wall art and fits beautifully in most spaces, providing an elegant and impactful display.",
-      answerAr: "عندنا مقاس واحد فقط وهو 120 سم × 35 سم. هاد المقاس مختار بعناية ومثالي للوحات الحائط العصرية وكيناسب معظم المساحات، وكيعطي عرض أنيق ومؤثر."
+      answer: "Our standard size is 120cm x 35cm, and we also offer a larger 120cm x 50cm format. Both are carefully selected for modern wall art and fit beautifully in most spaces, providing an elegant and impactful display. On some orders we can also customise the size to fit your wall — just message us before ordering.",
+      answerAr: "المقاس الستاندارد ديالنا هو 120 سم × 35 سم، وعندنا حتى مقاس كبير 120 سم × 50 سم. بجوج مختارين بعناية ومثاليين للوحات الحائط العصرية وكيناسبو معظم المساحات وكيعطيو عرض أنيق ومؤثر. وفـ بعض الطلبات نقدرو نخدمو ليك المقاس على حساب الحيط ديالك — غير صيفط لينا رسالة قبل ما تكوماندي."
     },
     {
       question: "Do you offer framing services?",
