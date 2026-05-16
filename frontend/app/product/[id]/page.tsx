@@ -210,7 +210,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               >
                 <div className="px-5 py-4 sm:px-6 sm:py-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Dimensions
+                    Dimensions · <span className="font-sans">القياس</span>
                   </p>
                   <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
                     {standardSize.label}

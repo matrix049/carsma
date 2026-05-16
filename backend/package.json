@@ -13,7 +13,8 @@
     "seed": "ts-node src/scripts/seed.ts",
     "verify-seed": "ts-node src/scripts/verify-seed.ts",
     "update-admin": "ts-node src/scripts/update-admin.ts",
-    "update-prices": "ts-node src/scripts/update-prices.ts"
+    "update-prices": "ts-node src/scripts/update-prices.ts",
+    "backfill-descriptions": "ts-node src/scripts/backfill-product-descriptions.ts"
   },
   "keywords": [],
   "author": "",

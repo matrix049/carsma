@@ -117,6 +117,15 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Every product must ship with a real short description. The textarea
+    // is `required` + minLength, but minLength counts whitespace, so guard
+    // here against a blank / too-short description before we hit the API.
+    if (formData.description.trim().length < 10) {
+      alert('Please add a short description (at least 10 characters). Every product needs one.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -609,16 +618,21 @@ export default function AdminProductsPage() {
                     {/* Description */}
                     <div>
                       <label className="block text-sm font-bold text-zinc-400 mb-2">
-                        Description
+                        Description *
                       </label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
+                        required
+                        minLength={10}
                         rows={3}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all resize-none"
-                        placeholder="Product description..."
+                        placeholder="Short description shown on the product page — e.g. brand, model year, what makes it special."
                       />
+                      <p className="text-xs text-zinc-600 mt-1.5">
+                        Required. Keep it short — one or two sentences customers read before buying.
+                      </p>
                     </div>
 
                     {/* In Stock */}
