@@ -13,24 +13,23 @@ module.exports = {
         foreground: 'var(--foreground)',
         surface: 'var(--surface)',
         primary: 'var(--primary)',
-        // Gallery palette — warm paper, ink, brass.
-        ivory: '#F7F3EC',
-        paper: '#FBF9F5',
-        wall: '#ECE5D8',
-        line: '#E2DACB',
-        ink: '#16130F',
-        stone: '#6E665B',
-        brass: { DEFAULT: '#8A6635', light: '#B8955E' },
+        // Night-drive palette — asphalt, carbon, chalk, redline.
+        asphalt: '#0A0A0B',
+        carbon: { DEFAULT: '#131316', 2: '#1B1B20', 3: '#26262D' },
+        chalk: '#F4F4F0',
+        smoke: '#8B8B94',
+        redline: { DEFAULT: '#E5200C', hot: '#FF4A33', deep: '#9E1406' },
+        // F1 timing-screen colours: purple = fastest, green = personal best.
+        timing: { purple: '#B04BFF', green: '#2BD96B', yellow: '#FFD60A' },
+        volt: '#D4FF3A',
       },
       fontFamily: {
         jakarta: 'var(--font-jakarta)',
         inter: 'var(--font-inter)',
-        // "display" = the gallery serif used for every headline.
-        display: ['var(--font-serif)', 'Cormorant Garamond', 'Georgia', 'serif'],
-        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Georgia', 'serif'],
+        // "display" = Anybody, a variable face with a 50–150 width axis.
+        display: ['var(--font-anybody)', 'Impact', 'Arial Narrow', 'sans-serif'],
         // Arabic / Darija copy.
-        ar: ['var(--font-arabic)', 'Noto Naskh Arabic', 'Tahoma', 'sans-serif'],
-        anton: ['var(--font-anton)', 'Impact', 'Anton', 'sans-serif'],
+        ar: ['var(--font-changa)', 'Tahoma', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       animation: {
@@ -39,6 +38,9 @@ module.exports = {
         'car-drive': 'car-drive 20s linear infinite',
         'tire-mark': 'tire-mark 0.6s ease-out forwards',
         'scroll': 'scroll 40s linear infinite',
+        'marquee': 'marquee var(--marquee-duration, 30s) linear infinite',
+        'marquee-reverse': 'marquee var(--marquee-duration, 30s) linear infinite reverse',
+        'pulse-led': 'pulse-led 1.2s ease-in-out infinite',
       },
       keyframes: {
         'wheel-spin': {
@@ -78,6 +80,14 @@ module.exports = {
         'scroll': {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
+        },
+        'marquee': {
+          '0%': { transform: 'translate3d(0,0,0)' },
+          '100%': { transform: 'translate3d(-50%,0,0)' },
+        },
+        'pulse-led': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.35' },
         },
       },
     },

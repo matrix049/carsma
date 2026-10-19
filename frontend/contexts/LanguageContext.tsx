@@ -15,7 +15,7 @@ interface Translations {
 const dictionary: Translations = {
   // Navigation
   home: { en: 'Home', fr: 'Accueil', ar: 'الرئيسية' },
-  shop: { en: 'Gallery', fr: 'Galerie', ar: 'ݣالوري' },
+  shop: { en: 'Garage', fr: 'Garage', ar: 'الكاراج' },
   contact: { en: 'Contact', fr: 'Contact', ar: 'اتصل بنا' },
   categories: { en: 'Categories', fr: 'Catégories', ar: 'الأصناف' },
   allCategories: { en: 'All Designs', fr: 'Toutes les Créations', ar: 'كلشي' },

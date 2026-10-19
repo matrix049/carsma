@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import CartToast from '@/components/CartToast';
+import { ViewTransitionResolver } from '@/components/TransitionLink';
 
 /**
  * Renders the public storefront shell (Navbar, Footer, etc.)
@@ -24,6 +25,7 @@ export default function ConditionalShell({
 
   return (
     <>
+      <ViewTransitionResolver />
       <Navbar />
       <main className="flex-1 flex flex-col pt-0">{children}</main>
       <Footer />

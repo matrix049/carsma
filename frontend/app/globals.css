@@ -3,12 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #F7F3EC;
-  --foreground: #16130F;
-  --surface: #FBF9F5;
-  --primary: #8A6635;
-  --font-jakarta: var(--font-jakarta);
-  --font-inter: var(--font-inter);
+  --background: #0A0A0B;
+  --foreground: #F4F4F0;
+  --surface: #131316;
+  --primary: #E5200C;
+  color-scheme: dark;
+}
+
+html {
+  background: #0A0A0B;
 }
 
 body {
@@ -20,45 +23,204 @@ body {
 }
 
 ::selection {
-  background-color: rgba(138, 102, 53, 0.2);
-  color: #16130F;
+  background-color: #E5200C;
+  color: #FFFFFF;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #CFC6B5; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #B3A893; }
+::-webkit-scrollbar-track { background: #0A0A0B; }
+::-webkit-scrollbar-thumb { background: #26262D; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #E5200C; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .text-balance { text-wrap: balance; }
 
-/* Faint eight-point zellige star lattice — used behind placeholders and
- * on the dark craft band. Stroke colour comes from `currentColor`. */
-.zellige {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g fill='none' stroke='%238A6635' stroke-opacity='0.18' stroke-width='1'><rect x='20' y='20' width='24' height='24'/><rect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/><path d='M0 32h8M56 32h8M32 0v8M32 56v8'/></g></svg>");
-  background-size: 64px 64px;
+/* ============================================================================
+ * Display type — Anybody's width axis (50–150). Headlines stretch wide for
+ * speed and squeeze narrow for density.
+ * ========================================================================== */
+@layer utilities {
+  .stretch-50 { font-variation-settings: "wdth" 50; }
+  .stretch-75 { font-variation-settings: "wdth" 75; }
+  .stretch-100 { font-variation-settings: "wdth" 100; }
+  .stretch-125 { font-variation-settings: "wdth" 125; }
+  .stretch-150 { font-variation-settings: "wdth" 150; }
+
+  /* Hollow headline type */
+  /* Stroke colour must be explicit: with color: transparent, currentColor
+   * would be transparent too. Override with [-webkit-text-stroke-color:…]. */
+  .text-outline { -webkit-text-stroke: 1.5px #F4F4F0; color: transparent; }
+  .text-outline-red { -webkit-text-stroke: 1.5px #E5200C; color: transparent; }
+
+  /* Chamfered "race-part" corners */
+  .chamfer { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+  .chamfer-sm { clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+
+  /* Hazard / pit-wall stripes */
+  .hazard {
+    background-image: repeating-linear-gradient(-45deg, #E5200C 0 14px, #0A0A0B 14px 28px);
+  }
+
+  /* Asphalt noise + faint speed lines for dark sections */
+  .speed-lines {
+    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 120px);
+  }
 }
 
-/* Soft spotlight falling on a gallery wall */
-.wall-light {
-  background:
-    radial-gradient(ellipse 60% 55% at 50% 0%, rgba(255, 255, 255, 0.75), transparent 70%),
-    #ECE5D8;
-}
-
-/* Soft film-grain overlay used on dark sections */
+/* Soft film-grain overlay */
 .grain::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.06;
+  opacity: 0.07;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ============================================================================
+ * Scroll-driven animations (CSS animation-timeline). Progressive
+ * enhancement: without support — or with reduced motion — everything is
+ * simply visible.
+ * ========================================================================== */
+@keyframes sd-reveal-up {
+  from { opacity: 0; transform: translate3d(0, 48px, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sd-reveal-left {
+  from { opacity: 0; transform: translate3d(-80px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sd-word {
+  from { opacity: 0.14; }
+  to { opacity: 1; }
+}
+@keyframes sd-uncover {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 0 100%); }
+}
+@keyframes sd-drift {
+  from { transform: translate3d(-6%, 0, 0); }
+  to { transform: translate3d(6%, 0, 0); }
+}
+@keyframes sd-stretch {
+  from { font-variation-settings: "wdth" 50; }
+  to { font-variation-settings: "wdth" 150; }
+}
+
+/* The car cover only exists where it can be scroll-animated away —
+ * otherwise it would hide the panel for good. */
+.sd-uncover { display: none; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sd-reveal {
+      animation: sd-reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 28%;
+    }
+    .sd-reveal-left {
+      animation: sd-reveal-left linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 32%;
+    }
+    /* Manifesto words light up one by one as they cross the viewport */
+    .sd-word {
+      animation: sd-word linear both;
+      animation-timeline: view();
+      animation-range: cover 18% cover 42%;
+    }
+    /* Car-cover pulled off as the panel scrolls into view */
+    .sd-uncover {
+      display: block;
+      animation: sd-uncover linear both;
+      animation-timeline: view();
+      animation-range: entry 15% entry 95%;
+    }
+    .sd-drift {
+      animation: sd-drift linear both;
+      animation-timeline: view();
+    }
+    .sd-stretch {
+      animation: sd-stretch linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+/* ============================================================================
+ * View transitions — a product card's image morphs into the product page.
+ * ========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+::view-transition-group(car-hero) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.1, 1);
+}
+::view-transition-old(car-hero),
+::view-transition-new(car-hero) {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================================================
+ * Holographic trading-card foil (product cards)
+ * ========================================================================== */
+@property --foil-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 115deg;
+}
+.holo-foil {
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.28), transparent 42%),
+    linear-gradient(var(--foil-angle), transparent 20%, rgba(255, 74, 51, 0.16) 38%, rgba(176, 75, 255, 0.16) 50%, rgba(43, 217, 107, 0.14) 62%, transparent 80%);
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.holo-card:hover .holo-foil { opacity: 1; }
+
+/* ============================================================================
+ * Launch control — warp streaks + flash when the launch button fires.
+ * ========================================================================== */
+@keyframes launch-warp {
+  from { opacity: 0; transform: scale(0.6); }
+  25% { opacity: 1; }
+  to { opacity: 1; transform: scale(2.6); }
+}
+@keyframes launch-flash {
+  0% { opacity: 0; }
+  45% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+.launch-streaks {
+  background: repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 4deg, rgba(244, 244, 240, 0.55) 4deg 4.35deg, transparent 4.35deg 9deg, rgba(229, 32, 12, 0.7) 9deg 9.5deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 12%, #000 62%);
+  mask-image: radial-gradient(circle at 50% 50%, transparent 12%, #000 62%);
+  animation: launch-warp 0.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+.launch-flash {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(10, 10, 11, 0) 0%, rgba(10, 10, 11, 0.9) 72%),
+    rgba(229, 32, 12, 0.22);
+  animation: launch-flash 0.6s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-reverse { animation: none !important; }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+  .launch-streaks { display: none; }
 }
 
 /* ============================================================================
@@ -79,6 +241,8 @@ body {
 .admin-shell {
   background-color: #fafafa;
   color: #18181b;
+  /* storefront :root is color-scheme: dark — keep native admin controls light */
+  color-scheme: light;
 }
 
 /* ── Backgrounds ─────────────────────────────────────────────────────── */
@@ -193,11 +357,4 @@ body {
 .admin-shell input::placeholder,
 .admin-shell textarea::placeholder {
   color: #a1a1aa;
-}
-
-/* Cormorant defaults to old-style figures ("911" reads as "9II") —
- * car names need lining numerals. */
-.font-display,
-.font-serif {
-  font-variant-numeric: lining-nums;
 }

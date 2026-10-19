@@ -18,8 +18,8 @@ export default function CartToast() {
         >
           <div className="flex items-center gap-5 rounded-[2rem] bg-black/90 px-8 py-5 shadow-4xl backdrop-blur-2xl border border-white/10">
             <div className="relative">
-              <div className="h-3 w-3 rounded-full bg-brass animate-pulse shadow-[0_0_15px_rgba(138,102,53,1)]" />
-              <div className="absolute inset-0 h-3 w-3 rounded-full bg-brass animate-ping opacity-40" />
+              <div className="h-3 w-3 rounded-full bg-redline animate-pulse shadow-[0_0_15px_rgba(229,32,12,1)]" />
+              <div className="absolute inset-0 h-3 w-3 rounded-full bg-redline animate-ping opacity-40" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
               {toastMessage}

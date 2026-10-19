@@ -1,45 +1,45 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useRef, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchProducts, Product } from '@/lib/apiServices';
+import { fetchProducts, peekProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AnalyticsService from '@/lib/analyticsService';
 import { trackViewContent } from '@/lib/metaPixel';
-import { btnDark, btnGhostLight, whatsappLink } from '@/lib/uiStyles';
+import { btnPrimary, btnGhostDark, whatsappLink } from '@/lib/uiStyles';
 import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
 import WheelLoader from '@/components/WheelLoader';
+import Plate from '@/components/Plate';
 import { isNewEdition } from '@/lib/newEditions';
+import { getPinnedIndex } from '@/lib/pinnedProducts';
+import { dimensionsOf, parseDimensions } from '@/lib/dimensions';
 
-// Dimensions come from the product itself, set per-product by admins in
-// /admin/products. Falls back to the catalogue standard for legacy products.
-const DEFAULT_DIMENSIONS = '120cm x 35cm';
-
-/** Width of wall shown in the "on the wall" mockup, in cm. */
+/** Width of wall shown in the "on your wall" mockup, in cm. */
 const WALL_WIDTH_CM = 340;
 /** Width of the sofa drawn under the artwork, in cm. */
 const SOFA_WIDTH_CM = 210;
 
-/** "120cm x 35cm" → { w: 120, h: 35 } (null when the string can't be parsed). */
-function parseDimensions(label: string): { w: number; h: number } | null {
-  const m = label.match(/(\d+(?:[.,]\d+)?)\s*(?:cm)?\s*[x×*]\s*(\d+(?:[.,]\d+)?)/i);
-  if (!m) return null;
-  return { w: parseFloat(m[1].replace(',', '.')), h: parseFloat(m[2].replace(',', '.')) };
+/** In-stock products, same brand first. */
+function relatedFor(products: Product[], current: Product): Product[] {
+  const others = products.filter((p) => p._id !== current._id && p.inStock);
+  const sameCategory = others.filter((p) => p.category === current.category);
+  const rest = others.filter((p) => p.category !== current.category);
+  return [...sameCategory, ...rest].slice(0, 4);
 }
 
 function Sofa() {
   return (
     <svg viewBox="0 0 210 70" className="w-full" aria-hidden="true">
-      <g fill="#CFC4B1">
+      <g fill="#2A2A31">
         <rect x="8" y="6" width="194" height="34" rx="6" />
         <rect x="0" y="26" width="22" height="34" rx="6" />
         <rect x="188" y="26" width="22" height="34" rx="6" />
-        <rect x="16" y="34" width="178" height="22" rx="4" fill="#C3B7A2" />
+        <rect x="16" y="34" width="178" height="22" rx="4" fill="#33333B" />
       </g>
-      <g fill="#A89A82">
+      <g fill="#1B1B20">
         <rect x="18" y="58" width="4" height="10" />
         <rect x="188" y="58" width="4" height="10" />
       </g>
@@ -47,31 +47,28 @@ function Sofa() {
   );
 }
 
-function SpecRow({ label, labelAr, value, note }: { label: string; labelAr: string; value: string; note?: string }) {
+function SpecTile({ label, labelAr, value, accent }: { label: string; labelAr: string; value: string; accent?: boolean }) {
   return (
-    <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-line py-4 sm:grid-cols-[9rem_1fr]">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone">
+    <div className={`rounded-lg p-3.5 ring-1 ${accent ? 'bg-redline/10 ring-redline/40' : 'bg-carbon ring-white/10'}`}>
+      <p className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
         {label}
-        <span className="mt-0.5 block font-ar text-sm normal-case tracking-normal">{labelAr}</span>
-      </dt>
-      <dd>
-        <p className="text-[15px] font-medium text-ink">{value}</p>
-        {note && <p className="mt-1 text-sm text-stone">{note}</p>}
-      </dd>
+        <span className="font-ar text-xs normal-case tracking-normal">{labelAr}</span>
+      </p>
+      <p className="mt-1.5 font-display text-[15px] font-extrabold uppercase leading-tight text-chalk stretch-125 sm:text-base">{value}</p>
     </div>
   );
 }
 
 function Details({ title, titleAr, children }: { title: string; titleAr: string; children: React.ReactNode }) {
   return (
-    <details className="group border-b border-line">
-      <summary className="flex cursor-pointer list-none items-center justify-between py-5 [&::-webkit-details-marker]:hidden">
-        <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-ink">
-          {title} <span className="ms-2 font-ar text-sm normal-case tracking-normal text-stone">{titleAr}</span>
+    <details className="group border-b border-white/10">
+      <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between gap-4 py-4 [&::-webkit-details-marker]:hidden">
+        <span className="font-display text-sm font-extrabold uppercase tracking-[0.06em] text-chalk stretch-125">
+          {title} <span className="ms-2 font-ar text-sm font-semibold normal-case tracking-normal text-smoke">{titleAr}</span>
         </span>
-        <span className="text-xl font-light text-stone transition-transform duration-300 group-open:rotate-45">+</span>
+        <span aria-hidden="true" className="font-mono text-xl text-redline-hot transition-transform duration-300 group-open:rotate-45">+</span>
       </summary>
-      <div className="pb-6 text-[15px] leading-relaxed text-stone">{children}</div>
+      <div className="pb-5 text-[15px] leading-relaxed text-smoke">{children}</div>
     </details>
   );
 }
@@ -82,14 +79,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const { addToCart } = useCart();
   const { t } = useLanguage();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [related, setRelated] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Coming from a card, the product is already in memory: render instantly
+  // (that's what lets the card image morph into the hero), then refresh.
+  const [cached] = useState(() => {
+    const list = peekProducts();
+    const found = list?.find((p) => p._id === id) ?? null;
+    return { product: found, related: list && found ? relatedFor(list, found) : [] };
+  });
+  const [product, setProduct] = useState<Product | null>(cached.product);
+  const [related, setRelated] = useState<Product[]>(cached.related);
+  const [isLoading, setIsLoading] = useState(!cached.product);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'art' | 'wall'>('art');
+  const [view, setView] = useState<'showroom' | 'wall'>('showroom');
   const [quantity, setQuantity] = useState<number>(1);
+  const trackedRef = useRef<string | null>(null);
 
-  const dimensionsLabel = (product?.dimensions || '').trim() || DEFAULT_DIMENSIONS;
+  const dimensionsLabel = dimensionsOf(product);
   // Keep the same `standardSize` shape downstream code consumes — the
   // `id` is just an internal sku-like marker for the cart.
   const standardSize = { id: 'M', label: dimensionsLabel };
@@ -98,57 +103,65 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const dims = parseDimensions(dimensionsLabel) ?? { w: 120, h: 35 };
 
   useEffect(() => {
-    async function loadProduct() {
-      try {
-        const products = await fetchProducts();
+    let active = true;
+    fetchProducts()
+      .then((products) => {
+        if (!active) return;
         const found = products.find((p) => p._id === id);
         if (found) {
           setProduct(found);
-          const others = products.filter((p) => p._id !== found._id && p.inStock);
-          const sameCategory = others.filter((p) => p.category === found.category);
-          const rest = others.filter((p) => p.category !== found.category);
-          setRelated([...sameCategory, ...rest].slice(0, 4));
+          setRelated(relatedFor(products, found));
+          setError(null);
         } else {
+          setProduct(null);
           setError('Product not found');
         }
-      } catch (err: any) {
-        setError(err.message || 'Failed to load product');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadProduct();
+      })
+      .catch((err: any) => {
+        if (active) setError(err.message || 'Failed to load product');
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [id]);
 
-  // Track product view when product loads successfully
+  // Track each product view once (a cached render followed by the refresh
+  // is still one view).
   useEffect(() => {
-    if (product && !isLoading && !error) {
-      AnalyticsService.trackProductView(product._id).catch((err: unknown) => {
-        // Analytics failures should not affect user experience
-        console.warn('Product view tracking failed:', err);
-      });
-      trackViewContent({
-        productId: product._id,
-        name: product.name,
-        category: product.category,
-        price: product.price,
-      });
-    }
-  }, [product, isLoading, error]);
+    if (!product || trackedRef.current === product._id) return;
+    trackedRef.current = product._id;
+    AnalyticsService.trackProductView(product._id).catch((err: unknown) => {
+      // Analytics failures should not affect user experience
+      console.warn('Product view tracking failed:', err);
+    });
+    trackViewContent({
+      productId: product._id,
+      name: product.name,
+      category: product.category,
+      price: product.price,
+    });
+  }, [product]);
 
-  if (isLoading) {
+  if (!product && isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ivory">
+      <div className="flex min-h-screen items-center justify-center bg-asphalt">
         <WheelLoader size="lg" />
       </div>
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-ivory px-6 text-center">
-        <h1 className="font-display text-5xl font-medium text-ink">{error || 'Product not found'}</h1>
-        <Link href="/shop" className={`${btnGhostLight} mt-10`}>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-asphalt px-6 text-center">
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">Wrong turn</p>
+        <h1 className="mt-4 font-display text-5xl font-black uppercase leading-none text-chalk stretch-125">
+          {error === 'Product not found' || !error ? 'No car here' : error}
+        </h1>
+        <p className="mt-3 font-ar text-lg text-smoke">هاد الطوموبيل ماكايناش</p>
+        <Link href="/shop" className={`${btnPrimary} mt-10`}>
           {t('backToArtworks')}
         </Link>
       </div>
@@ -177,42 +190,48 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Rabat, pre-drilled and ready to mount.`;
 
   const isNew = isNewEdition(product.name);
+  const pin = getPinnedIndex(product.name);
 
   return (
-    <div className="bg-ivory pb-28 md:pb-0">
-      <div className="container mx-auto max-w-7xl px-5 pt-28 md:pt-36 lg:px-10">
+    <div className="bg-asphalt pb-28 md:pb-0">
+      <div className="mx-auto max-w-[1440px] px-5 pt-28 sm:px-6 md:pt-36 lg:px-10">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone md:mb-10">
-          <Link href="/" className="hover:text-ink">{t('home')}</Link>
-          <span>/</span>
-          <Link href="/shop" className="hover:text-ink">{t('shop')}</Link>
-          <span>/</span>
-          <span className="text-ink">{product.name}</span>
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-smoke md:mb-10">
+          <Link href="/" className="hover:text-chalk">{t('home')}</Link>
+          <span aria-hidden="true" className="text-redline">/</span>
+          <Link href="/shop" className="hover:text-chalk">{t('shop')}</Link>
+          <span aria-hidden="true" className="text-redline">/</span>
+          <span className="text-chalk">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
-          {/* ── Visual ─────────────────────────────────────────────── */}
-          <div className="lg:col-span-7">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14">
+          {/* ── Showroom ───────────────────────────────────────────── */}
+          <div className="min-w-0 lg:col-span-7">
             <div className="lg:sticky lg:top-28">
-              <div className="relative aspect-square overflow-hidden ring-1 ring-line sm:aspect-[4/3]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-carbon-2 ring-1 ring-white/10">
                 <AnimatePresence mode="wait" initial={false}>
-                  {view === 'art' ? (
+                  {view === 'showroom' ? (
                     <motion.div
-                      key="art"
+                      key="showroom"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 bg-paper"
+                      transition={{ duration: 0.3 }}
+                      className="absolute inset-0"
                     >
                       {product.image && (
                         <img
+                          key={product._id}
+                          data-vt-hero
                           src={product.image}
                           alt={product.name}
+                          style={{ viewTransitionName: 'car-hero' } as React.CSSProperties}
                           className="h-full w-full object-cover"
                           onError={hideBrokenImage}
                         />
                       )}
+                      {/* showroom spotlight */}
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(255,255,255,0.10),transparent_60%),radial-gradient(ellipse_at_center,transparent_55%,rgba(10,10,11,0.55)_100%)]" />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -220,11 +239,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="wall-light absolute inset-0"
+                      transition={{ duration: 0.3 }}
+                      className="absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_50%_18%,rgba(255,190,130,0.16),transparent_70%),linear-gradient(#1D1D22,#151518)]"
                     >
                       {/* floor */}
-                      <div className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-b from-[#DCD2C1] to-[#CFC4B1]" />
+                      <div className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-b from-[#121214] to-[#0B0B0D]" />
                       {/* sofa, sized against the wall width */}
                       <div
                         className="absolute bottom-[13%] left-1/2 -translate-x-1/2"
@@ -241,40 +260,54 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           <img
                             src={product.image}
                             alt={`${product.name} on a wall`}
-                            className="w-full object-contain drop-shadow-[0_14px_14px_rgba(22,19,15,0.25)]"
+                            className="w-full object-contain shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
                             onError={hideBrokenImage}
                           />
                         )}
-                        <div className="mt-3 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-stone">
-                          <span className="h-px flex-1 bg-stone/50" />
+                        <div className="mt-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke">
+                          <span className="h-px flex-1 bg-smoke/60" />
                           {dims.w} cm
-                          <span className="h-px flex-1 bg-stone/50" />
+                          <span className="h-px flex-1 bg-smoke/60" />
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {isNew && (
-                  <span className="absolute left-4 top-4 z-10 bg-ivory px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink">
-                    New 3D edition
-                  </span>
-                )}
+                <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
+                  {pin >= 0 && (
+                    <span className="rounded-sm bg-timing-purple px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white shadow-[0_0_14px_rgba(176,75,255,0.55)]">
+                      P{pin + 1} · Most wanted
+                    </span>
+                  )}
+                  {isNew && (
+                    <span className="rounded-sm bg-volt px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-asphalt">
+                      New drop · 3D
+                    </span>
+                  )}
+                </div>
               </div>
 
+              {/* Showroom-floor reflection */}
+              {view === 'showroom' && product.image && (
+                <div aria-hidden="true" className="pointer-events-none relative hidden h-20 overflow-hidden rounded-b-2xl opacity-25 [mask-image:linear-gradient(to_bottom,black,transparent)] md:block">
+                  <img src={product.image} alt="" className="h-[600%] w-full -scale-y-100 object-cover object-bottom blur-[2px]" />
+                </div>
+              )}
+
               {/* View toggle */}
-              <div className="mt-4 inline-flex rounded-sm border border-line bg-paper p-1" role="tablist">
+              <div className="mt-4 inline-flex rounded-md bg-carbon p-1 ring-1 ring-white/10" role="tablist" aria-label="Preview">
                 {([
-                  ['art', 'Artwork', 'اللوحة'],
-                  ['wall', 'On the wall', 'فالحيط'],
+                  ['showroom', 'Showroom', 'العرض'],
+                  ['wall', 'On your wall', 'فالحيط'],
                 ] as const).map(([key, label, ar]) => (
                   <button
                     key={key}
                     role="tab"
                     aria-selected={view === key}
                     onClick={() => setView(key)}
-                    className={`rounded-sm px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
-                      view === key ? 'bg-ink text-ivory' : 'text-stone hover:text-ink'
+                    className={`min-h-[40px] rounded px-4 font-mono text-[11px] font-bold uppercase tracking-[0.16em] transition-colors ${
+                      view === key ? 'bg-redline text-white' : 'text-smoke hover:text-chalk'
                     }`}
                   >
                     {label} <span className="font-ar text-xs normal-case tracking-normal opacity-80">· {ar}</span>
@@ -282,98 +315,104 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 ))}
               </div>
               {view === 'wall' && (
-                <p className="mt-2 text-xs text-stone">
-                  Shown to scale above a {SOFA_WIDTH_CM} cm sofa.
+                <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke">
+                  Shown to scale above a {SOFA_WIDTH_CM} cm sofa
                 </p>
               )}
             </div>
           </div>
 
-          {/* ── Info ───────────────────────────────────────────────── */}
+          {/* ── Spec sheet ─────────────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-5"
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="min-w-0 lg:col-span-5"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">{product.category}</p>
-            <h1 className="mt-3 font-display text-[clamp(2.6rem,5vw,4.25rem)] font-medium leading-[1] tracking-tight text-ink">
+            <p className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">
+              <span className="h-[2px] w-8 bg-redline" />
+              {product.category}
+            </p>
+            <h1 className="mt-3 break-words font-display text-[clamp(2.6rem,6vw,4.75rem)] font-black uppercase leading-[0.88] text-chalk stretch-125">
               {product.name}
             </h1>
 
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-3xl font-semibold text-ink">
-                {unitPrice} <span className="text-base font-medium text-stone">MAD</span>
-              </span>
-              <span className="text-lg text-stone line-through">{Math.ceil(product.price * 1.2)} MAD</span>
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <Plate size="lg" left={unitPrice} letter="د.م" right="MAD" aria-label={`${unitPrice} MAD`} />
+              <span className="font-mono text-lg font-bold text-smoke line-through">{Math.ceil(product.price * 1.2)} MAD</span>
             </div>
-            <p className="mt-1 text-sm text-stone">
+            <p className="mt-3 text-sm text-smoke">
               Pay cash on delivery · <span className="font-ar">الخلاص عند الاستلام</span>
             </p>
 
-            <p className="mt-7 text-[15px] leading-relaxed text-ink/80 md:text-base">{description}</p>
+            <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 md:text-base">{description}</p>
 
-            <dl className="mt-8 border-t border-line">
-              <SpecRow
-                label="Size"
-                labelAr="القياس"
-                value={dimensionsLabel}
-                note="120 × 50 cm or a custom size? Message us before ordering."
-              />
-              <SpecRow label="Material" labelAr="المادة" value="Alucobond, 3 mm aluminium composite" note="Light, rigid, weather-resistant." />
-              <SpecRow label="Finish" labelAr="الفينيسيون" value="UV-printed · Matte · Pre-drilled" note="Ready to hang, no frame needed." />
-            </dl>
+            {/* Telemetry-style spec sheet */}
+            <div className="mt-7 grid grid-cols-2 gap-2.5">
+              <SpecTile label="Size" labelAr="القياس" value={dimensionsLabel} accent />
+              <SpecTile label="Material" labelAr="المادة" value="Alucobond 3 mm" />
+              <SpecTile label="Finish" labelAr="الطباعة" value="UV matte" />
+              <SpecTile label="Mount" labelAr="التعليق" value="Pre-drilled" />
+              <SpecTile label="Delivery" labelAr="التوصيل" value="24h – 3 days" />
+              <SpecTile label="Payment" labelAr="الخلاص" value="Cash on delivery" />
+            </div>
+            <p className="mt-2.5 text-xs text-smoke">120 × 50 cm or a custom size? Message us before ordering.</p>
 
-            {/* Quantity + total */}
-            <div className="mt-8 flex items-center justify-between">
-              <div className="inline-flex items-center rounded-sm border border-line bg-paper">
+            {/* Quantity — paddle shifters */}
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
-                  className="flex h-12 w-12 items-center justify-center text-xl text-ink hover:bg-wall disabled:opacity-30 disabled:hover:bg-transparent"
                   aria-label="Decrease quantity"
+                  className="flex h-16 w-14 flex-col items-center justify-center rounded-l-[28px] rounded-r-md bg-carbon-2 text-chalk ring-1 ring-white/10 transition-colors hover:bg-carbon-3 active:bg-redline disabled:opacity-30 disabled:hover:bg-carbon-2"
                 >
-                  −
+                  <span className="text-2xl leading-none">−</span>
+                  <span className="mt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-smoke">Down</span>
                 </button>
-                <span className="min-w-[2.5rem] text-center text-base font-medium text-ink" aria-live="polite">
-                  {quantity}
-                </span>
+                <div className="flex h-16 min-w-[5.5rem] flex-col items-center justify-center rounded-lg bg-black px-3 ring-1 ring-white/10 shadow-[inset_0_0_24px_rgba(229,32,12,0.18)]">
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-smoke">Qty</span>
+                  <span aria-live="polite" className="font-display text-4xl font-black leading-none text-redline-hot tabular-nums stretch-75">
+                    {quantity}
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-12 w-12 items-center justify-center text-xl text-ink hover:bg-wall"
                   aria-label="Increase quantity"
+                  className="flex h-16 w-14 flex-col items-center justify-center rounded-l-md rounded-r-[28px] bg-carbon-2 text-chalk ring-1 ring-white/10 transition-colors hover:bg-carbon-3 active:bg-redline"
                 >
-                  +
+                  <span className="text-2xl leading-none">+</span>
+                  <span className="mt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-smoke">Up</span>
                 </button>
               </div>
               {quantity > 1 && (
-                <p className="text-sm text-stone">
-                  Total <span className="font-semibold text-ink">{totalPrice} MAD</span>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-smoke">
+                  Total <span className="font-display text-xl font-black text-chalk">{totalPrice} MAD</span>
                 </p>
               )}
             </div>
 
             {/* CTAs */}
             <div className="mt-6 space-y-3">
-              <button onClick={buyNow} disabled={!product.inStock} className={`${btnDark} w-full`}>
+              <button onClick={buyNow} disabled={!product.inStock} className={`${btnPrimary} w-full`}>
                 {product.inStock ? (
                   <>
-                    Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-80">· شري دابا</span>
+                    Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-90">· شري دابا</span>
                   </>
                 ) : (
                   t('unavailable')
                 )}
               </button>
-              <button onClick={addAll} disabled={!product.inStock} className={`${btnGhostLight} w-full`}>
+              <button onClick={addAll} disabled={!product.inStock} className={`${btnGhostDark} w-full`}>
                 {t('addToCart')} <span className="font-ar text-sm normal-case tracking-normal opacity-80">· زيد للسلة</span>
               </button>
               <a
                 href={whatsappOrder}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#128C4B] hover:underline hover:underline-offset-4"
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#2BD96B] hover:underline hover:underline-offset-4"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12.04 2a9.9 9.9 0 00-8.5 15l-1.4 5 5.1-1.3A9.9 9.9 0 1012.04 2zm5.8 14.1c-.25.7-1.45 1.33-2 1.4-.52.08-1.17.11-1.88-.12a17 17 0 01-1.7-.63c-2.98-1.29-4.93-4.3-5.08-4.5-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.6-.37.8-.37h.57c.18 0 .43-.07.67.51.25.6.84 2.06.92 2.2.07.15.12.33.02.53-.1.2-.15.32-.3.5l-.44.52c-.15.15-.3.3-.13.6.17.3.77 1.27 1.66 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.07.17-.2.74-.87.94-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.07.12.07.72-.17 1.42z" />
@@ -382,26 +421,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </a>
             </div>
 
-            {/* Assurance */}
-            <ul className="mt-6 grid grid-cols-3 gap-2 border-y border-line py-5 text-center">
-              {[
-                ['Cash on delivery', 'الخلاص فالدار'],
-                ['24h – 3 days', 'التوصيل لكاع المغرب'],
-                ['Made in Rabat', 'صنع فالمغرب'],
-              ].map(([en, ar]) => (
-                <li key={en} className="px-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink sm:text-[11px]">{en}</p>
-                  <p className="mt-0.5 font-ar text-xs text-stone sm:text-sm">{ar}</p>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-2">
+            <div className="mt-4">
               <Details title="Delivery & payment" titleAr="التوصيل والخلاص">
                 Delivered in 24 hours to 3 days anywhere in Morocco, with a tracking number once it ships. You pay cash when the piece arrives.
               </Details>
               <Details title="Hanging & care" titleAr="التعليق والعناية">
-                The panel comes pre-drilled — bolt it straight to the wall. Keep it away from direct sun and moisture and wipe with a soft, dry cloth.
+                The panel comes pre-drilled — bolt it straight to the wall, no frame needed. Keep it away from direct sun and moisture and wipe with a soft, dry cloth.
               </Details>
               <Details title="Returns" titleAr="الإرجاع">
                 Every piece is printed for your order, so we can&apos;t accept returns. Message us on WhatsApp with any question before ordering.
@@ -412,20 +437,25 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Related */}
         {related.length > 0 && (
-          <section className="mt-24 border-t border-line py-20 md:mt-32">
+          <section className="mt-24 border-t border-white/10 py-20 md:mt-32">
             <div className="mb-10 flex items-end justify-between gap-6">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">You may also like</p>
-                <h2 className="mt-2 font-display text-4xl font-medium text-ink md:text-5xl">More from the gallery</h2>
-                <p className="mt-1 font-ar text-lg text-stone">حتى هادو غادي يعجبوك</p>
+                <p className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">
+                  <span className="h-[2px] w-8 bg-redline" />
+                  You may also like
+                </p>
+                <h2 className="mt-3 font-display text-4xl font-black uppercase leading-none text-chalk stretch-125 md:text-6xl">
+                  More from the grid
+                </h2>
+                <p className="mt-2 font-ar text-lg text-smoke">حتى هادو غادي يعجبوك</p>
               </div>
-              <Link href="/shop" className="hidden text-[12px] font-semibold uppercase tracking-[0.16em] text-ink underline decoration-brass-light underline-offset-[6px] hover:text-brass sm:block">
-                See all
+              <Link href="/shop" className="hidden font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-chalk underline decoration-redline decoration-2 underline-offset-[6px] hover:text-redline-hot sm:block">
+                All cars
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
-              {related.map((p) => (
-                <ProductCard key={p._id} product={p} />
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 lg:grid-cols-4">
+              {related.map((p, i) => (
+                <ProductCard key={p._id} product={p} index={i} />
               ))}
             </div>
           </section>
@@ -434,17 +464,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Mobile sticky buy bar */}
       {product.inStock && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ivory/95 px-4 py-3 backdrop-blur-xl md:hidden"
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-asphalt/90 px-4 pt-3 backdrop-blur-xl md:hidden"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-lg font-medium leading-tight text-ink">{product.name}</p>
-              <p className="text-sm font-semibold text-ink">
-                {totalPrice} <span className="text-xs font-medium text-stone">MAD</span>
+              <p className="truncate font-display text-sm font-extrabold uppercase text-chalk stretch-125">{product.name}</p>
+              <p className="font-display text-lg font-black leading-tight text-chalk">
+                {totalPrice} <span className="font-mono text-[10px] font-bold text-smoke">MAD</span>
               </p>
             </div>
-            <button onClick={buyNow} className="rounded-sm bg-ink px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-ivory">
+            <button onClick={buyNow} className="chamfer-sm min-h-[48px] bg-redline px-5 font-display text-[12px] font-black uppercase tracking-[0.12em] text-white stretch-125 active:bg-redline-hot">
               Buy now <span className="font-ar text-sm normal-case tracking-normal">· شري</span>
             </button>
           </div>

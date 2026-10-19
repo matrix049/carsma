@@ -1,148 +1,198 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
+import TransitionLink from '@/components/TransitionLink';
+import LaunchButton from '@/components/LaunchButton';
+import NightDrive from '@/components/NightDrive';
+import Plate from '@/components/Plate';
+import WheelLoader from '@/components/WheelLoader';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
-import WheelLoader from '@/components/WheelLoader';
-import { btnDark, btnGhostLight, whatsappLink } from '@/lib/uiStyles';
+import { btnPrimary, btnGhostDark, whatsappLink } from '@/lib/uiStyles';
 import { applyPin } from '@/lib/pinnedProducts';
 import { NEW_EDITIONS, NewEdition, matchEditions, isNewEdition } from '@/lib/newEditions';
+import { dimensionsOf } from '@/lib/dimensions';
 
 const HERO_IMAGE =
   'https://res.cloudinary.com/dwknjjv0b/image/upload/f_auto,q_auto/l7it/site/home-hero-911.png';
 
-const ArrowRight = () => (
-  <svg
-    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+const Arrow = () => (
+  <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M4 12h15" />
   </svg>
 );
 
-/** Fade-up on first scroll into view. */
-function Reveal({
-  children,
-  delay = 0,
-  className,
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+function Kicker({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
-    >
+    <p className={`flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot ${className}`}>
+      <span className="h-[2px] w-8 bg-redline" />
       {children}
-    </motion.div>
+    </p>
   );
 }
 
-function SectionHeading({
-  kicker,
-  title,
-  arabic,
-  align = 'left',
-}: {
-  kicker: string;
-  title: React.ReactNode;
-  arabic?: string;
-  align?: 'left' | 'center';
-}) {
-  const centered = align === 'center';
+/* ----------------------------------------------------------------------------
+ * Hero HUD — a speed readout that "launches" 0 → 299 on load.
+ * --------------------------------------------------------------------------*/
+
+function SpeedHud() {
+  const speedRef = useRef<HTMLSpanElement>(null);
+  const gearRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const set = (v: number) => {
+      if (speedRef.current) speedRef.current.textContent = String(v).padStart(3, '0');
+      if (gearRef.current) gearRef.current.textContent = String(Math.min(8, 1 + Math.floor((v / 299) * 7.99)));
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      set(299);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now() + 700;
+    const tick = (now: number) => {
+      const p = Math.max(0, Math.min(1, (now - t0) / 2600));
+      set(Math.round((1 - Math.pow(1 - p, 3)) * 299));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   return (
-    <div className={centered ? 'mx-auto max-w-3xl text-center' : ''}>
-      <div className={`mb-4 flex items-center gap-3 ${centered ? 'justify-center' : ''}`}>
-        <span className="h-px w-8 bg-brass-light" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">{kicker}</span>
-        {centered && <span className="h-px w-8 bg-brass-light" />}
-      </div>
-      <h2 className="font-display text-[clamp(2.4rem,5.5vw,4.5rem)] font-medium leading-[1.02] tracking-tight text-ink">
-        {title}
-      </h2>
-      {arabic && (
-        <p className={`mt-3 w-fit font-ar text-lg text-stone md:text-xl ${centered ? 'mx-auto' : ''}`} dir="rtl">
-          {arabic}
+    <div aria-hidden="true" className="chamfer-sm hidden items-stretch bg-asphalt/60 font-mono text-chalk shadow-[inset_0_0_0_1px_rgba(244,244,240,0.12)] backdrop-blur-md md:flex">
+      <div className="px-4 py-2.5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-smoke">Ambition</p>
+        <p className="font-display text-4xl font-black leading-none tabular-nums stretch-75">
+          <span ref={speedRef}>000</span>
+          <span className="ml-1 font-mono text-[10px] font-bold text-smoke">KM/H</span>
         </p>
-      )}
+      </div>
+      <div className="flex flex-col justify-center border-l border-white/10 px-4">
+        <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-smoke">Gear</p>
+        <p className="font-display text-4xl font-black leading-none text-redline-hot stretch-75">
+          <span ref={gearRef}>1</span>
+        </p>
+      </div>
     </div>
   );
 }
 
 /* ----------------------------------------------------------------------------
- * New edition spotlight — real product once it exists, "coming soon" before
+ * Crossed racing tapes
  * --------------------------------------------------------------------------*/
 
-function EditionPanel({ edition, product }: { edition: NewEdition; product?: Product }) {
-  const { addToCart } = useCart();
-  const dimensions = (product?.dimensions || '').trim() || '120cm x 35cm';
+const TAPE_EN = ['Cash on delivery', 'Delivery 24h – 3 days', 'All Morocco', 'Made in Rabat', 'Ready to hang', 'Alucobond 3 mm'];
+const TAPE_AR = ['الخلاص عند الاستلام', 'التوصيل لكاع المغرب', 'صنع فالرباط', 'جاهزة للتعليق', 'علّق الحلم'];
 
-  const visual = (
-    <div className="wall-light relative aspect-[4/3] overflow-hidden ring-1 ring-line">
+function Tape({ items, className, reverse, arabic }: { items: string[]; className: string; reverse?: boolean; arabic?: boolean }) {
+  const row = [...items, ...items, ...items];
+  return (
+    <div aria-hidden="true" className={`absolute left-[-5%] w-[110%] overflow-hidden py-3 ${className}`}>
+      <div className={`flex w-max ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'} [--marquee-duration:42s]`}>
+        {[0, 1].map((copy) => (
+          <ul key={copy} className="flex shrink-0 items-center">
+            {row.map((item, i) => (
+              <li
+                key={i}
+                className={`flex items-center gap-6 pr-6 ${
+                  arabic ? 'font-ar text-lg font-bold' : 'font-display text-lg font-black uppercase tracking-[0.06em] stretch-125'
+                }`}
+              >
+                {item}
+                <span className="text-sm">✦</span>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * New drops — the two 3D editions, revealed like a car launch
+ * --------------------------------------------------------------------------*/
+
+function EditionStage({ edition, product }: { edition: NewEdition; product?: Product }) {
+  const { addToCart } = useCart();
+
+  const stage = (
+    <div className="relative aspect-[4/3] overflow-hidden bg-carbon-2">
+      {/* spotlight + floor */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_70%_at_50%_0%,rgba(244,244,240,0.16),transparent_70%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-black/60" />
+      <div className="absolute bottom-[14%] left-1/2 h-6 w-2/3 -translate-x-1/2 rounded-[100%] bg-black/70 blur-xl" />
+
       {product?.image ? (
         <img
+          data-vt-img
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
           onError={hideBrokenImage}
         />
       ) : (
-        <div className="zellige absolute inset-0 flex flex-col items-center justify-center">
-          <span
-            className="font-display text-[clamp(4.5rem,13vw,9.5rem)] font-semibold leading-none text-transparent"
-            style={{ WebkitTextStroke: '1.25px #16130F' }}
-          >
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="whitespace-nowrap font-display text-[13vw] font-black uppercase leading-none text-chalk text-outline stretch-100 sm:text-[clamp(4rem,9vw,8rem)] sm:stretch-125">
             {edition.mark}
           </span>
-          <span className="mt-1 font-display text-3xl italic text-brass md:text-4xl">in 3D</span>
+          <span className="mt-2 rounded-sm bg-volt px-2 py-0.5 font-display text-2xl font-black text-asphalt stretch-150">3D</span>
         </div>
       )}
-      <span className="absolute left-4 top-4 bg-ivory px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink">
-        {product ? 'New edition' : 'Coming soon · قريبا'}
-      </span>
+
+      {/* Car cover, pulled off as the panel scrolls in (scroll-driven, progressive) */}
+      <div aria-hidden="true" className="sd-uncover absolute inset-0 z-10 bg-[linear-gradient(118deg,#1d1d22_0%,#3b3b44_22%,#1f1f25_40%,#4a4a54_58%,#22222a_76%,#34343c_100%)]">
+        <div className="flex h-full items-center justify-center">
+          <span className="font-display text-5xl font-black uppercase text-white/10 stretch-150">L7IT</span>
+        </div>
+      </div>
+
+      <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+        <span className="rounded-sm bg-volt px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-asphalt">
+          {product ? 'New drop' : 'Dropping soon · قريبا'}
+        </span>
+        <span className="rounded-sm bg-asphalt/70 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-chalk">
+          N°{edition.number} · 3D
+        </span>
+      </div>
     </div>
   );
 
   return (
-    <article className="group flex flex-col">
-      {product ? <Link href={`/product/${product._id}`}>{visual}</Link> : visual}
-
-      <div className="mt-6 flex flex-1 flex-col">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brass">
-          Edition N° {edition.number}
-        </p>
-        <h3 className="mt-2 font-display text-4xl font-medium leading-none text-ink md:text-5xl">
-          {product?.name ?? edition.title}
-        </h3>
-        <p className="mt-3 max-w-md text-[15px] leading-relaxed text-stone">{edition.tagline}</p>
-        <p className="mt-1 w-fit font-ar text-base text-stone" dir="rtl">
-          {edition.taglineAr}
-        </p>
-
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+    <article className="group overflow-hidden rounded-2xl bg-carbon ring-1 ring-white/10">
+      {product ? (
+        <TransitionLink href={`/product/${product._id}`} aria-label={`${product.name} — view`}>
+          {stage}
+        </TransitionLink>
+      ) : (
+        stage
+      )}
+      <div className="flex flex-col gap-4 p-5 sm:p-7">
+        <div>
+          <h3 className="font-display text-4xl font-black uppercase leading-[0.9] text-chalk stretch-125 sm:text-5xl">
+            {product?.name ?? edition.title}
+          </h3>
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-smoke">{edition.tagline}</p>
+          <p className="mt-1 w-fit font-ar text-base text-chalk/80" dir="rtl">
+            {edition.taglineAr}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
           {product ? (
             <>
-              <span className="text-2xl font-semibold text-ink">
-                {product.price} <span className="text-sm font-medium text-stone">MAD</span>
-              </span>
-              <Link href={`/product/${product._id}`} className={btnDark}>
-                View the piece
-                <ArrowRight />
-              </Link>
+              <Plate size="md" left={product.price} letter="د.م" right="MAD" aria-label={`${product.price} MAD`} />
+              <TransitionLink href={`/product/${product._id}`} className={btnPrimary}>
+                View the build
+                <Arrow />
+              </TransitionLink>
               {product.inStock && (
                 <button
-                  onClick={() => addToCart(product, 'M', dimensions)}
-                  className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink underline decoration-brass-light underline-offset-[6px] hover:text-brass"
+                  onClick={() => addToCart(product, 'M', dimensionsOf(product))}
+                  className="px-2 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-chalk underline decoration-redline decoration-2 underline-offset-[6px] hover:text-redline-hot"
                 >
                   Add to cart
                 </button>
@@ -153,10 +203,13 @@ function EditionPanel({ edition, product }: { edition: NewEdition; product?: Pro
               href={whatsappLink(`Salam L7it, bghit nreservi ${edition.title} mli tkhrej.`)}
               target="_blank"
               rel="noopener noreferrer"
-              className={btnDark}
+              className={`${btnPrimary} w-full sm:w-auto`}
             >
-              Reserve on WhatsApp
-              <span className="font-ar text-sm normal-case tracking-normal opacity-80">· حجز</span>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12.04 2a9.9 9.9 0 00-8.5 15l-1.4 5 5.1-1.3A9.9 9.9 0 1012.04 2zm5.8 14.1c-.25.7-1.45 1.33-2 1.4-.52.08-1.17.11-1.88-.12a17 17 0 01-1.7-.63c-2.98-1.29-4.93-4.3-5.08-4.5-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.6-.37.8-.37h.57c.18 0 .43-.07.67.51.25.6.84 2.06.92 2.2.07.15.12.33.02.53-.1.2-.15.32-.3.5l-.44.52c-.15.15-.3.3-.13.6.17.3.77 1.27 1.66 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.07.17-.2.74-.87.94-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.07.12.07.72-.17 1.42z" />
+              </svg>
+              Reserve<span className="hidden sm:inline"> on WhatsApp</span>
+              <span className="font-ar text-sm normal-case tracking-normal opacity-90">· حجز</span>
             </a>
           )}
         </div>
@@ -166,51 +219,96 @@ function EditionPanel({ edition, product }: { edition: NewEdition; product?: Pro
 }
 
 /* ----------------------------------------------------------------------------
+ * Brand marquee — every brand on the grid, links into the filtered garage
+ * --------------------------------------------------------------------------*/
+
+function BrandMarquee({ brands }: { brands: string[] }) {
+  if (!brands.length) return null;
+  const row = brands.length < 6 ? [...brands, ...brands, ...brands] : [...brands, ...brands];
+  return (
+    <div className="group/marquee relative overflow-hidden border-y border-white/10 py-6 md:py-10">
+      <div className="flex w-max animate-marquee [--marquee-duration:55s] group-hover/marquee:[animation-play-state:paused] group-focus-within/marquee:[animation-play-state:paused]">
+        {[0, 1].map((copy) => (
+          <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center">
+            {row.map((brand, i) => (
+              <li key={`${brand}-${i}`} className="flex items-center">
+                <Link
+                  href={`/shop?category=${encodeURIComponent(brand)}`}
+                  tabIndex={copy === 1 || i >= brands.length ? -1 : undefined}
+                  className="px-5 font-display text-[clamp(3rem,9vw,7.5rem)] font-black uppercase leading-none text-chalk text-outline transition-colors duration-200 stretch-150 hover:text-redline hover:[-webkit-text-stroke-color:#E5200C] focus-visible:text-redline focus-visible:outline-none md:px-8"
+                >
+                  {brand}
+                </Link>
+                <span aria-hidden="true" className="h-3 w-3 rotate-45 bg-redline" />
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * Custom build — type your dream car on a Moroccan plate, send it on WhatsApp
+ * --------------------------------------------------------------------------*/
+
+function PlateBuilder() {
+  const [car, setCar] = useState('');
+  const message = `Salam L7it, bghit lawha custom dyal: ${car.trim() || '...'}`;
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        window.open(whatsappLink(message), '_blank', 'noopener,noreferrer');
+      }}
+      className="flex w-full max-w-2xl flex-col items-stretch gap-4"
+    >
+      <label htmlFor="dream-car" className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-smoke">
+        Type your dream car
+        <span className="font-ar text-sm normal-case tracking-normal">· كتب الطوموبيل ديال حلامك</span>
+      </label>
+      <div
+        dir="ltr"
+        className="flex items-stretch overflow-hidden rounded-[10px] border-[3px] border-asphalt bg-white text-asphalt shadow-[0_6px_0_rgba(0,0,0,0.5),0_0_0_3px_#F4F4F0] transition-shadow focus-within:shadow-[0_6px_0_rgba(0,0,0,0.5),0_0_0_3px_#F4F4F0,0_0_0_8px_rgba(229,32,12,0.6)]"
+      >
+        <input
+          id="dream-car"
+          value={car}
+          onChange={(e) => setCar(e.target.value)}
+          maxLength={22}
+          autoComplete="off"
+          placeholder="GOLF 8 R"
+          size={1}
+          className="w-0 min-w-0 flex-1 bg-transparent px-4 py-3 font-mono text-xl font-bold uppercase text-asphalt placeholder:text-asphalt/30 focus:outline-none sm:text-3xl"
+        />
+        <span aria-hidden="true" className="flex items-center border-x-[3px] border-asphalt px-3 font-ar text-xl font-bold sm:px-4 sm:text-3xl">ح</span>
+        <span aria-hidden="true" className="flex items-center px-3 font-mono text-xl font-bold sm:px-5 sm:text-3xl">1</span>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button type="submit" className={`${btnPrimary} sm:flex-1`}>
+          Send it on WhatsApp
+          <Arrow />
+        </button>
+        <Link href="/customize" className={btnGhostDark}>
+          Full custom form
+        </Link>
+      </div>
+    </form>
+  );
+}
+
+/* ----------------------------------------------------------------------------
  * Page
  * --------------------------------------------------------------------------*/
 
-const TRUST = [
-  {
-    title: 'Cash on delivery',
-    ar: 'الخلاص عند الاستلام',
-    icon: 'M3 7h18v10H3zM7 12h.01M17 12h.01M12 14.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
-  },
-  {
-    title: '24h – 3 days delivery',
-    ar: 'التوصيل لكاع المغرب',
-    icon: 'M3 7h11v9H3zM14 10h4l3 3v3h-7M7 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
-  },
-  {
-    title: 'Ready to mount',
-    ar: 'جاهزة للتعليق',
-    icon: 'M4 5h16v12H4zM9 21h6M12 17v4M8 9h.01M16 9h.01',
-  },
-  {
-    title: 'Made in Rabat',
-    ar: 'صنع فالرباط',
-    icon: 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
-  },
-];
+const MANIFESTO = 'Every dream car started as a picture on someone’s wall.';
 
-const CRAFT = [
-  {
-    n: '01',
-    title: 'Drawn',
-    body: 'Every car is redrawn by hand in our Rabat studio — lines, reflections, stance.',
-    ar: 'كل طوموبيل كترسم باليد فالأتولي ديالنا فالرباط.',
-  },
-  {
-    n: '02',
-    title: 'Printed',
-    body: 'UV-printed with a matte finish on 3 mm Alucobond aluminium composite — light, rigid, built to last.',
-    ar: 'طباعة UV ماط على ألوكوبوند 3 ملم، خفيفة وقوية.',
-  },
-  {
-    n: '03',
-    title: 'Delivered',
-    body: 'Pre-drilled and ready to hang. Delivered in 24h to 3 days — you pay when it arrives.',
-    ar: 'مثقوبة وجاهزة، كتوصلك من 24 ساعة ل 3 أيام وكتخلص فالدار.',
-  },
+const STEPS = [
+  { n: '01', title: 'Hang it', body: 'Put it where you see it every single morning.', ar: 'علّقها فين كتشوفها كل صباح.' },
+  { n: '02', title: 'Chase it', body: 'Early alarms, late nights. Now they have a reason.', ar: 'خدم، صبر، وكل نهار قرّب شوية.' },
+  { n: '03', title: 'Park it', body: 'The day the real one is outside, the wall was right.', ar: 'ونهار تولي ديالك، غادي تعقل منين بديتي.' },
 ];
 
 export default function Home() {
@@ -233,161 +331,176 @@ export default function Home() {
   }, []);
 
   const editionProducts = matchEditions(products);
-  const collection = products.filter((p) => !isNewEdition(p.name)).slice(0, 8);
+  const grid = products.filter((p) => !isNewEdition(p.name)).slice(0, 8);
+
+  // Brands, most cars on the grid first.
+  const brandCounts = new Map<string, number>();
+  products.forEach((p) => {
+    if (p.category) brandCounts.set(p.category, (brandCounts.get(p.category) || 0) + 1);
+  });
+  const brands = Array.from(brandCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([b]) => b);
 
   return (
-    <div className="bg-ivory text-ink">
+    <div className="bg-asphalt text-chalk">
       {/* ─────────────────────────────────────────────────────────────────
-       * HERO — headline + the 911 hung on a gallery wall
+       * HERO — night drive
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pb-16 pt-32 md:pb-24 md:pt-40">
-        <div className="container mx-auto grid max-w-7xl items-center gap-12 px-5 md:grid-cols-12 lg:px-10">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
-            className="md:col-span-6"
-          >
-            {[
-              <div key="k" className="mb-6 flex items-center gap-3">
-                <span className="h-px w-8 bg-brass-light" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">
-                  Maison L7it · Rabat
-                </span>
-              </div>,
-              <h1
-                key="h"
-                className="font-display text-[clamp(3rem,6.2vw,5.5rem)] font-medium leading-[0.98] tracking-tight text-ink"
-              >
-                Automotive art,
-                <br />
-                <em className="font-normal text-brass">made for your wall.</em>
-              </h1>,
-              <p key="ar" className="mt-6 w-fit font-ar text-xl leading-relaxed text-ink/80 md:text-2xl" dir="rtl">
-                لوحات ديال الطوموبيلات لي كتعجبك، مصنوعة فالمغرب للحيط ديالك.
-              </p>,
-              <p key="p" className="mt-4 max-w-md text-base leading-relaxed text-stone md:text-lg">
-                Hand-drawn pieces, UV-printed on 3&nbsp;mm Alucobond. Pre-drilled, delivered to your door, paid on arrival.
-              </p>,
-              <div key="cta" className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/shop" className={btnDark}>
-                  Discover the collection
-                  <ArrowRight />
-                </Link>
-                <Link href="/customize" className={btnGhostLight}>
-                  Your own car
-                </Link>
-              </div>,
-            ].map((child, i) => (
-              <motion.div
-                key={i}
-                variants={{
-                  hidden: { opacity: 0, y: 24 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } },
-                }}
-              >
-                {child}
-              </motion.div>
-            ))}
-          </motion.div>
+      <section className="relative flex min-h-[100svh] flex-col overflow-hidden">
+        <NightDrive className="absolute inset-0 h-full w-full" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,transparent_35%,rgba(10,10,11,0.85)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-asphalt" />
+        <div className="grain pointer-events-none absolute inset-0" />
 
-          <motion.figure
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-6"
-          >
-            <div className="wall-light relative flex aspect-[5/4] items-center justify-center overflow-hidden ring-1 ring-line">
-              {/* floor line + contact shadow */}
-              <div className="absolute inset-x-0 bottom-0 h-[18%] bg-gradient-to-b from-[#E2D9C9] to-[#D9CFBD]" />
-              <motion.img
+        <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-5 pb-8 pt-28 sm:px-6 md:pb-12 md:pt-36 lg:px-10">
+          <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-smoke">
+            <span>N°001 / Night drive</span>
+            <span className="hidden sm:inline">34.02°N 6.84°W · Rabat</span>
+          </div>
+
+          <div className="relative flex flex-1 flex-col justify-center py-6 md:py-10">
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}
+              className="relative z-10"
+            >
+              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+                <Kicker>
+                  Wall art for car people
+                  <span className="hidden font-ar text-[13px] normal-case tracking-normal sm:inline">· لعشاق الطوموبيلات</span>
+                </Kicker>
+              </motion.div>
+              <h1 className="mt-5 font-display font-black uppercase leading-[0.82] tracking-[-0.02em]">
+                <motion.span
+                  variants={{ hidden: { opacity: 0, x: -60 }, show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
+                  className="block text-[clamp(2.9rem,11vw,9.5rem)] stretch-100 md:stretch-125"
+                >
+                  Hang the
+                </motion.span>
+                <motion.span
+                  variants={{ hidden: { opacity: 0, x: -120, filter: 'blur(10px)' }, show: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } } }}
+                  className="block text-[21vw] stretch-100 sm:text-[17vw] sm:stretch-125 lg:text-[15vw] lg:stretch-150 2xl:text-[13.5rem]"
+                >
+                  Dream<span className="text-redline">.</span>
+                </motion.span>
+              </h1>
+              <motion.p
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                className="mt-4 font-display text-xl font-extrabold uppercase text-chalk/90 stretch-125 sm:text-2xl md:text-3xl"
+              >
+                Then go get it.
+              </motion.p>
+              <motion.p
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                className="mt-2 w-fit font-ar text-lg text-smoke sm:text-xl"
+                dir="rtl"
+              >
+                علّق الحلم فالحيط… ومن بعد سير جيبو.
+              </motion.p>
+            </motion.div>
+
+            {/* The car, launching in from the left */}
+            <motion.div
+              initial={{ x: '-60vw', opacity: 0, filter: 'blur(14px)' }}
+              animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
+              transition={{ duration: 1.6, delay: 0.35, ease: [0.12, 0.9, 0.2, 1] }}
+              className="pointer-events-none relative mt-6 w-full md:absolute md:bottom-0 md:right-[-4%] md:mt-0 md:w-[58%] lg:right-0 lg:w-[52%]"
+            >
+              <div className="absolute inset-x-[12%] bottom-[8%] h-8 rounded-[100%] bg-redline/40 blur-2xl" />
+              <img
                 src={HERO_IMAGE}
-                alt="Porsche 911 wall art"
+                alt="Porsche 911 GT3 wall art"
                 loading="eager"
                 draggable={false}
-                initial={{ x: '-12%', opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                className="relative z-10 -mt-[8%] w-[92%] select-none object-contain drop-shadow-[0_28px_28px_rgba(22,19,15,0.28)]"
+                className="relative w-full select-none object-contain drop-shadow-[0_30px_30px_rgba(0,0,0,0.6)]"
               />
-            </div>
-            <figcaption className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.2em] text-stone">
-              <span>N° 001 — Porsche 911</span>
-              <span>120 × 35 cm · Alucobond</span>
-            </figcaption>
-          </motion.figure>
+            </motion.div>
+          </div>
+
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <SpeedHud />
+            <LaunchButton href="/shop" label="Enter the garage" hint="Hold for launch control" className="w-full sm:w-auto" />
+          </div>
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
-       * TRUST STRIP
+       * Crossed racing tapes
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="border-y border-line bg-paper">
-        <ul className="container mx-auto grid max-w-7xl grid-cols-2 gap-y-6 px-5 py-7 md:grid-cols-4 lg:px-10">
-          {TRUST.map((item) => (
-            <li key={item.title} className="flex items-center gap-3 md:justify-center">
-              <svg className="h-6 w-6 flex-none text-brass" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d={item.icon} />
-              </svg>
-              <div className="leading-tight">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink">{item.title}</p>
-                <p className="font-ar text-sm text-stone">{item.ar}</p>
-              </div>
-            </li>
-          ))}
+      <section aria-label="Delivery and payment" className="relative h-36 overflow-hidden md:h-44">
+        <Tape items={TAPE_EN} className="top-6 -rotate-[3deg] bg-redline text-white md:top-8" />
+        <Tape items={TAPE_AR} arabic reverse className="top-[4.5rem] rotate-[2.5deg] bg-chalk text-asphalt md:top-[5.5rem]" />
+        <ul className="sr-only">
+          <li>Cash on delivery</li>
+          <li>Delivery in 24 hours to 3 days, all over Morocco</li>
+          <li>Made in Rabat, ready to hang</li>
         </ul>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
-       * NEW EDITIONS — the two pieces we're focusing on
+       * NEW DROPS — G-Class 3D + 911 3D
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="px-5 py-24 md:py-32 lg:px-10">
-        <div className="container mx-auto max-w-7xl">
-          <Reveal>
-            <SectionHeading
-              kicker="New editions"
-              title={
-                <>
-                  Two icons, <em className="font-normal text-brass">now in 3D.</em>
-                </>
-              }
-              arabic="جوج ديال الإصدارات الجداد بتقنية 3D"
-            />
-          </Reveal>
+      <section className="px-5 py-20 sm:px-6 md:py-28 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <div className="sd-reveal flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <Kicker>New drop · 3D editions</Kicker>
+              <h2 className="mt-4 font-display text-[clamp(2.6rem,8vw,6.5rem)] font-black uppercase leading-[0.86] stretch-125">
+                Two icons.
+                <br />
+                <span className="text-outline-red">Now in 3D.</span>
+              </h2>
+            </div>
+            <p className="w-fit font-ar text-lg text-smoke md:text-xl" dir="rtl">
+              جوج ديال الإصدارات الجداد بـ 3D
+            </p>
+          </div>
 
-          <div className="mt-14 grid gap-16 md:grid-cols-2 md:gap-10 lg:gap-14">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 md:gap-8">
             {NEW_EDITIONS.map((edition, i) => (
-              <Reveal key={edition.key} delay={i * 0.12}>
-                <EditionPanel edition={edition} product={editionProducts[i]} />
-              </Reveal>
+              <div key={edition.key} className="sd-reveal">
+                <EditionStage edition={edition} product={editionProducts[i]} />
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
-       * THE COLLECTION
+       * THE GRID — collection
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="bg-paper px-5 py-24 md:py-32 lg:px-10">
-        <div className="container mx-auto max-w-7xl">
-          <Reveal className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
-            <SectionHeading kicker="The collection" title="From the gallery" arabic="من الݣالوري ديالنا" />
-            <Link href="/shop" className={`${btnGhostLight} self-start md:self-end`}>
-              See all pieces
-              <ArrowRight />
+      <section className="relative bg-carbon px-5 py-20 sm:px-6 md:py-28 lg:px-10">
+        <div className="speed-lines pointer-events-none absolute inset-0" />
+        <div className="relative mx-auto max-w-[1440px]">
+          <div className="sd-reveal mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+            <div>
+              <Kicker>The grid</Kicker>
+              <h2 className="mt-4 font-display text-[clamp(2.6rem,8vw,6.5rem)] font-black uppercase leading-[0.86] stretch-125">
+                Pick your <span className="text-redline">pole.</span>
+              </h2>
+              <p className="mt-3 flex flex-wrap items-center gap-3 text-sm text-smoke">
+                <span className="rounded-sm bg-timing-purple px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">P1–P4</span>
+                Most wanted right now · <span className="font-ar text-base">الأكثر طلبا</span>
+              </p>
+            </div>
+            <Link href="/shop" className={`${btnGhostDark} self-start md:self-end`}>
+              See all cars
+              <Arrow />
             </Link>
-          </Reveal>
+          </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <WheelLoader size="lg" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
-              {collection.map((p, i) => (
-                <Reveal key={p._id} delay={(i % 4) * 0.06}>
-                  <ProductCard product={p} />
-                </Reveal>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
+              {grid.map((p, i) => (
+                <div key={p._id} className="sd-reveal">
+                  <ProductCard product={p} index={i} />
+                </div>
               ))}
             </div>
           )}
@@ -395,72 +508,140 @@ export default function Home() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
-       * CRAFT — how a piece is made
+       * Brands
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-ink px-5 py-24 text-ivory md:py-32 lg:px-10">
-        <div className="zellige pointer-events-none absolute inset-0 opacity-40" />
-        <div className="container relative mx-auto max-w-7xl">
-          <Reveal className="max-w-2xl">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="h-px w-8 bg-brass-light" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass-light">The making</span>
-            </div>
-            <h2 className="font-display text-[clamp(2.4rem,5.5vw,4.5rem)] font-medium leading-[1.02] tracking-tight">
-              Made by hand, <em className="font-normal text-brass-light">built to last.</em>
-            </h2>
-            <p className="mt-3 w-fit font-ar text-lg text-ivory/60 md:text-xl" dir="rtl">
-              من الرسم حتى للحيط ديالك
-            </p>
-          </Reveal>
+      <section aria-label="Shop by brand" className="py-6">
+        <p className="mb-2 px-5 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-smoke sm:px-6 lg:px-10">
+          Shop by brand · اختار الماركا
+        </p>
+        <BrandMarquee brands={brands.length ? brands : ['Porsche', 'Mercedes', 'BMW', 'Audi']} />
+      </section>
 
-          <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
-            {CRAFT.map((step, i) => (
-              <Reveal key={step.n} delay={i * 0.1} className="border-t border-ivory/15 pt-8">
-                <p className="font-display text-5xl italic text-brass-light">{step.n}</p>
-                <h3 className="mt-4 font-display text-3xl font-medium">{step.title}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-ivory/65">{step.body}</p>
-                <p className="mt-2 w-fit font-ar text-base text-ivory/45" dir="rtl">
-                  {step.ar}
-                </p>
-              </Reveal>
+      {/* ─────────────────────────────────────────────────────────────────
+       * MANIFESTO — for the ambitious
+       * ───────────────────────────────────────────────────────────────── */}
+      <section className="px-5 py-24 sm:px-6 md:py-36 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <Kicker>Manifesto</Kicker>
+          <p className="mt-6 max-w-6xl font-display text-[clamp(2.2rem,6.4vw,5.75rem)] font-black uppercase leading-[0.95] stretch-125">
+            {MANIFESTO.split(' ').map((word, i) => (
+              <span key={i} className="sd-word inline-block pr-[0.28em]">
+                {word}
+              </span>
             ))}
+          </p>
+          <p className="mt-6 w-fit font-ar text-xl text-smoke md:text-2xl" dir="rtl">
+            كل طوموبيل ديال الحلم بدات بتصويرة فالحيط.
+          </p>
+
+          <ol className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
+            {STEPS.map((s) => (
+              <li key={s.n} className="sd-reveal border-t-2 border-redline pt-6">
+                <p className="font-mono text-sm font-bold text-redline-hot">{s.n}</p>
+                <h3 className="mt-3 font-display text-4xl font-black uppercase stretch-125">{s.title}</h3>
+                <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-smoke">{s.body}</p>
+                <p className="mt-2 w-fit font-ar text-base text-chalk/75" dir="rtl">
+                  {s.ar}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────
+       * BUILT LIKE A CAR PART — bento spec sheet
+       * ───────────────────────────────────────────────────────────────── */}
+      <section className="px-5 pb-24 sm:px-6 md:pb-32 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <div className="sd-reveal mb-10">
+            <Kicker>Spec sheet</Kicker>
+            <h2 className="mt-4 font-display text-[clamp(2.6rem,8vw,6.5rem)] font-black uppercase leading-[0.86] stretch-125">
+              Built like <span className="text-outline">a car part.</span>
+            </h2>
+          </div>
+
+          <div className="grid auto-rows-[minmax(180px,auto)] gap-3 md:grid-cols-4 md:gap-4">
+            {/* Material — big tile with a cross-section */}
+            <div className="sd-reveal relative overflow-hidden rounded-2xl bg-carbon p-6 ring-1 ring-white/10 md:col-span-2 md:row-span-2 md:p-8">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">Material · المادة</p>
+              <p className="mt-4 font-display text-[11vw] font-black uppercase leading-[0.9] stretch-100 sm:text-6xl sm:stretch-125 md:text-7xl">
+                Alucobond
+                <br />3 mm
+              </p>
+              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-smoke">
+                The aluminium composite used on building façades. Light, rigid, built to last — not paper, not canvas.
+              </p>
+              <div aria-hidden="true" className="mt-8 max-w-md space-y-1.5">
+                {[
+                  ['Aluminium skin', 'h-2.5 bg-gradient-to-r from-zinc-300 to-zinc-500'],
+                  ['Polymer core', 'h-7 bg-carbon-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'],
+                  ['Aluminium skin', 'h-2.5 bg-gradient-to-r from-zinc-300 to-zinc-500'],
+                ].map(([label, cls], i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={`flex-1 rounded-sm ${cls}`} />
+                    <span className="w-28 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-smoke">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="sd-reveal rounded-2xl bg-carbon p-6 ring-1 ring-white/10">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-smoke">Print</p>
+              <p className="mt-3 font-display text-3xl font-black uppercase stretch-125">UV · Matte</p>
+              <p className="mt-2 text-sm text-smoke">No glare, deep blacks, colours that stay.</p>
+            </div>
+
+            <div className="sd-reveal rounded-2xl bg-redline p-6 text-white">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-white/80">Mount</p>
+              <p className="mt-3 font-display text-3xl font-black uppercase stretch-125">Pre-drilled</p>
+              <p className="mt-2 text-sm text-white/85">Ready to bolt to the wall. No frame needed.</p>
+            </div>
+
+            <div className="sd-reveal rounded-2xl bg-carbon p-6 ring-1 ring-white/10">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-smoke">Delivery · التوصيل</p>
+              <p className="mt-3 font-display text-3xl font-black uppercase stretch-125">24h – 3 days</p>
+              <p className="mt-2 text-sm text-smoke">Anywhere in Morocco, with a tracking number.</p>
+            </div>
+
+            <div className="sd-reveal flex flex-col justify-between gap-4 rounded-2xl bg-chalk p-6 text-asphalt">
+              <div>
+                <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-asphalt/60">Payment</p>
+                <p className="mt-3 font-display text-3xl font-black uppercase stretch-125">Cash on delivery</p>
+              </div>
+              <p className="w-fit font-ar text-lg font-semibold" dir="rtl">
+                كتخلص فاش توصلك للدار
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
-       * CUSTOM ORDER
+       * CUSTOM BUILD — plate builder
        * ───────────────────────────────────────────────────────────────── */}
-      <section className="px-5 py-24 md:py-36 lg:px-10">
-        <Reveal className="container mx-auto max-w-4xl text-center">
-          <SectionHeading
-            align="center"
-            kicker="Made to order"
-            title={
-              <>
-                Bring the car. <em className="font-normal text-brass">We build the wall.</em>
-              </>
-            }
-            arabic="مالقيتيش الطوموبيل لي كتعجبك؟ صيفط لينا الماركا والموديل."
-          />
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-stone md:text-lg">
-            Send us the model, the angle and the colour. We draw it, print it and deliver it — a piece made for you alone.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/customize" className={btnDark}>
-              Request custom art
-              <ArrowRight />
-            </Link>
-            <a
-              href={whatsappLink('Salam L7it, bghit lawha custom dyal tomobil dyali.')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={btnGhostLight}
-            >
-              Ask on WhatsApp
-            </a>
+      <section className="relative overflow-hidden border-t border-white/10 px-5 py-24 sm:px-6 md:py-32 lg:px-10">
+        <div className="hazard pointer-events-none absolute inset-x-0 top-0 h-2 opacity-90" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(229,32,12,0.16),transparent_55%)]" />
+        <div className="relative mx-auto grid max-w-[1440px] items-center gap-12 lg:grid-cols-2">
+          <div className="sd-reveal min-w-0">
+            <Kicker>Custom build</Kicker>
+            <h2 className="mt-4 font-display text-[clamp(2.8rem,9vw,7rem)] font-black uppercase leading-[0.84] stretch-125">
+              Your car.
+              <br />
+              <span className="text-redline">Your wall.</span>
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-smoke md:text-lg">
+              Not on the grid? Send the model, the angle, the colour. We draw it, print it and deliver it — built for you only.
+            </p>
+            <p className="mt-2 w-fit font-ar text-lg text-chalk/80" dir="rtl">
+              مالقيتيش الطوموبيل ديالك؟ صيفط لينا الماركا والموديل.
+            </p>
           </div>
-        </Reveal>
+          <div className="sd-reveal min-w-0">
+            <PlateBuilder />
+          </div>
+        </div>
       </section>
     </div>
   );

@@ -2,53 +2,53 @@
  * Shared brand styling — keeps every CTA button and heading on the customer
  * pages reading the same. Import these instead of duplicating className strings.
  *
- * Gallery look: square-ish corners, ink / ivory / brass, quiet hover
- * (colour shift + arrow nudge, no scaling), focus-visible ring in brass.
+ * Night-drive look: chamfered "race-part" corners, heavy Anybody type, redline
+ * accent. Focus is an inset ring because clip-path would cut an outer one off.
  */
 
 const baseBtn =
-  'group inline-flex items-center justify-center gap-3 rounded-sm px-9 py-4 text-[13px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-ivory';
+  'chamfer group relative inline-flex items-center justify-center gap-3 px-8 py-4 font-display text-[13px] font-extrabold uppercase tracking-[0.14em] stretch-125 transition-[background-color,color,transform] duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_#F4F4F0]';
 
-/** Ivory bg, ink text — primary CTA on dark surfaces. */
-export const btnPrimary = `${baseBtn} bg-ivory text-ink hover:bg-white`;
+/** Redline, white text — THE call to action. */
+export const btnPrimary = `${baseBtn} bg-redline text-white hover:bg-redline-hot`;
 
-/** Ink bg — primary CTA on light surfaces. */
-export const btnDark = `${baseBtn} bg-ink text-ivory hover:bg-brass`;
+/** Chalk-white, asphalt text — strong secondary CTA. */
+export const btnDark = `${baseBtn} bg-chalk text-asphalt hover:bg-white focus-visible:[box-shadow:inset_0_0_0_2px_#E5200C]`;
 
-/** Brass, white text — accent CTA. */
-export const btnAccent = `${baseBtn} bg-brass text-white hover:bg-ink`;
+/** Alias of the primary red CTA (kept for pages that import it). */
+export const btnAccent = btnPrimary;
 
-/** Outlined on dark surfaces — secondary CTA on dark backgrounds. */
-export const btnGhostDark = `${baseBtn} border border-ivory/30 text-ivory hover:border-ivory hover:bg-ivory/[0.06]`;
+/** Outlined — secondary CTA on dark backgrounds. */
+export const btnGhostDark = `${baseBtn} bg-white/[0.04] text-chalk shadow-[inset_0_0_0_1px_rgba(244,244,240,0.25)] hover:bg-white/[0.08] hover:shadow-[inset_0_0_0_1px_rgba(244,244,240,0.6)]`;
 
-/** Outlined on light surfaces. */
-export const btnGhostLight = `${baseBtn} border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-ivory`;
+/** Same outline treatment — the whole storefront is dark now. */
+export const btnGhostLight = btnGhostDark;
 
 /* ------------------------------------------------------------------ *
  * Compact button — smaller padding for inline / card-level CTAs.
  * ------------------------------------------------------------------ */
 
 const baseBtnCompact =
-  'group inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-300 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass';
+  'chamfer-sm group inline-flex items-center justify-center gap-2 px-5 py-2.5 font-display text-[11px] font-extrabold uppercase tracking-[0.12em] stretch-125 transition-colors duration-200 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_#F4F4F0]';
 
-export const btnCompactDark = `${baseBtnCompact} bg-ink text-ivory hover:bg-brass`;
-export const btnCompactAccent = `${baseBtnCompact} bg-brass text-white hover:bg-ink`;
-export const btnCompactGhost = `${baseBtnCompact} border border-ink/20 text-ink hover:border-ink`;
+export const btnCompactDark = `${baseBtnCompact} bg-chalk text-asphalt hover:bg-white`;
+export const btnCompactAccent = `${baseBtnCompact} bg-redline text-white hover:bg-redline-hot`;
+export const btnCompactGhost = `${baseBtnCompact} bg-white/[0.04] text-chalk shadow-[inset_0_0_0_1px_rgba(244,244,240,0.22)] hover:shadow-[inset_0_0_0_1px_rgba(244,244,240,0.6)]`;
 
 /* ------------------------------------------------------------------ *
  * Typography helpers — apply consistently across pages.
  * ------------------------------------------------------------------ */
 
-/** Big page title — gallery serif (`font-display`). Compose with size classes. */
-export const h1Display = 'font-display font-medium leading-[0.95] tracking-tight';
+/** Big page title — Anybody black, stretched wide. Compose with size classes. */
+export const h1Display = 'font-display font-black uppercase leading-[0.86] tracking-[-0.01em] stretch-125';
 
-/** Section title — slightly looser line-height for two-line headings. */
-export const h2Display = 'font-display font-medium leading-[1.02] tracking-tight';
+/** Section title. */
+export const h2Display = 'font-display font-black uppercase leading-[0.9] tracking-[-0.01em] stretch-125';
 
-/** Small kicker / pre-headline label. */
-export const kickerLabel = 'text-[11px] font-semibold tracking-[0.28em] uppercase text-brass';
+/** Telemetry-style kicker label: mono, red, tracked out. */
+export const kickerLabel = 'font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot';
 
-/** Darija / Arabic line — right-to-left, Naskh face. */
+/** Darija / Arabic line — Changa. */
 export const arabicText = 'font-ar';
 
 /** WhatsApp number used for orders, reservations and support. */

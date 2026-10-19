@@ -2,187 +2,513 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { btnAccent } from '@/lib/uiStyles';
+import { btnPrimary, h1Display, h2Display, kickerLabel } from '@/lib/uiStyles';
+import Plate from '@/components/Plate';
+import TransitionLink from '@/components/TransitionLink';
+import { hideBrokenImage } from '@/components/ProductCard';
+import { dimensionsOf, shortDimensions } from '@/lib/dimensions';
+
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+/** Carbon race-part panel. The hairline is inset: the chamfer's clip-path would cut an outer ring off. */
+const PANEL = 'chamfer relative bg-carbon shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]';
+
+/** 44px stepper / icon buttons with an inset focus ring. */
+const stepBtn =
+  'flex h-11 w-11 items-center justify-center text-chalk transition-colors hover:bg-white/[0.06] active:bg-white/10 aria-disabled:cursor-not-allowed aria-disabled:text-smoke aria-disabled:hover:bg-transparent focus-visible:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_#FF4A33]';
+
+/** Index-free React keys, so removing a row doesn't remount (and re-animate) every row after it. */
+function rowKeys(items: { _id: string; selectedSize?: string }[]): string[] {
+  const seen = new Map<string, number>();
+  return items.map((item) => {
+    const base = `${item._id}-${item.selectedSize || 'default'}`;
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    return n ? `${base}-${n}` : base;
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Icons — decorative, always paired with visible text or an aria-label.
+ * ------------------------------------------------------------------ */
+
+type IconProps = { className?: string };
+
+const ICON = {
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true as const,
+};
+
+function ArrowIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={2.5} className={className}>
+      <path d="M13 5l7 7-7 7M4 12h15" />
+    </svg>
+  );
+}
+
+function MinusIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={2.5} className={className}>
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+function PlusIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={2.5} className={className}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} className={className}>
+      <path d="M4 7h16M9 7V4.5h6V7M6.5 7l.9 12.1a1.5 1.5 0 001.5 1.4h6.2a1.5 1.5 0 001.5-1.4L17.5 7M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function CashIcon({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={1.8} className={className}>
+      <rect x="2.5" y="6" width="19" height="12" rx="1.5" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6 10v4M18 10v4" />
+    </svg>
+  );
+}
+
+function TruckIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={1.8} className={className}>
+      <path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7" />
+      <circle cx="6.5" cy="17.5" r="1.8" />
+      <circle cx="17" cy="17.5" r="1.8" />
+    </svg>
+  );
+}
+
+function RouteIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={1.8} className={className}>
+      <circle cx="6" cy="18" r="2" />
+      <circle cx="18" cy="6" r="2" />
+      <path d="M8 18h7.5a3 3 0 000-6h-7a3 3 0 010-6H16" />
+    </svg>
+  );
+}
+
+function FlagIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg {...ICON} strokeWidth={1.8} className={className}>
+      <path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5" />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Pieces
+ * ------------------------------------------------------------------ */
+
+const STEPS = ['Pit stop', 'Final lap', 'Podium'];
+
+/** Cart → checkout → done, numbered like the navbar's gears. */
+function PitLane() {
+  return (
+    <nav aria-label="Checkout steps">
+      <ol className="flex flex-wrap items-center gap-x-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em]">
+        {STEPS.map((label, i) => (
+          <li
+            key={label}
+            aria-current={i === 0 ? 'step' : undefined}
+            className={`flex min-h-[44px] items-center gap-1.5 ${i === 0 ? 'text-chalk' : 'text-smoke'}`}
+          >
+            {i > 0 && <span aria-hidden="true" className="h-px w-3 bg-white/20 sm:w-6" />}
+            <span
+              aria-hidden="true"
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm ${
+                i === 0 ? 'bg-redline text-white' : 'bg-white/[0.06] text-smoke'
+              }`}
+            >
+              {i + 1}
+            </span>
+            <span className="ms-0.5">{label}</span>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+/** Top-down parking bay with a dashed "your next car" outline. */
+function EmptyBay({ className = '' }: { className?: string }) {
+  const reduce = useReducedMotion();
+  return (
+    <svg viewBox="0 0 240 180" fill="none" aria-hidden="true" className={className}>
+      <path d="M44 8v164M196 8v164" stroke="#F4F4F0" strokeOpacity="0.4" strokeWidth="4" />
+      <rect x="94" y="12" width="52" height="8" rx="2" fill="#E5200C" />
+      <motion.g
+        stroke="#F4F4F0"
+        strokeOpacity="0.45"
+        strokeWidth="2"
+        strokeDasharray="7 7"
+        animate={reduce ? undefined : { strokeDashoffset: [0, -28] }}
+        transition={{ duration: 1.6, ease: 'linear', repeat: Infinity }}
+      >
+        <rect x="80" y="30" width="80" height="138" rx="28" />
+        <path d="M89 74q31-11 62 0l-7 22H96z" />
+        <path d="M96 132h48l6 18q-30 8-60 0z" />
+      </motion.g>
+      <g fill="#F4F4F0" fillOpacity="0.22">
+        <rect x="72" y="48" width="7" height="24" rx="3" />
+        <rect x="161" y="48" width="7" height="24" rx="3" />
+        <rect x="72" y="126" width="7" height="24" rx="3" />
+        <rect x="161" y="126" width="7" height="24" rx="3" />
+      </g>
+    </svg>
+  );
+}
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, calculateTotal } = useCart();
   const { t } = useLanguage();
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 }
-  };
+  // Display-only values derived from the cart.
+  const keys = rowKeys(cart);
+  const pieces = cart.reduce((n, item) => n + item.quantity, 0);
+  const total = calculateTotal().toFixed(0);
 
   return (
-    <div className="min-h-screen bg-ivory transition-colors duration-500">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-24 sm:py-32">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12 sm:mb-20 space-y-3 sm:space-y-4"
-        >
-          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-brass">Your Selection</span>
-          <h1 className="font-display text-[clamp(3rem,9vw,8rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
-            {t('shoppingCart')}
-          </h1>
-          <div className="h-1.5 sm:h-2 w-24 sm:w-32 bg-brass rounded-full" />
-        </motion.div>
+    <MotionConfig reducedMotion="user">
+      <div className="relative isolate min-h-dvh overflow-x-clip bg-asphalt pb-24 pt-28 text-chalk md:pt-32 lg:pb-20">
+        <div aria-hidden="true" className="speed-lines pointer-events-none absolute inset-0 -z-10" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(60%_55%_at_12%_0%,rgba(229,32,12,0.16),transparent_70%)]"
+        />
 
-        {cart.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-[4rem] border-2 border-dashed border-zinc-100 bg-zinc-50 py-32 text-center dark:border-zinc-900 dark:bg-[#0d0d0d] shadow-2xl"
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+          {/* Header */}
+          <motion.header
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
           >
-            <div className="mb-10 flex justify-center">
-              <div className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-8">
-                <svg className="h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-            </div>
-            <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-8">{t('emptyCart')}</h2>
-            <Link href="/shop" className={btnAccent}>
-              {t('continueShopping')}
-            </Link>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-16 items-start">
-            {/* Cart Items */}
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ staggerChildren: 0.1 }}
-              className="lg:col-span-8 space-y-4 sm:space-y-8"
+            <PitLane />
+            <p className={`${kickerLabel} mt-6 sm:mt-8`}>{t('shoppingCart')} · Box, box</p>
+            <h1 className={`${h1Display} mt-3 text-[clamp(2.75rem,12vw,8rem)] text-chalk`}>
+              Your <span className="text-redline">garage</span>
+            </h1>
+            <p className="mt-3 w-fit font-ar text-xl font-semibold text-smoke sm:text-2xl" dir="rtl">
+              الكاراج ديالك
+            </p>
+          </motion.header>
+
+          {cart.length === 0 ? (
+            /* Empty garage — fades in late so the brief empty render before the
+               saved cart loads never flashes on screen. */
+            <motion.section
+              aria-labelledby="empty-garage"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE, delay: 0.25 }}
+              className={`${PANEL} mt-10 overflow-hidden px-5 pb-12 pt-14 text-center sm:px-10 sm:pb-16 lg:mt-14`}
             >
-              <AnimatePresence>
-                {cart.map((item, index) => (
-                  <motion.div 
-                    key={`${item._id}-${item.selectedSize || 'default'}-${index}`} 
-                    variants={itemVariants}
-                    transition={{ duration: 0.6 }}
-                    layout
-                    exit={{ opacity: 0, scale: 0.9, x: -50 }}
-                    className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-8 p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-zinc-50 dark:bg-[#0d0d0d] border border-zinc-100 dark:border-zinc-900 hover:border-brass/30 transition-all duration-500 shadow-xl"
-                  >
-                    <div className="h-28 w-full sm:h-40 sm:w-40 flex-shrink-0 overflow-hidden rounded-xl sm:rounded-[2rem] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 group-hover:border-brass/40 transition-colors">
-                      <img
-                        src={item.image || 'https://via.placeholder.com/400x400?text=L7IT'}
-                        alt={item.name}
-                        className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
+              <div aria-hidden="true" className="hazard absolute inset-x-0 top-0 h-2" />
+              <EmptyBay className="mx-auto h-36 w-auto sm:h-44" />
+              <p className={`${kickerLabel} mt-6`}>Bay 01 · vacant</p>
+              <h2 id="empty-garage" className={`${h2Display} mt-3 text-[clamp(2.5rem,10vw,5.5rem)] text-chalk`}>
+                Empty garage
+              </h2>
+              <p className="mx-auto mt-3 w-fit font-ar text-xl font-semibold text-smoke sm:text-2xl" dir="rtl">
+                الكاراج خاوي — ختار الطوموبيل ديالك
+              </p>
+              <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-smoke sm:text-base">
+                {t('emptyCart')}. Pick a car and park it here.
+              </p>
+              <Link href="/shop" className={`${btnPrimary} mt-8`}>
+                {t('continueShopping')}
+                <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100" />
+              </Link>
+            </motion.section>
+          ) : (
+            <div className="mt-10 grid grid-cols-1 gap-8 lg:mt-14 lg:grid-cols-12 lg:items-start lg:gap-12">
+              {/* Line items */}
+              <section aria-labelledby="garage-lineup" className="lg:col-span-7 xl:col-span-8">
+                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
+                  <h2 id="garage-lineup" className="font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-chalk">
+                    Lineup · {pieces} {pieces === 1 ? 'piece' : 'pieces'}
+                  </h2>
+                  <span className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
+                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-timing-green shadow-[0_0_8px_#2BD96B]" />
+                    Ready to roll
+                  </span>
+                </div>
+
+                <ul className="mt-4 space-y-4">
+                  <AnimatePresence>
+                    {cart.map((item, index) => {
+                      const size = shortDimensions(item.sizeLabel || dimensionsOf(item));
+                      return (
+                        <motion.li
+                          key={keys[index]}
+                          layout="position"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: { duration: 0.5, ease: EASE, delay: Math.min(index, 5) * 0.07 },
+                          }}
+                          exit={{ opacity: 0, x: 72, transition: { duration: 0.28, ease: 'easeIn' } }}
+                          transition={{ layout: { duration: 0.35, ease: EASE } }}
+                          className={PANEL}
+                        >
+                          <span aria-hidden="true" className="absolute inset-y-0 start-0 w-[3px] bg-redline" />
+
+                          <TransitionLink
+                            href={`/product/${item._id}`}
+                            className="group/row flex gap-3 p-3 ps-4 focus-visible:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_#FF4A33] sm:gap-5 sm:p-4 sm:ps-6"
+                          >
+                            <span className="relative block aspect-[4/3] w-28 shrink-0 self-start overflow-hidden bg-carbon-2 sm:w-44">
+                              <span
+                                aria-hidden="true"
+                                className="absolute inset-0 flex items-center justify-center font-display text-sm font-black uppercase text-white/10 stretch-150"
+                              >
+                                L7IT
+                              </span>
+                              {item.image && (
+                                <img
+                                  data-vt-img
+                                  src={item.image}
+                                  alt={item.name}
+                                  loading="lazy"
+                                  onError={hideBrokenImage}
+                                  className="relative h-full w-full object-cover transition-transform duration-500 ease-out group-hover/row:scale-105"
+                                />
+                              )}
+                            </span>
+
+                            <span className="block min-w-0 flex-1 py-0.5">
+                              <span className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
+                                <span className="shrink-0 text-redline-hot">Box {String(index + 1).padStart(2, '0')}</span>
+                                <span aria-hidden="true" className="h-px w-3 shrink-0 bg-white/20" />
+                                <span className="truncate">{item.category}</span>
+                              </span>
+                              <h3 className="mt-1.5 line-clamp-2 font-display text-base font-extrabold uppercase leading-[1.05] text-chalk stretch-125 transition-colors group-hover/row:text-redline-hot sm:text-2xl">
+                                {item.name}
+                              </h3>
+                              <span className="mt-2 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-smoke">
+                                {size}
+                                <span className="hidden sm:inline"> · Alu 3 mm · UV matte</span>
+                              </span>
+                              <span className="mt-1 block font-mono text-[11px] tabular-nums text-smoke">
+                                {item.price} MAD × {item.quantity}
+                              </span>
+                            </span>
+                          </TransitionLink>
+
+                          {/* Telemetry strip: quantity · line total · remove */}
+                          <div className="flex items-stretch border-t border-white/10">
+                            <div
+                              role="group"
+                              aria-label={`Quantity, ${item.name}`}
+                              className="flex items-center border-e border-white/10"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                                aria-disabled={item.quantity <= 1}
+                                aria-label={`Decrease quantity of ${item.name}`}
+                                className={stepBtn}
+                              >
+                                <MinusIcon />
+                              </button>
+                              <span
+                                aria-live="polite"
+                                className="min-w-[2.25rem] text-center font-mono text-sm font-bold tabular-nums text-chalk"
+                              >
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                                aria-label={`Increase quantity of ${item.name}`}
+                                className={stepBtn}
+                              >
+                                <PlusIcon />
+                              </button>
+                            </div>
+
+                            <p className="flex min-w-0 flex-1 items-center justify-end gap-1.5 px-3 sm:px-4">
+                              <span className="sr-only">Line total</span>
+                              <span className="font-display text-lg font-black tabular-nums text-chalk sm:text-xl">
+                                {(item.price * item.quantity).toFixed(0)}
+                              </span>
+                              <span className="font-mono text-[10px] font-bold text-smoke">MAD</span>
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() => removeFromCart(item._id)}
+                              className="flex min-h-[44px] min-w-[3rem] items-center justify-center gap-2 border-s border-white/10 pe-4 ps-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke transition-colors hover:bg-redline/10 hover:text-redline-hot focus-visible:outline-none focus-visible:[box-shadow:inset_0_0_0_2px_#FF4A33] sm:pe-5 sm:ps-4"
+                            >
+                              <TrashIcon />
+                              <span className="sr-only sm:not-sr-only">{t('remove')}</span>
+                              <span className="sr-only"> {item.name}</span>
+                            </button>
+                          </div>
+                        </motion.li>
+                      );
+                    })}
+                  </AnimatePresence>
+                </ul>
+              </section>
+
+              {/* Summary — telemetry box */}
+              <motion.aside
+                aria-labelledby="garage-summary"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: EASE, delay: 0.15 }}
+                className="lg:sticky lg:top-32 lg:col-span-5 xl:col-span-4"
+              >
+                <div className={`${PANEL} overflow-hidden`}>
+                  <div aria-hidden="true" className="hazard h-2" />
+                  <div className="p-5 sm:p-7">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-redline-hot">Telemetry</p>
+                        <h2
+                          id="garage-summary"
+                          className="mt-1.5 font-display text-2xl font-black uppercase leading-none text-chalk stretch-125"
+                        >
+                          {t('orderSummary')}
+                        </h2>
+                      </div>
+                      <span className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-timing-green">
+                        <span
+                          aria-hidden="true"
+                          className="h-1.5 w-1.5 rounded-full bg-timing-green shadow-[0_0_8px_#2BD96B] motion-safe:animate-pulse-led"
+                        />
+                        Live
+                      </span>
+                    </div>
+
+                    <dl className="mt-6 divide-y divide-white/10 border-y border-white/10 font-mono text-[11px] font-bold uppercase tracking-[0.18em]">
+                      <div className="flex items-center justify-between gap-4 py-3">
+                        <dt className="text-smoke">{t('subtotal')}</dt>
+                        <dd className="tabular-nums text-chalk">{total} MAD</dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 py-3">
+                        <dt className="text-smoke">{t('shipping')}</dt>
+                        <dd className="text-timing-green">Free</dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 py-3">
+                        <dt className="text-smoke">Pieces</dt>
+                        <dd className="tabular-nums text-chalk">{pieces}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="mt-6">
+                      <p className="flex items-baseline justify-between gap-3">
+                        <span className="font-display text-sm font-black uppercase tracking-[0.18em] text-chalk stretch-125">
+                          {t('total')}
+                        </span>
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke">
+                          MAD · order total
+                        </span>
+                      </p>
+                      <Plate
+                        className="mt-3"
+                        size="lg"
+                        left={total}
+                        letter="د.م"
+                        right="MAD"
+                        aria-label={`${t('total')}: ${total} MAD`}
                       />
                     </div>
-                    
-                    <div className="flex flex-1 flex-col justify-between w-full">
-                      <div className="flex justify-between items-start mb-3 sm:mb-4">
-                        <div className="space-y-0.5 sm:space-y-1">
-                          <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-brass">
-                            {item.category}
-                            {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
-                          </p>
-                          <h3 className="text-base sm:text-2xl font-display tracking-tight text-zinc-900 dark:text-zinc-50 uppercase">{item.name}</h3>
-                        </div>
-                        <p className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white font-serif">
-                          {(item.price * item.quantity).toFixed(0)} <span className="text-[8px] sm:text-[10px] text-zinc-500 uppercase">MAD</span>
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-4 sm:mt-8">
-                        <div className="flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-black rounded-xl sm:rounded-2xl border border-zinc-100 dark:border-zinc-900 p-1 sm:p-1.5 shadow-sm">
-                          <button
-                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                            className="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center rounded-lg sm:rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-                          >
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" /></svg>
-                          </button>
-                          <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                            className="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center rounded-lg sm:rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-                          >
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                          </button>
-                        </div>
-                        
-                        <button
-                          onClick={() => removeFromCart(item._id)}
-                          className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-300 group/remove"
-                        >
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          {t('remove')}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
 
-            {/* Cart Summary */}
-            <motion.aside 
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-4 sticky top-32"
-            >
-              <div className="rounded-2xl sm:rounded-[3rem] border border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0d0d0d] p-6 sm:p-10 shadow-3xl overflow-hidden relative group">
-                {/* Decorative Pattern */}
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-brass/5 blur-3xl" />
-                
-                <h2 className="font-display text-2xl sm:text-4xl text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-6 sm:mb-10">{t('orderSummary')}</h2>
-                
-                <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-10">
-                  <div className="flex justify-between items-center text-zinc-500">
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{t('subtotal')}</span>
-                    <span className="text-base sm:text-lg font-black font-serif text-zinc-900 dark:text-zinc-100">{calculateTotal().toFixed(0)} <span className="text-[7px] sm:text-[8px] uppercase">MAD</span></span>
-                  </div>
-                  <div className="flex justify-between items-center text-zinc-500">
-                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{t('shipping')}</span>
-                     <span className="text-[9px] sm:text-[10px] font-black text-green-400 uppercase tracking-widest">FREE 🎁</span>
-                  </div>
-                  <div className="pt-4 sm:pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-end">
-                    <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white">{t('total')}</span>
-                    <div className="text-right">
-                       <p className="text-3xl sm:text-4xl font-black text-brass font-serif leading-none">{calculateTotal().toFixed(0)}</p>
-                       <p className="text-[8px] sm:text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 sm:mt-2">MAD (Order Total)</p>
-                    </div>
-                  </div>
-                </div>
+                    <p className="mt-6 flex items-center gap-3 bg-carbon-2 px-4 py-3 text-sm font-semibold text-chalk">
+                      <CashIcon className="h-5 w-5 shrink-0 text-timing-green" />
+                      <span>
+                        Cash on delivery{' '}
+                        <span className="font-ar font-medium text-smoke">· الخلاص عند الاستلام</span>
+                      </span>
+                    </p>
 
-                <div className="space-y-4 sm:space-y-6">
-                  <Link href="/checkout" className={`${btnAccent} w-full`}>
-                    {t('proceedToCheckout')}
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                  </Link>
-                  
-                  <Link 
-                    href="/shop" 
-                    className="flex w-full items-center justify-center py-3 sm:py-4 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
-                  >
-                    &larr; {t('continueShopping')}
-                  </Link>
+                    {/* On phones the sticky bar below carries the checkout button. */}
+                    <div className="mt-5 hidden lg:block">
+                      <Link href="/checkout" className={`${btnPrimary} w-full`}>
+                        {t('proceedToCheckout')}
+                        <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100" />
+                      </Link>
+                    </div>
+
+                    <Link
+                      href="/shop"
+                      className="mt-2 flex min-h-[44px] items-center justify-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-smoke transition-colors hover:text-chalk focus-visible:text-chalk focus-visible:underline focus-visible:underline-offset-4 focus-visible:outline-none"
+                    >
+                      <ArrowIcon className="h-3.5 w-3.5 -scale-x-100 rtl:scale-x-100" />
+                      {t('continueShopping')}
+                    </Link>
+
+                    <ul className="mt-4 space-y-2.5 border-t border-white/10 pt-5 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-smoke">
+                      <li className="flex items-center gap-2.5">
+                        <TruckIcon className="h-4 w-4 shrink-0 text-chalk" />
+                        Delivery 24h – 3 days · all Morocco
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <RouteIcon className="h-4 w-4 shrink-0 text-chalk" />
+                        Tracking number on every order
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <FlagIcon className="h-4 w-4 shrink-0 text-chalk" />
+                        Made in Rabat · ready to hang
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-                
-                <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-brass/5 border border-brass/10">
-                   <p className="text-[8px] sm:text-[9px] font-black uppercase leading-relaxed text-brass/80 tracking-widest text-center">
-                     Gallery pieces are archived securely and dispatched within 48 hours. Secure Settlement via Cash on Delivery.
-                   </p>
-                </div>
+              </motion.aside>
+            </div>
+          )}
+        </div>
+
+        {/* Phones: total + checkout always within thumb reach. Sits below the
+            WhatsApp bubble (which floats ~140px up). */}
+        {cart.length > 0 && (
+          <div
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-asphalt/90 backdrop-blur-xl lg:hidden"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
+            <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3 sm:px-6">
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
+                  {t('total')} <span className="text-timing-green">· COD</span>
+                </p>
+                <p className="truncate font-display text-2xl font-black leading-tight tabular-nums text-chalk">
+                  {total}
+                  <span className="ms-1 font-mono text-[11px] font-bold text-smoke">MAD</span>
+                </p>
               </div>
-            </motion.aside>
+              <Link href="/checkout" className={`${btnPrimary} shrink-0 !gap-2 !px-6`}>
+                {t('checkout')}
+                <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100" />
+              </Link>
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </MotionConfig>
   );
 }

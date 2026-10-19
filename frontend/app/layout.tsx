@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, Anton, JetBrains_Mono, Cormorant_Garamond, Noto_Naskh_Arabic } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono, Anybody, Changa } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
@@ -21,28 +21,19 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-// Anton — condensed display face for headlines (poster / race-banner energy)
-const anton = Anton({
-  weight: "400",
-  variable: "--font-anton",
+// Anybody — variable display face; the 50–150 width axis lets headlines
+// stretch like they're doing 300 km/h.
+const anybody = Anybody({
+  variable: "--font-anybody",
   subsets: ["latin"],
+  axes: ["wdth"],
   display: "swap",
 });
 
-// Cormorant Garamond — gallery serif for every headline
-const cormorant = Cormorant_Garamond({
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// Noto Naskh Arabic — Darija / Arabic copy
-const notoNaskh = Noto_Naskh_Arabic({
-  weight: ["400", "500", "600"],
-  variable: "--font-arabic",
-  subsets: ["arabic"],
+// Changa — sporty Kufi face for Arabic / Darija copy
+const changa = Changa({
+  variable: "--font-changa",
+  subsets: ["arabic", "latin"],
   display: "swap",
 });
 
@@ -55,7 +46,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "L7it - الحيط",
-  description: "Exclusive automotive wall art for car enthusiasts",
+  description: "Automotive wall art for people who dream in horsepower. Made in Rabat, delivered across Morocco.",
   icons: {
     icon: '/icon.svg',
   },
@@ -75,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${inter.variable} ${anton.variable} ${jetbrainsMono.variable} ${cormorant.variable} ${notoNaskh.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${inter.variable} ${jetbrainsMono.variable} ${anybody.variable} ${changa.variable} h-full antialiased`}
     >
       <head>
         <Script id="ms-clarity" strategy="afterInteractive">
@@ -95,7 +86,7 @@ fbq('track', 'PageView');
           `}
         </Script>
       </head>
-      <body className="min-h-full flex flex-col bg-ivory text-ink font-inter">
+      <body className="min-h-full flex flex-col bg-asphalt text-chalk font-inter">
         <noscript>
           <img
             height="1"

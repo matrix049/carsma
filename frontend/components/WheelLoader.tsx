@@ -8,6 +8,8 @@ interface WheelLoaderProps {
   className?: string;
 }
 
+const round = (n: number) => Math.round(n * 1000) / 1000;
+
 export default function WheelLoader({ size = 'md', className = '' }: WheelLoaderProps) {
   const sizes = {
     sm: 40,
@@ -32,7 +34,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           ease: 'easeOut',
         }}
       >
-        <div className="w-full h-full rounded-full bg-brass-light blur-xl opacity-60" />
+        <div className="w-full h-full rounded-full bg-redline-hot blur-xl opacity-60" />
       </motion.div>
 
       {/* Spinning wheel */}
@@ -56,7 +58,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           fill="none"
           stroke="currentColor"
           strokeWidth="8"
-          className="text-brass"
+          className="text-redline"
           opacity="0.3"
         />
         
@@ -64,10 +66,12 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
         {Array.from({ length: 12 }).map((_, i) => {
           const angle = (i * 360) / 12;
           const rad = (angle * Math.PI) / 180;
-          const x1 = 50 + 38 * Math.cos(rad);
-          const y1 = 50 + 38 * Math.sin(rad);
-          const x2 = 50 + 45 * Math.cos(rad);
-          const y2 = 50 + 45 * Math.sin(rad);
+          // Rounded: Node and the browser disagree on the last float digit,
+          // which breaks hydration.
+          const x1 = round(50 + 38 * Math.cos(rad));
+          const y1 = round(50 + 38 * Math.sin(rad));
+          const x2 = round(50 + 45 * Math.cos(rad));
+          const y2 = round(50 + 45 * Math.sin(rad));
           
           return (
             <line
@@ -78,7 +82,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
               y2={y2}
               stroke="currentColor"
               strokeWidth="3"
-              className="text-brass"
+              className="text-redline"
               opacity="0.5"
             />
           );
@@ -90,7 +94,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           cy="50"
           r="20"
           fill="currentColor"
-          className="text-brass"
+          className="text-redline"
           opacity="0.6"
         />
 
@@ -98,8 +102,8 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
         {Array.from({ length: 5 }).map((_, i) => {
           const angle = (i * 360) / 5;
           const rad = (angle * Math.PI) / 180;
-          const x = 50 + 18 * Math.cos(rad);
-          const y = 50 + 18 * Math.sin(rad);
+          const x = round(50 + 18 * Math.cos(rad));
+          const y = round(50 + 18 * Math.sin(rad));
           
           return (
             <line
@@ -110,7 +114,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
               y2={y}
               stroke="currentColor"
               strokeWidth="4"
-              className="text-brass"
+              className="text-redline"
               opacity="0.8"
             />
           );
@@ -122,7 +126,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           cy="50"
           r="8"
           fill="currentColor"
-          className="text-brass-light"
+          className="text-redline-hot"
         />
       </motion.svg>
 
@@ -130,7 +134,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
       {Array.from({ length: 3 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-brass-light"
+          className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-redline-hot"
           animate={{
             x: [0, (i - 1) * 30],
             y: [0, -20 - i * 10],

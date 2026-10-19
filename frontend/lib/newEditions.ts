@@ -25,8 +25,8 @@ export const NEW_EDITIONS: NewEdition[] = [
     number: '01',
     title: 'G-Class 3D',
     mark: 'G-Class',
-    tagline: 'The icon, in relief. Our new layered 3D edition.',
-    taglineAr: 'الجي كلاس بنسخة 3D جديدة، كتبان حية فالحيط.',
+    tagline: 'The brick, now with depth. Layered 3D that comes off the wall at you.',
+    taglineAr: 'الجي كلاس بـ 3D — كتخرج ليك من الحيط.',
   },
   {
     key: '911-3d',
@@ -34,8 +34,8 @@ export const NEW_EDITIONS: NewEdition[] = [
     number: '02',
     title: '911 3D',
     mark: '911',
-    tagline: 'The silhouette everyone knows, now with depth.',
-    taglineAr: 'البورش 911 بنسخة 3D، بعمق وتفاصيل جداد.',
+    tagline: 'The most famous silhouette on earth, in three dimensions.',
+    taglineAr: 'البورش 911 بـ 3D — بعمق حقيقي فالحيط ديالك.',
   },
 ];
 

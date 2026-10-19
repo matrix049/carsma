@@ -58,10 +58,10 @@ export default function CustomizePage() {
   if (success) {
     return (
       <div className="container mx-auto px-4 py-40 text-center">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-10 inline-flex h-24 w-24 items-center justify-center rounded-full bg-brass/20 text-brass border border-brass/30">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-10 inline-flex h-24 w-24 items-center justify-center rounded-full bg-redline/20 text-redline-hot border border-redline/30">
           <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
         </motion.div>
-        <h1 className="font-display text-5xl md:text-7xl uppercase leading-[0.85] tracking-tight mb-4">{t('requestSuccess')}</h1>
+        <h1 className="font-display font-black stretch-100 md:stretch-125 break-words text-5xl md:text-7xl uppercase leading-[0.85] tracking-tight mb-4">{t('requestSuccess')}</h1>
         <p className="text-zinc-400 font-medium mb-12">{t('requestSuccessDesc')}</p>
         <Link href="/" className="inline-flex items-center justify-center rounded-full bg-white text-black px-12 py-5 font-black uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 shadow-2xl">
           {t('home')}
@@ -71,24 +71,24 @@ export default function CustomizePage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink text-white pt-32 pb-40">
+    <div className="min-h-screen bg-asphalt text-white pt-32 pb-40">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
           
           {/* Left Side: Hero Info */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
             <div className="space-y-6">
-              <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-brass">Bespoke Commissions</span>
-              <h1 className="font-display text-[clamp(3.5rem,10vw,11rem)] uppercase leading-[0.85] tracking-tight">
-                Your <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">Car,</span><br />
-                <span className="text-brass">Our Art</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-redline-hot">Custom build · طلب خاص</span>
+              <h1 className="font-display font-black stretch-100 md:stretch-125 break-words text-[clamp(3.5rem,10vw,11rem)] uppercase leading-[0.85] tracking-tight">
+                Your car.<br />
+                <span className="text-redline">Your wall.</span>
               </h1>
-              <p className="text-lg text-brass-light font-medium leading-relaxed pt-4 border-t border-zinc-800">
+              <p className="text-lg text-redline-hot font-medium leading-relaxed pt-4 border-t border-zinc-800">
                 مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
               </p>
             </div>
             <p className="text-xl text-zinc-400 font-medium leading-relaxed max-w-lg">
-              {t('customDesignDesc')} Transform your automotive soul into a gallery-grade masterpiece. Every curve, every reflection, meticulously captured by our digital curators.
+              {t('customDesignDesc')} Send the model, the angle, the colour — we draw it, print it on Alucobond and deliver it to your door.
             </p>
             
             <div className="grid grid-cols-2 gap-6 pt-10">
@@ -106,22 +106,22 @@ export default function CustomizePage() {
             <div className="rounded-[3rem] bg-zinc-900 border border-zinc-800 p-8 md:p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]">
               <form onSubmit={handleSubmit} className="space-y-14">
                 
-                {/* 01. Vehicle Identity */}
+                {/* 01. Vehicle */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="h-0.5 w-8 bg-brass" />
-                    <h2 className="text-xl font-display uppercase tracking-tight">01. Vehicle Identity</h2>
+                    <div className="h-0.5 w-8 bg-redline" />
+                    <h2 className="text-xl font-display font-black stretch-125 uppercase tracking-tight">01 · Your car</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                        <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Smiya dyal tomobil w model dyalha</label>
                        <input required type="text" name="carName" placeholder="مثال: BMW M3" value={formData.carName} onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-brass focus:outline-none transition-all" />
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-redline focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">3am dyalha</label>
                        <input required type="text" name="year" placeholder="مثال: 2020" value={formData.year} onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-brass focus:outline-none transition-all" />
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-redline focus:outline-none transition-all" />
                     </div>
                   </div>
                 </section>
@@ -129,8 +129,8 @@ export default function CustomizePage() {
                 {/* 02. Perspective */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="h-0.5 w-8 bg-brass" />
-                    <h2 className="text-xl font-display uppercase tracking-tight">02. Kifach bghiti tswira dyal tomobil?</h2>
+                    <div className="h-0.5 w-8 bg-redline" />
+                    <h2 className="text-xl font-display font-black stretch-125 uppercase tracking-tight">02. Kifach bghiti tswira dyal tomobil?</h2>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     {[
@@ -142,10 +142,10 @@ export default function CustomizePage() {
                         key={option.value} type="button" 
                         onClick={() => setFormData(prev => ({ ...prev, perspective: option.value }))}
                         className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
-                          formData.perspective === option.value ? 'border-brass bg-brass/5 shadow-[0_0_20px_rgba(138,102,53,0.2)]' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
+                          formData.perspective === option.value ? 'border-redline bg-redline/5 shadow-[0_0_20px_rgba(229,32,12,0.2)]' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
                         }`}
                       >
-                         <svg className={`w-8 h-8 ${formData.perspective === option.value ? 'text-brass' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.502 1.94a.5.5 0 010 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.457l-1.354 1.354-2-2 1.354-1.354 2 2z"/></svg>
+                         <svg className={`w-8 h-8 ${formData.perspective === option.value ? 'text-redline-hot' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.502 1.94a.5.5 0 010 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.457l-1.354 1.354-2-2 1.354-1.354 2 2z"/></svg>
                          <span className="text-[10px] font-black uppercase tracking-widest">{option.label}</span>
                       </button>
                     ))}
@@ -155,34 +155,34 @@ export default function CustomizePage() {
                 {/* 03. Notes */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="h-0.5 w-8 bg-brass" />
-                    <h2 className="font-display text-2xl tracking-tight">
+                    <div className="h-0.5 w-8 bg-redline" />
+                    <h2 className="font-display font-black stretch-125 text-2xl tracking-tight">
                       الملاحظات: (بغيتي تزيد شي حاجة؟)
                     </h2>
                   </div>
                   <div className="space-y-2">
                      <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Ay haja khra bghiti tzidha</label>
                      <textarea name="notes" rows={4} placeholder="اكتب أي تفاصيل إضافية تريد إضافتها للطلب..." value={formData.notes} onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-xs font-medium focus:border-brass focus:outline-none transition-all resize-none" />
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-xs font-medium focus:border-redline focus:outline-none transition-all resize-none" />
                   </div>
                 </section>
 
                 {/* 04. Contact info */}
                 <section className="space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="h-0.5 w-8 bg-brass" />
-                    <h2 className="font-display text-2xl uppercase tracking-tight">04. M3lomat dyalk — Your contact</h2>
+                    <div className="h-0.5 w-8 bg-redline" />
+                    <h2 className="font-display font-black stretch-125 text-2xl uppercase tracking-tight">04. M3lomat dyalk — Your contact</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Smiya dyalk • Your name</label>
                       <input required type="text" name="firstName" placeholder="Mohamed" value={formData.firstName} onChange={handleChange} autoComplete="name"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-brass focus:outline-none transition-all" />
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-redline focus:outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-zinc-200 ml-1">Tilifon • Phone</label>
                       <input required type="tel" name="phone" placeholder="06XXXXXXXX" value={formData.phone} onChange={handleChange} autoComplete="tel"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-brass focus:outline-none transition-all" />
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-xs font-medium focus:border-redline focus:outline-none transition-all" />
                     </div>
                   </div>
                 </section>
@@ -197,7 +197,7 @@ export default function CustomizePage() {
                   >
                     {isSubmitting ? t('processing') : 'Submit Request'}
                   </button>
-                  <p className="text-[9px] text-center text-zinc-600 uppercase tracking-widest font-black">Our curators will respond with a quote within 48 hours.</p>
+                  <p className="text-[9px] text-center text-zinc-600 uppercase tracking-widest font-black">We'll reply with a quote within 48 hours.</p>
                 </div>
               </form>
             </div>

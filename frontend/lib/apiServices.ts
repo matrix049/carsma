@@ -160,12 +160,23 @@ export interface CreateContactMessageRequest {
 // Public API Functions
 // ============================================================================
 
+// Last product list seen in this tab. Lets a product page render instantly
+// on client-side navigation (and its image morph from the card) while a
+// fresh fetch still runs. Never served instead of a fetch.
+let lastProducts: Product[] | null = null;
+
+/** Products from the most recent fetchProducts() call, if any. */
+export function peekProducts(): Product[] | null {
+  return lastProducts;
+}
+
 export async function fetchProducts(): Promise<Product[]> {
   const response = await apiRequest<{ products: Product[] }>(
     '/api/products',
     { method: 'GET' },
     false
   );
+  lastProducts = response.products;
   return response.products;
 }
 
