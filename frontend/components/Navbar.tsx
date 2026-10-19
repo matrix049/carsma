@@ -21,6 +21,13 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close the menu on any route change (cart icon, back button, …). Drop the
+  // saved offset first so the new page isn't scrolled to the old position.
+  useEffect(() => {
+    delete document.body.dataset.scrollY;
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -152,9 +159,9 @@ export default function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-0 flex flex-col bg-ivory px-6 pb-10 pt-32 lg:hidden"
+            className="fixed inset-0 z-0 flex flex-col overflow-y-auto overscroll-contain bg-ivory px-6 pb-10 pt-32 lg:hidden"
           >
-            <nav className="flex flex-col divide-y divide-line border-y border-line">
+            <nav className="flex shrink-0 flex-col divide-y divide-line border-y border-line">
               {navLinks.map((link, idx) => (
                 <motion.div
                   key={link.path}
@@ -175,7 +182,7 @@ export default function Navbar() {
                 </motion.div>
               ))}
             </nav>
-            <div className="mt-auto space-y-1 text-center text-xs text-stone">
+            <div className="mt-auto shrink-0 space-y-1 pt-8 text-center text-xs text-stone">
               <p className="uppercase tracking-[0.18em]">Cash on delivery · 24h – 3 days</p>
               <p className="font-ar text-sm">الخلاص عند الاستلام · التوصيل لكاع المغرب</p>
             </div>
