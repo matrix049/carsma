@@ -3,9 +3,9 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Long-exposure night highway, drawn on a canvas: red tail lights streaming
+ * Long-exposure night highway, drawn on a canvas: tail lights streaming
  * away on the right, warm headlights coming at you on the left, sodium street
- * lamps along the edges. Simple pinhole projection — a light at world
+ * lamps along the edges and a cool glow on the horizon. Simple pinhole projection — a light at world
  * (x, y, z) lands on screen at (cx + x·f/z, horizon + y·f/z).
  *
  * Pauses when off-screen or the tab is hidden; with reduced motion it renders
@@ -80,8 +80,8 @@ export default function NightDrive({ className = '' }: { className?: string }) {
       bgCtx.fillRect(0, 0, w, h);
 
       const glow = bgCtx.createRadialGradient(w / 2, horizon, 0, w / 2, horizon, Math.max(w, h) * 0.7);
-      glow.addColorStop(0, 'rgba(229, 32, 12, 0.22)');
-      glow.addColorStop(0.35, 'rgba(229, 32, 12, 0.06)');
+      glow.addColorStop(0, 'rgba(143, 203, 255, 0.16)');
+      glow.addColorStop(0.35, 'rgba(143, 203, 255, 0.04)');
       glow.addColorStop(1, 'rgba(10, 10, 11, 0)');
       bgCtx.fillStyle = glow;
       bgCtx.fillRect(0, 0, w, h);
@@ -116,7 +116,8 @@ export default function NightDrive({ className = '' }: { className?: string }) {
           const a = project(x, CAM_H, z);
           const b = project(x, CAM_H, z + 3);
           bgCtx.strokeStyle = `rgba(255,255,255,${x === 0 ? 0.11 : 0.06})`;
-          bgCtx.lineWidth = Math.max(0.4, 0.12 * (focal / z));
+          // Capped: right under the camera the dashes would turn into fat pills.
+          bgCtx.lineWidth = Math.min(3, Math.max(0.4, 0.12 * (focal / z)));
           bgCtx.beginPath();
           bgCtx.moveTo(a.x, a.y);
           bgCtx.lineTo(b.x, b.y);

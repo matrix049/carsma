@@ -4,9 +4,9 @@
 
 :root {
   --background: #0A0A0B;
-  --foreground: #F4F4F0;
-  --surface: #131316;
-  --primary: #E5200C;
+  --foreground: #F2F3F5;
+  --surface: #121316;
+  --primary: #F2F3F5;
   color-scheme: dark;
 }
 
@@ -23,15 +23,15 @@ body {
 }
 
 ::selection {
-  background-color: #E5200C;
-  color: #FFFFFF;
+  background-color: #C3C8CF;
+  color: #0A0A0B;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0A0A0B; }
-::-webkit-scrollbar-thumb { background: #26262D; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #E5200C; }
+::-webkit-scrollbar-thumb { background: #25272C; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #80868F; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -39,8 +39,8 @@ body {
 .text-balance { text-wrap: balance; }
 
 /* ============================================================================
- * Display type — Anybody's width axis (50–150). Headlines stretch wide for
- * speed and squeeze narrow for density.
+ * Display type — Anybody's width axis (50–150). Wide and calm, like the
+ * extended faces on German dashboards.
  * ========================================================================== */
 @layer utilities {
   .stretch-50 { font-variation-settings: "wdth" 50; }
@@ -52,21 +52,19 @@ body {
   /* Hollow headline type */
   /* Stroke colour must be explicit: with color: transparent, currentColor
    * would be transparent too. Override with [-webkit-text-stroke-color:…]. */
-  .text-outline { -webkit-text-stroke: 1.5px #F4F4F0; color: transparent; }
-  .text-outline-red { -webkit-text-stroke: 1.5px #E5200C; color: transparent; }
+  .text-outline { -webkit-text-stroke: 1.5px #F2F3F5; color: transparent; }
 
-  /* Chamfered "race-part" corners */
-  .chamfer { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
-  .chamfer-sm { clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
-
-  /* Hazard / pit-wall stripes */
-  .hazard {
-    background-image: repeating-linear-gradient(-45deg, #E5200C 0 14px, #0A0A0B 14px 28px);
+  /* Brushed-platinum headline fill */
+  .text-metal {
+    background: linear-gradient(180deg, #FFFFFF 0%, #E4E7EB 45%, #9EA4AD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
-  /* Asphalt noise + faint speed lines for dark sections */
+  /* Faint vertical guide lines for dark sections */
   .speed-lines {
-    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 120px);
+    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 120px);
   }
 }
 
@@ -77,7 +75,7 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.07;
+  opacity: 0.06;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
@@ -88,28 +86,12 @@ body {
  * simply visible.
  * ========================================================================== */
 @keyframes sd-reveal-up {
-  from { opacity: 0; transform: translate3d(0, 48px, 0); }
+  from { opacity: 0; transform: translate3d(0, 40px, 0); }
   to { opacity: 1; transform: none; }
-}
-@keyframes sd-reveal-left {
-  from { opacity: 0; transform: translate3d(-80px, 0, 0); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes sd-word {
-  from { opacity: 0.14; }
-  to { opacity: 1; }
 }
 @keyframes sd-uncover {
   from { clip-path: inset(0 0 0 0); }
   to { clip-path: inset(0 0 0 100%); }
-}
-@keyframes sd-drift {
-  from { transform: translate3d(-6%, 0, 0); }
-  to { transform: translate3d(6%, 0, 0); }
-}
-@keyframes sd-stretch {
-  from { font-variation-settings: "wdth" 50; }
-  to { font-variation-settings: "wdth" 150; }
 }
 
 /* The car cover only exists where it can be scroll-animated away —
@@ -121,34 +103,14 @@ body {
     .sd-reveal {
       animation: sd-reveal-up linear both;
       animation-timeline: view();
-      animation-range: entry 0% cover 28%;
+      animation-range: entry 0% cover 25%;
     }
-    .sd-reveal-left {
-      animation: sd-reveal-left linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 32%;
-    }
-    /* Manifesto words light up one by one as they cross the viewport */
-    .sd-word {
-      animation: sd-word linear both;
-      animation-timeline: view();
-      animation-range: cover 18% cover 42%;
-    }
-    /* Car-cover pulled off as the panel scrolls into view */
+    /* Car cover pulled off as the panel scrolls into view */
     .sd-uncover {
       display: block;
       animation: sd-uncover linear both;
       animation-timeline: view();
       animation-range: entry 15% entry 95%;
-    }
-    .sd-drift {
-      animation: sd-drift linear both;
-      animation-timeline: view();
-    }
-    .sd-stretch {
-      animation: sd-stretch linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 50%;
     }
   }
 }
@@ -171,56 +133,34 @@ body {
 }
 
 /* ============================================================================
- * Holographic trading-card foil (product cards)
+ * Loader — a sequential LED sweep, like a dynamic indicator / welcome light.
+ * The lit row is revealed segment by segment, holds, then fades together.
  * ========================================================================== */
-@property --foil-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 115deg;
+@keyframes led-sweep {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: steps(8, end); }
+  62% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: linear; }
+  80% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: ease-in; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0; }
 }
-.holo-foil {
-  background:
-    radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.28), transparent 42%),
-    linear-gradient(var(--foil-angle), transparent 20%, rgba(255, 74, 51, 0.16) 38%, rgba(176, 75, 255, 0.16) 50%, rgba(43, 217, 107, 0.14) 62%, transparent 80%);
-  mix-blend-mode: color-dodge;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-.holo-card:hover .holo-foil { opacity: 1; }
+.led-sweep { animation: led-sweep 1.25s infinite; }
 
-/* ============================================================================
- * Launch control — warp streaks + flash when the launch button fires.
- * ========================================================================== */
-@keyframes launch-warp {
-  from { opacity: 0; transform: scale(0.6); }
-  25% { opacity: 1; }
-  to { opacity: 1; transform: scale(2.6); }
+/* WhatsApp concierge — keyless-entry signal rings */
+@keyframes fob-signal {
+  0% { transform: scale(0.85); opacity: 0; }
+  20% { opacity: 0.55; }
+  100% { transform: scale(1.7); opacity: 0; }
 }
-@keyframes launch-flash {
-  0% { opacity: 0; }
-  45% { opacity: 0.8; }
-  100% { opacity: 1; }
-}
-.launch-streaks {
-  background: repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 4deg, rgba(244, 244, 240, 0.55) 4deg 4.35deg, transparent 4.35deg 9deg, rgba(229, 32, 12, 0.7) 9deg 9.5deg);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 12%, #000 62%);
-  mask-image: radial-gradient(circle at 50% 50%, transparent 12%, #000 62%);
-  animation: launch-warp 0.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
-}
-.launch-flash {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(10, 10, 11, 0) 0%, rgba(10, 10, 11, 0.9) 72%),
-    rgba(229, 32, 12, 0.22);
-  animation: launch-flash 0.6s ease-in forwards;
-}
+.fob-signal { animation: fob-signal 3.2s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
-  .animate-marquee-reverse { animation: none !important; }
+  .animate-marquee-reverse,
+  .animate-shimmer,
+  .fob-signal { animation: none !important; }
+  .led-sweep { animation-duration: 2.5s; }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }
-  .launch-streaks { display: none; }
 }
 
 /* ============================================================================

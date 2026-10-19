@@ -13,7 +13,7 @@ interface PlateProps {
 }
 
 const SIZES = {
-  sm: 'text-[11px] [&>span]:px-1.5 [&>span]:py-0.5 border-[1.5px] rounded-[4px]',
+  sm: 'text-[13px] [&>span]:px-2 [&>span]:py-1 border-2 rounded-[5px]',
   md: 'text-base [&>span]:px-2.5 [&>span]:py-1 border-2 rounded-[6px]',
   lg: 'text-2xl sm:text-3xl [&>span]:px-3.5 [&>span]:py-1.5 border-[3px] rounded-[8px]',
 };

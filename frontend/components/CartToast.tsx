@@ -8,25 +8,25 @@ export default function CartToast() {
   const { toastMessage } = useCart();
 
   return (
-    <AnimatePresence>
-      {toastMessage && (
-        <motion.div 
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="fixed bottom-32 sm:bottom-12 right-6 sm:right-12 z-[100]"
-        >
-          <div className="flex items-center gap-5 rounded-[2rem] bg-black/90 px-8 py-5 shadow-4xl backdrop-blur-2xl border border-white/10">
-            <div className="relative">
-              <div className="h-3 w-3 rounded-full bg-redline animate-pulse shadow-[0_0_15px_rgba(229,32,12,1)]" />
-              <div className="absolute inset-0 h-3 w-3 rounded-full bg-redline animate-ping opacity-40" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
-              {toastMessage}
+    <div className="pointer-events-none fixed inset-x-0 top-20 z-[100] flex justify-center px-4 md:top-24">
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            role="status"
+            initial={{ opacity: 0, y: -16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+            className="flex items-center gap-3 rounded-full bg-carbon/95 py-3 pl-4 pr-5 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/10 backdrop-blur-xl"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-chalk text-asphalt">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
             </span>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <span className="text-sm font-medium text-chalk">{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

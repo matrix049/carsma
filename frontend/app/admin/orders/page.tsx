@@ -6,7 +6,7 @@ import AdminSidebar from '@/components/AdminSidebar';
 import { fetchOrders, updateOrderStatus, updateOrder, Order, OrderFinish } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import WheelLoader from '@/components/WheelLoader';
+import Loader from '@/components/Loader';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ['pending', 'confirmed', 'delivered', 'cancelled'] as const;
@@ -393,7 +393,7 @@ export default function AdminOrdersPage() {
           {/* Loading */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-32">
-              <WheelLoader size="lg" className="text-blue-600" />
+              <Loader size="lg" className="text-blue-600" />
               <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600">
                 Loading Orders...
               </p>

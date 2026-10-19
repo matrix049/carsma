@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { btnAccent } from '@/lib/uiStyles';
+import Link from 'next/link';
+import { btnPrimary, kickerLabel } from '@/lib/uiStyles';
 
 interface FAQItem {
   question: string;
@@ -72,110 +73,88 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen bg-asphalt text-white pt-32 pb-40">
-      <div className="container mx-auto px-6 sm:px-10 max-w-5xl">
+    <div className="min-h-screen bg-asphalt pb-32 pt-28 text-chalk md:pt-36">
+      <div className="mx-auto max-w-3xl px-5 sm:px-6">
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-24 space-y-6"
-        >
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-redline-hot">Pit lane Q&amp;A</span>
-          <h1 className="font-display font-black stretch-100 md:stretch-125 break-words text-[clamp(3.5rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight text-white">
-            FAQ
-          </h1>
-          <div className="h-2 w-32 bg-redline rounded-full mx-auto shadow-[0_0_15px_rgba(229,32,12,0.6)]" />
-          <p className="text-xl text-zinc-400 font-medium max-w-2xl mx-auto">
-            Frequently Asked Questions • الأسئلة الشائعة
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 md:mb-14">
+          <p className={kickerLabel}>
+            Questions <span className="font-ar normal-case tracking-normal">· الأسئلة الشائعة</span>
           </p>
+          <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,5rem)] font-semibold uppercase leading-[0.95] stretch-125">FAQ</h1>
         </motion.div>
 
         {/* FAQ Items */}
-        <div className="space-y-6">
-          {faqs.map((faq, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="rounded-3xl border border-zinc-800 bg-zinc-900/50 overflow-hidden backdrop-blur-xl"
-            >
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full px-8 py-6 flex items-center justify-between text-left hover:bg-zinc-800/50 transition-all"
+        <div className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
+          {faqs.map((faq, index) => {
+            const open = openIndex === index;
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="flex-1 pr-6">
-                  <h3 className="text-lg font-black text-white mb-2">
-                    {language === 'ar' ? faq.questionAr : faq.question}
-                  </h3>
-                  {language !== 'ar' && (
-                    <p className="text-sm text-zinc-500 font-medium">
-                      {faq.questionAr}
-                    </p>
-                  )}
-                </div>
-                <motion.div
-                  animate={{ rotate: openIndex === index ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex-none"
+                <button
+                  onClick={() => toggleFAQ(index)}
+                  aria-expanded={open}
+                  className="flex w-full items-center justify-between gap-6 py-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xenon"
                 >
-                  <svg 
-                    className="w-6 h-6 text-redline-hot" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <span className="flex-1">
+                    <span className="block text-base font-semibold text-chalk sm:text-lg">
+                      {language === 'ar' ? faq.questionAr : faq.question}
+                    </span>
+                    {language !== 'ar' && <span className="mt-1 block font-ar text-sm text-smoke">{faq.questionAr}</span>}
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    className={`h-5 w-5 flex-none text-silver transition-transform duration-300 ${open ? 'rotate-45' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                    <path strokeLinecap="round" d="M12 5v14M5 12h14" />
                   </svg>
-                </motion.div>
-              </button>
+                </button>
 
-              <AnimatePresence>
-                {openIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-8 pb-6 pt-2 border-t border-zinc-800">
-                      <p className="text-base text-zinc-300 leading-relaxed mb-4">
-                        {language === 'ar' ? faq.answerAr : faq.answer}
-                      </p>
-                      {language !== 'ar' && (
-                        <p className="text-sm text-redline-hot leading-relaxed font-medium">
-                          {faq.answerAr}
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
+                <AnimatePresence initial={false}>
+                  {open && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pb-6 pr-10">
+                        <p className="text-[15px] leading-relaxed text-silver">{language === 'ar' ? faq.answerAr : faq.answer}</p>
+                        {language !== 'ar' && (
+                          <p className="mt-3 font-ar text-sm leading-relaxed text-smoke" dir="rtl">
+                            {faq.answerAr}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Contact CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-24 text-center p-12 rounded-3xl bg-zinc-900 border border-zinc-800"
-        >
-          <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tight">
-            Still Have Questions? • عندك أسئلة أخرى؟
-          </h3>
-          <p className="text-zinc-400 mb-8 max-w-xl mx-auto">
-            Our team is here to help. Contact us and we'll get back to you as soon as possible.
-          </p>
-          <a href="/contact" className={btnAccent}>
-            Contact Us • تواصل معنا
-            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        <div className="mt-16 flex flex-col items-start gap-6 rounded-3xl bg-carbon p-8 ring-1 ring-white/[0.08] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-xl font-semibold uppercase stretch-125">Still have questions?</h2>
+            <p className="mt-1 font-ar text-smoke">عندك أسئلة أخرى؟</p>
+          </div>
+          <Link href="/contact" className={btnPrimary}>
+            Contact us
+            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M4 12h15" />
             </svg>
-          </a>
-        </motion.div>
+          </Link>
+        </div>
       </div>
     </div>
   );

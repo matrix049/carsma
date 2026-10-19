@@ -3,24 +3,21 @@
 import React, { useEffect, useRef, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { fetchProducts, peekProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AnalyticsService from '@/lib/analyticsService';
 import { trackViewContent } from '@/lib/metaPixel';
-import { btnPrimary, btnGhostDark, whatsappLink } from '@/lib/uiStyles';
+import { btnPrimary, btnGhostDark, kickerLabel, whatsappLink } from '@/lib/uiStyles';
 import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
-import WheelLoader from '@/components/WheelLoader';
 import Plate from '@/components/Plate';
+import BrandLogo from '@/components/BrandLogo';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 import { isNewEdition } from '@/lib/newEditions';
 import { getPinnedIndex } from '@/lib/pinnedProducts';
-import { dimensionsOf, parseDimensions } from '@/lib/dimensions';
-
-/** Width of wall shown in the "on your wall" mockup, in cm. */
-const WALL_WIDTH_CM = 340;
-/** Width of the sofa drawn under the artwork, in cm. */
-const SOFA_WIDTH_CM = 210;
+import { dimensionsOf } from '@/lib/dimensions';
+import { brandOf } from '@/lib/brands';
 
 /** In-stock products, same brand first. */
 function relatedFor(products: Product[], current: Product): Product[] {
@@ -30,46 +27,47 @@ function relatedFor(products: Product[], current: Product): Product[] {
   return [...sameCategory, ...rest].slice(0, 4);
 }
 
-function Sofa() {
+function SpecTile({ label, labelAr, value }: { label: string; labelAr: string; value: string }) {
   return (
-    <svg viewBox="0 0 210 70" className="w-full" aria-hidden="true">
-      <g fill="#2A2A31">
-        <rect x="8" y="6" width="194" height="34" rx="6" />
-        <rect x="0" y="26" width="22" height="34" rx="6" />
-        <rect x="188" y="26" width="22" height="34" rx="6" />
-        <rect x="16" y="34" width="178" height="22" rx="4" fill="#33333B" />
-      </g>
-      <g fill="#1B1B20">
-        <rect x="18" y="58" width="4" height="10" />
-        <rect x="188" y="58" width="4" height="10" />
-      </g>
-    </svg>
-  );
-}
-
-function SpecTile({ label, labelAr, value, accent }: { label: string; labelAr: string; value: string; accent?: boolean }) {
-  return (
-    <div className={`rounded-lg p-3.5 ring-1 ${accent ? 'bg-redline/10 ring-redline/40' : 'bg-carbon ring-white/10'}`}>
-      <p className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
+    <div className="rounded-2xl bg-carbon p-4 ring-1 ring-white/[0.08]">
+      <p className="flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-smoke">
         {label}
         <span className="font-ar text-xs normal-case tracking-normal">{labelAr}</span>
       </p>
-      <p className="mt-1.5 font-display text-[15px] font-extrabold uppercase leading-tight text-chalk stretch-125 sm:text-base">{value}</p>
+      <p className="mt-1.5 text-[15px] font-semibold text-chalk">{value}</p>
     </div>
   );
 }
 
 function Details({ title, titleAr, children }: { title: string; titleAr: string; children: React.ReactNode }) {
   return (
-    <details className="group border-b border-white/10">
-      <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between gap-4 py-4 [&::-webkit-details-marker]:hidden">
-        <span className="font-display text-sm font-extrabold uppercase tracking-[0.06em] text-chalk stretch-125">
-          {title} <span className="ms-2 font-ar text-sm font-semibold normal-case tracking-normal text-smoke">{titleAr}</span>
+    <details className="group border-b border-white/[0.08]">
+      <summary className="flex min-h-[56px] cursor-pointer list-none items-center justify-between gap-4 py-4 [&::-webkit-details-marker]:hidden">
+        <span className="text-sm font-semibold text-chalk">
+          {title} <span className="ms-2 font-ar text-sm font-normal text-smoke">{titleAr}</span>
         </span>
-        <span aria-hidden="true" className="font-mono text-xl text-redline-hot transition-transform duration-300 group-open:rotate-45">+</span>
+        <svg aria-hidden="true" className="h-4 w-4 text-silver transition-transform duration-300 group-open:rotate-45" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+        </svg>
       </summary>
       <div className="pb-5 text-[15px] leading-relaxed text-smoke">{children}</div>
     </details>
+  );
+}
+
+function ProductSkeleton() {
+  return (
+    <div aria-hidden="true" className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-5 pt-28 sm:px-6 md:pt-36 lg:grid-cols-12 lg:gap-14 lg:px-10">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-carbon ring-1 ring-white/[0.06] lg:col-span-7">
+        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
+      </div>
+      <div className="space-y-4 lg:col-span-5">
+        <div className="h-4 w-28 rounded-full bg-carbon-2" />
+        <div className="h-12 w-4/5 rounded-xl bg-carbon-2" />
+        <div className="h-10 w-48 rounded-lg bg-carbon-2" />
+        <div className="h-24 w-full rounded-2xl bg-carbon" />
+      </div>
+    </div>
   );
 }
 
@@ -90,7 +88,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [related, setRelated] = useState<Product[]>(cached.related);
   const [isLoading, setIsLoading] = useState(!cached.product);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'showroom' | 'wall'>('showroom');
   const [quantity, setQuantity] = useState<number>(1);
   const trackedRef = useRef<string | null>(null);
 
@@ -100,7 +97,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const standardSize = { id: 'M', label: dimensionsLabel };
   const unitPrice = product ? product.price : 0;
   const totalPrice = unitPrice * quantity;
-  const dims = parseDimensions(dimensionsLabel) ?? { w: 120, h: 35 };
 
   useEffect(() => {
     let active = true;
@@ -147,8 +143,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   if (!product && isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-asphalt">
-        <WheelLoader size="lg" />
+      <div className="min-h-screen bg-asphalt">
+        <ProductSkeleton />
       </div>
     );
   }
@@ -156,8 +152,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (!product) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-asphalt px-6 text-center">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">Wrong turn</p>
-        <h1 className="mt-4 font-display text-5xl font-black uppercase leading-none text-chalk stretch-125">
+        <p className={kickerLabel}>Wrong turn</p>
+        <h1 className="mt-4 font-display text-4xl font-semibold uppercase leading-none text-chalk stretch-125 sm:text-5xl">
           {error === 'Product not found' || !error ? 'No car here' : error}
         </h1>
         <p className="mt-3 font-ar text-lg text-smoke">هاد الطوموبيل ماكايناش</p>
@@ -191,205 +187,129 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const isNew = isNewEdition(product.name);
   const pin = getPinnedIndex(product.name);
+  const brand = brandOf(product);
 
   return (
     <div className="bg-asphalt pb-28 md:pb-0">
-      <div className="mx-auto max-w-[1440px] px-5 pt-28 sm:px-6 md:pt-36 lg:px-10">
+      <div className="mx-auto max-w-[1440px] px-5 pt-24 sm:px-6 md:pt-32 lg:px-10">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-smoke md:mb-10">
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-smoke md:mb-10">
           <Link href="/" className="hover:text-chalk">{t('home')}</Link>
-          <span aria-hidden="true" className="text-redline">/</span>
+          <span aria-hidden="true">/</span>
           <Link href="/shop" className="hover:text-chalk">{t('shop')}</Link>
-          <span aria-hidden="true" className="text-redline">/</span>
-          <span className="text-chalk">{product.name}</span>
+          <span aria-hidden="true">/</span>
+          <span className="text-silver">{product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14">
           {/* ── Showroom ───────────────────────────────────────────── */}
           <div className="min-w-0 lg:col-span-7">
             <div className="lg:sticky lg:top-28">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-carbon-2 ring-1 ring-white/10">
-                <AnimatePresence mode="wait" initial={false}>
-                  {view === 'showroom' ? (
-                    <motion.div
-                      key="showroom"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="absolute inset-0"
-                    >
-                      {product.image && (
-                        <img
-                          key={product._id}
-                          data-vt-hero
-                          src={product.image}
-                          alt={product.name}
-                          style={{ viewTransitionName: 'car-hero' } as React.CSSProperties}
-                          className="h-full w-full object-cover"
-                          onError={hideBrokenImage}
-                        />
-                      )}
-                      {/* showroom spotlight */}
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(255,255,255,0.10),transparent_60%),radial-gradient(ellipse_at_center,transparent_55%,rgba(10,10,11,0.55)_100%)]" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="wall"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_50%_18%,rgba(255,190,130,0.16),transparent_70%),linear-gradient(#1D1D22,#151518)]"
-                    >
-                      {/* floor */}
-                      <div className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-b from-[#121214] to-[#0B0B0D]" />
-                      {/* sofa, sized against the wall width */}
-                      <div
-                        className="absolute bottom-[13%] left-1/2 -translate-x-1/2"
-                        style={{ width: `${(SOFA_WIDTH_CM / WALL_WIDTH_CM) * 100}%` }}
-                      >
-                        <Sofa />
-                      </div>
-                      {/* artwork at true scale relative to the sofa */}
-                      <div
-                        className="absolute left-1/2 top-[24%] -translate-x-1/2"
-                        style={{ width: `${(dims.w / WALL_WIDTH_CM) * 100}%` }}
-                      >
-                        {product.image && (
-                          <img
-                            src={product.image}
-                            alt={`${product.name} on a wall`}
-                            className="w-full object-contain shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
-                            onError={hideBrokenImage}
-                          />
-                        )}
-                        <div className="mt-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke">
-                          <span className="h-px flex-1 bg-smoke/60" />
-                          {dims.w} cm
-                          <span className="h-px flex-1 bg-smoke/60" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-carbon-2 ring-1 ring-white/[0.08]">
+                {product.image && (
+                  <img
+                    key={product._id}
+                    data-vt-hero
+                    src={product.image}
+                    alt={product.name}
+                    style={{ viewTransitionName: 'car-hero' } as React.CSSProperties}
+                    className="h-full w-full object-cover"
+                    onError={hideBrokenImage}
+                  />
+                )}
+                {/* showroom spotlight */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(255,255,255,0.08),transparent_60%),radial-gradient(ellipse_at_center,transparent_55%,rgba(10,10,11,0.5)_100%)]" />
 
-                <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
-                  {pin >= 0 && (
-                    <span className="rounded-sm bg-timing-purple px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white shadow-[0_0_14px_rgba(176,75,255,0.55)]">
-                      P{pin + 1} · Most wanted
-                    </span>
-                  )}
-                  {isNew && (
-                    <span className="rounded-sm bg-volt px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-asphalt">
-                      New drop · 3D
-                    </span>
-                  )}
-                </div>
+                {/* Brand emblem, like the badge on a showroom wall */}
+                {brand && (
+                  <span className="absolute right-3 top-3 flex h-12 w-12 items-center justify-center rounded-full bg-black/45 text-chalk ring-1 ring-white/15 backdrop-blur-md sm:right-4 sm:top-4 sm:h-14 sm:w-14">
+                    <BrandLogo brand={brand} labelled className="h-6 w-6 sm:h-7 sm:w-7" />
+                  </span>
+                )}
+
+                {(isNew || pin >= 0) && (
+                  <span className="absolute left-3 top-3 rounded-full bg-chalk px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-asphalt sm:left-4 sm:top-4">
+                    {isNew ? 'New · 3D' : 'Most wanted'}
+                  </span>
+                )}
               </div>
 
               {/* Showroom-floor reflection */}
-              {view === 'showroom' && product.image && (
-                <div aria-hidden="true" className="pointer-events-none relative hidden h-20 overflow-hidden rounded-b-2xl opacity-25 [mask-image:linear-gradient(to_bottom,black,transparent)] md:block">
+              {product.image && (
+                <div aria-hidden="true" className="pointer-events-none relative hidden h-20 overflow-hidden rounded-b-3xl opacity-20 [mask-image:linear-gradient(to_bottom,black,transparent)] md:block">
                   <img src={product.image} alt="" className="h-[600%] w-full -scale-y-100 object-cover object-bottom blur-[2px]" />
                 </div>
-              )}
-
-              {/* View toggle */}
-              <div className="mt-4 inline-flex rounded-md bg-carbon p-1 ring-1 ring-white/10" role="tablist" aria-label="Preview">
-                {([
-                  ['showroom', 'Showroom', 'العرض'],
-                  ['wall', 'On your wall', 'فالحيط'],
-                ] as const).map(([key, label, ar]) => (
-                  <button
-                    key={key}
-                    role="tab"
-                    aria-selected={view === key}
-                    onClick={() => setView(key)}
-                    className={`min-h-[40px] rounded px-4 font-mono text-[11px] font-bold uppercase tracking-[0.16em] transition-colors ${
-                      view === key ? 'bg-redline text-white' : 'text-smoke hover:text-chalk'
-                    }`}
-                  >
-                    {label} <span className="font-ar text-xs normal-case tracking-normal opacity-80">· {ar}</span>
-                  </button>
-                ))}
-              </div>
-              {view === 'wall' && (
-                <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-smoke">
-                  Shown to scale above a {SOFA_WIDTH_CM} cm sofa
-                </p>
               )}
             </div>
           </div>
 
-          {/* ── Spec sheet ─────────────────────────────────────────── */}
+          {/* ── Details ────────────────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="min-w-0 lg:col-span-5"
           >
-            <p className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">
-              <span className="h-[2px] w-8 bg-redline" />
-              {product.category}
-            </p>
-            <h1 className="mt-3 break-words font-display text-[clamp(2.6rem,6vw,4.75rem)] font-black uppercase leading-[0.88] text-chalk stretch-125">
+            <Link
+              href={`/shop?category=${encodeURIComponent(product.category)}`}
+              className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.04] py-1.5 pl-2 pr-4 text-xs font-medium uppercase tracking-[0.16em] text-silver ring-1 ring-inset ring-white/10 transition-colors hover:text-chalk hover:ring-white/25"
+            >
+              <BrandLogo brand={brand ?? product.category} className="h-5 w-5" />
+              {brand?.name ?? product.category}
+            </Link>
+            <h1 className="mt-4 break-words font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[1] text-chalk stretch-125">
               {product.name}
             </h1>
 
             <div className="mt-6 flex flex-wrap items-center gap-4">
               <Plate size="lg" left={unitPrice} letter="د.م" right="MAD" aria-label={`${unitPrice} MAD`} />
-              <span className="font-mono text-lg font-bold text-smoke line-through">{Math.ceil(product.price * 1.2)} MAD</span>
+              <span className="font-mono text-lg text-smoke line-through">{Math.ceil(product.price * 1.2)} MAD</span>
             </div>
             <p className="mt-3 text-sm text-smoke">
               Pay cash on delivery · <span className="font-ar">الخلاص عند الاستلام</span>
             </p>
 
-            <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 md:text-base">{description}</p>
+            <p className="mt-6 text-[15px] leading-relaxed text-silver md:text-base">{description}</p>
 
-            {/* Telemetry-style spec sheet */}
             <div className="mt-7 grid grid-cols-2 gap-2.5">
-              <SpecTile label="Size" labelAr="القياس" value={dimensionsLabel} accent />
+              <SpecTile label="Size" labelAr="القياس" value={dimensionsLabel} />
               <SpecTile label="Material" labelAr="المادة" value="Alucobond 3 mm" />
-              <SpecTile label="Finish" labelAr="الطباعة" value="UV matte" />
-              <SpecTile label="Mount" labelAr="التعليق" value="Pre-drilled" />
               <SpecTile label="Delivery" labelAr="التوصيل" value="24h – 3 days" />
-              <SpecTile label="Payment" labelAr="الخلاص" value="Cash on delivery" />
+              <SpecTile label="Mount" labelAr="التعليق" value="Pre-drilled" />
             </div>
             <p className="mt-2.5 text-xs text-smoke">120 × 50 cm or a custom size? Message us before ordering.</p>
 
-            {/* Quantity — paddle shifters */}
+            {/* Quantity */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
+              <div className="inline-flex items-center rounded-full bg-carbon ring-1 ring-white/10" role="group" aria-label="Quantity">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
                   aria-label="Decrease quantity"
-                  className="flex h-16 w-14 flex-col items-center justify-center rounded-l-[28px] rounded-r-md bg-carbon-2 text-chalk ring-1 ring-white/10 transition-colors hover:bg-carbon-3 active:bg-redline disabled:opacity-30 disabled:hover:bg-carbon-2"
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-chalk transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
                 >
-                  <span className="text-2xl leading-none">−</span>
-                  <span className="mt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-smoke">Down</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" d="M5 12h14" />
+                  </svg>
                 </button>
-                <div className="flex h-16 min-w-[5.5rem] flex-col items-center justify-center rounded-lg bg-black px-3 ring-1 ring-white/10 shadow-[inset_0_0_24px_rgba(229,32,12,0.18)]">
-                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-smoke">Qty</span>
-                  <span aria-live="polite" className="font-display text-4xl font-black leading-none text-redline-hot tabular-nums stretch-75">
-                    {quantity}
-                  </span>
-                </div>
+                <span aria-live="polite" className="min-w-[2.5rem] text-center font-mono text-lg font-semibold tabular-nums text-chalk">
+                  {quantity}
+                </span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
                   aria-label="Increase quantity"
-                  className="flex h-16 w-14 flex-col items-center justify-center rounded-l-md rounded-r-[28px] bg-carbon-2 text-chalk ring-1 ring-white/10 transition-colors hover:bg-carbon-3 active:bg-redline"
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-chalk transition-colors hover:bg-white/[0.06]"
                 >
-                  <span className="text-2xl leading-none">+</span>
-                  <span className="mt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-smoke">Up</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                  </svg>
                 </button>
               </div>
               {quantity > 1 && (
-                <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-smoke">
-                  Total <span className="font-display text-xl font-black text-chalk">{totalPrice} MAD</span>
+                <p className="text-sm text-smoke">
+                  Total <span className="font-semibold text-chalk">{totalPrice} MAD</span>
                 </p>
               )}
             </div>
@@ -399,25 +319,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <button onClick={buyNow} disabled={!product.inStock} className={`${btnPrimary} w-full`}>
                 {product.inStock ? (
                   <>
-                    Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-90">· شري دابا</span>
+                    Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-70">· شري دابا</span>
                   </>
                 ) : (
                   t('unavailable')
                 )}
               </button>
               <button onClick={addAll} disabled={!product.inStock} className={`${btnGhostDark} w-full`}>
-                {t('addToCart')} <span className="font-ar text-sm normal-case tracking-normal opacity-80">· زيد للسلة</span>
+                {t('addToCart')} <span className="font-ar text-sm normal-case tracking-normal opacity-70">· زيد للسلة</span>
               </button>
               <a
                 href={whatsappOrder}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-[48px] w-full items-center justify-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#2BD96B] hover:underline hover:underline-offset-4"
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 text-sm font-medium text-silver transition-colors hover:text-chalk"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12.04 2a9.9 9.9 0 00-8.5 15l-1.4 5 5.1-1.3A9.9 9.9 0 1012.04 2zm5.8 14.1c-.25.7-1.45 1.33-2 1.4-.52.08-1.17.11-1.88-.12a17 17 0 01-1.7-.63c-2.98-1.29-4.93-4.3-5.08-4.5-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.6-.37.8-.37h.57c.18 0 .43-.07.67.51.25.6.84 2.06.92 2.2.07.15.12.33.02.53-.1.2-.15.32-.3.5l-.44.52c-.15.15-.3.3-.13.6.17.3.77 1.27 1.66 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.07.17-.2.74-.87.94-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.07.12.07.72-.17 1.42z" />
-                </svg>
-                Order on WhatsApp <span className="font-ar text-sm normal-case tracking-normal">· طلب فالواتساب</span>
+                <WhatsAppIcon className="h-4 w-4" />
+                Order on WhatsApp <span className="font-ar text-smoke">· طلب فالواتساب</span>
               </a>
             </div>
 
@@ -437,23 +355,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Related */}
         {related.length > 0 && (
-          <section className="mt-24 border-t border-white/10 py-20 md:mt-32">
+          <section className="mt-24 border-t border-white/[0.08] py-20 md:mt-32">
             <div className="mb-10 flex items-end justify-between gap-6">
               <div>
-                <p className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-redline-hot">
-                  <span className="h-[2px] w-8 bg-redline" />
-                  You may also like
+                <p className={kickerLabel}>
+                  You may also like <span className="font-ar normal-case tracking-normal">· حتى هادو</span>
                 </p>
-                <h2 className="mt-3 font-display text-4xl font-black uppercase leading-none text-chalk stretch-125 md:text-6xl">
-                  More from the grid
+                <h2 className="mt-3 font-display text-3xl font-semibold uppercase leading-none text-chalk stretch-125 md:text-5xl">
+                  More from the garage
                 </h2>
-                <p className="mt-2 font-ar text-lg text-smoke">حتى هادو غادي يعجبوك</p>
               </div>
-              <Link href="/shop" className="hidden font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-chalk underline decoration-redline decoration-2 underline-offset-[6px] hover:text-redline-hot sm:block">
-                All cars
+              <Link href="/shop" className="hidden shrink-0 text-sm font-medium text-silver transition-colors hover:text-chalk sm:block">
+                All cars →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">
               {related.map((p, i) => (
                 <ProductCard key={p._id} product={p} index={i} />
               ))}
@@ -465,18 +381,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       {/* Mobile sticky buy bar */}
       {product.inStock && (
         <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-asphalt/90 px-4 pt-3 backdrop-blur-xl md:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-asphalt/90 px-4 pt-3 backdrop-blur-xl md:hidden"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-sm font-extrabold uppercase text-chalk stretch-125">{product.name}</p>
-              <p className="font-display text-lg font-black leading-tight text-chalk">
-                {totalPrice} <span className="font-mono text-[10px] font-bold text-smoke">MAD</span>
+              <p className="truncate text-xs text-smoke">{product.name}</p>
+              <p className="text-lg font-semibold leading-tight text-chalk">
+                {totalPrice} <span className="text-xs font-normal text-smoke">MAD</span>
               </p>
             </div>
-            <button onClick={buyNow} className="chamfer-sm min-h-[48px] bg-redline px-5 font-display text-[12px] font-black uppercase tracking-[0.12em] text-white stretch-125 active:bg-redline-hot">
-              Buy now <span className="font-ar text-sm normal-case tracking-normal">· شري</span>
+            <button onClick={buyNow} className={`${btnPrimary} !px-6`}>
+              Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-70">· شري</span>
             </button>
           </div>
         </div>

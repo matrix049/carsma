@@ -6,7 +6,7 @@ import AdminSidebar from '@/components/AdminSidebar';
 import { fetchProducts, createProduct, updateProduct, deleteProduct, uploadProductImage, Product } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import WheelLoader from '@/components/WheelLoader';
+import Loader from '@/components/Loader';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -332,7 +332,7 @@ export default function AdminProductsPage() {
           {/* Loading */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-32">
-              <WheelLoader size="lg" className="text-blue-600" />
+              <Loader size="lg" className="text-blue-600" />
               <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600">
                 Loading Products...
               </p>

@@ -15,7 +15,7 @@ import {
   LedgerStatus,
   LedgerSource,
 } from '@/lib/apiServices';
-import WheelLoader from '@/components/WheelLoader';
+import Loader from '@/components/Loader';
 
 const STATUS_LABELS: Record<NonNullable<LedgerStatus>, string> = {
   payee: 'Payée',
@@ -380,7 +380,7 @@ export default function AdminLedgerPage() {
           {/* Table */}
           {isLoading ? (
             <div className="py-24 flex justify-center">
-              <WheelLoader size="lg" />
+              <Loader size="lg" className="text-blue-600" />
             </div>
           ) : error ? (
             <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-rose-500 text-sm font-bold">

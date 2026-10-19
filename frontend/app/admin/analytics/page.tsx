@@ -6,7 +6,7 @@ import AdminSidebar from '@/components/AdminSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { motion } from 'framer-motion';
-import WheelLoader from '@/components/WheelLoader';
+import Loader from '@/components/Loader';
 
 // Visitor Statistics Card Component
 interface VisitorStatsCardProps {
