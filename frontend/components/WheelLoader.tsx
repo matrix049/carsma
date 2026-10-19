@@ -32,7 +32,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           ease: 'easeOut',
         }}
       >
-        <div className="w-full h-full rounded-full bg-blue-500 blur-xl" />
+        <div className="w-full h-full rounded-full bg-brass-light blur-xl opacity-60" />
       </motion.div>
 
       {/* Spinning wheel */}
@@ -56,7 +56,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           fill="none"
           stroke="currentColor"
           strokeWidth="8"
-          className="text-blue-600"
+          className="text-brass"
           opacity="0.3"
         />
         
@@ -78,7 +78,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
               y2={y2}
               stroke="currentColor"
               strokeWidth="3"
-              className="text-blue-600"
+              className="text-brass"
               opacity="0.5"
             />
           );
@@ -90,7 +90,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           cy="50"
           r="20"
           fill="currentColor"
-          className="text-blue-600"
+          className="text-brass"
           opacity="0.6"
         />
 
@@ -110,7 +110,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
               y2={y}
               stroke="currentColor"
               strokeWidth="4"
-              className="text-blue-500"
+              className="text-brass"
               opacity="0.8"
             />
           );
@@ -122,7 +122,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
           cy="50"
           r="8"
           fill="currentColor"
-          className="text-blue-400"
+          className="text-brass-light"
         />
       </motion.svg>
 
@@ -130,7 +130,7 @@ export default function WheelLoader({ size = 'md', className = '' }: WheelLoader
       {Array.from({ length: 3 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-blue-500"
+          className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-brass-light"
           animate={{
             x: [0, (i - 1) * 30],
             y: [0, -20 - i * 10],

@@ -4,6 +4,7 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -12,13 +13,23 @@ module.exports = {
         foreground: 'var(--foreground)',
         surface: 'var(--surface)',
         primary: 'var(--primary)',
+        // Gallery palette — warm paper, ink, brass.
+        ivory: '#F7F3EC',
+        paper: '#FBF9F5',
+        wall: '#ECE5D8',
+        line: '#E2DACB',
+        ink: '#16130F',
+        stone: '#6E665B',
+        brass: { DEFAULT: '#8A6635', light: '#B8955E' },
       },
       fontFamily: {
         jakarta: 'var(--font-jakarta)',
         inter: 'var(--font-inter)',
-        // "display" = the big condensed poster face used for headlines.
-        // Aliased as both `font-display` and `font-anton` so old refs keep working.
-        display: ['var(--font-anton)', 'Impact', 'Anton', 'sans-serif'],
+        // "display" = the gallery serif used for every headline.
+        display: ['var(--font-serif)', 'Cormorant Garamond', 'Georgia', 'serif'],
+        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Georgia', 'serif'],
+        // Arabic / Darija copy.
+        ar: ['var(--font-arabic)', 'Noto Naskh Arabic', 'Tahoma', 'sans-serif'],
         anton: ['var(--font-anton)', 'Impact', 'Anton', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, Anton, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Anton, JetBrains_Mono, Cormorant_Garamond, Noto_Naskh_Arabic } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
@@ -26,6 +26,23 @@ const anton = Anton({
   weight: "400",
   variable: "--font-anton",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Cormorant Garamond — gallery serif for every headline
+const cormorant = Cormorant_Garamond({
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Noto Naskh Arabic — Darija / Arabic copy
+const notoNaskh = Noto_Naskh_Arabic({
+  weight: ["400", "500", "600"],
+  variable: "--font-arabic",
+  subsets: ["arabic"],
   display: "swap",
 });
 
@@ -58,7 +75,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${inter.variable} ${anton.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${inter.variable} ${anton.variable} ${jetbrainsMono.variable} ${cormorant.variable} ${notoNaskh.variable} h-full antialiased`}
     >
       <head>
         <Script id="ms-clarity" strategy="afterInteractive">
@@ -78,7 +95,7 @@ fbq('track', 'PageView');
           `}
         </Script>
       </head>
-      <body className="min-h-full flex flex-col bg-white dark:bg-[#0a0a0a] text-zinc-950 dark:text-zinc-50 font-inter">
+      <body className="min-h-full flex flex-col bg-ivory text-ink font-inter">
         <noscript>
           <img
             height="1"

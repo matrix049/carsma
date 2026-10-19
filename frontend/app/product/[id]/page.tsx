@@ -3,43 +3,111 @@
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { motion } from 'framer-motion';
 import AnalyticsService from '@/lib/analyticsService';
 import { trackViewContent } from '@/lib/metaPixel';
-import { btnAccent, btnDark, btnCompactGhost } from '@/lib/uiStyles';
+import { btnDark, btnGhostLight, whatsappLink } from '@/lib/uiStyles';
+import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
+import WheelLoader from '@/components/WheelLoader';
+import { isNewEdition } from '@/lib/newEditions';
+
+// Dimensions come from the product itself, set per-product by admins in
+// /admin/products. Falls back to the catalogue standard for legacy products.
+const DEFAULT_DIMENSIONS = '120cm x 35cm';
+
+/** Width of wall shown in the "on the wall" mockup, in cm. */
+const WALL_WIDTH_CM = 340;
+/** Width of the sofa drawn under the artwork, in cm. */
+const SOFA_WIDTH_CM = 210;
+
+/** "120cm x 35cm" → { w: 120, h: 35 } (null when the string can't be parsed). */
+function parseDimensions(label: string): { w: number; h: number } | null {
+  const m = label.match(/(\d+(?:[.,]\d+)?)\s*(?:cm)?\s*[x×*]\s*(\d+(?:[.,]\d+)?)/i);
+  if (!m) return null;
+  return { w: parseFloat(m[1].replace(',', '.')), h: parseFloat(m[2].replace(',', '.')) };
+}
+
+function Sofa() {
+  return (
+    <svg viewBox="0 0 210 70" className="w-full" aria-hidden="true">
+      <g fill="#CFC4B1">
+        <rect x="8" y="6" width="194" height="34" rx="6" />
+        <rect x="0" y="26" width="22" height="34" rx="6" />
+        <rect x="188" y="26" width="22" height="34" rx="6" />
+        <rect x="16" y="34" width="178" height="22" rx="4" fill="#C3B7A2" />
+      </g>
+      <g fill="#A89A82">
+        <rect x="18" y="58" width="4" height="10" />
+        <rect x="188" y="58" width="4" height="10" />
+      </g>
+    </svg>
+  );
+}
+
+function SpecRow({ label, labelAr, value, note }: { label: string; labelAr: string; value: string; note?: string }) {
+  return (
+    <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-line py-4 sm:grid-cols-[9rem_1fr]">
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone">
+        {label}
+        <span className="mt-0.5 block font-ar text-sm normal-case tracking-normal">{labelAr}</span>
+      </dt>
+      <dd>
+        <p className="text-[15px] font-medium text-ink">{value}</p>
+        {note && <p className="mt-1 text-sm text-stone">{note}</p>}
+      </dd>
+    </div>
+  );
+}
+
+function Details({ title, titleAr, children }: { title: string; titleAr: string; children: React.ReactNode }) {
+  return (
+    <details className="group border-b border-line">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-5 [&::-webkit-details-marker]:hidden">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-ink">
+          {title} <span className="ms-2 font-ar text-sm normal-case tracking-normal text-stone">{titleAr}</span>
+        </span>
+        <span className="text-xl font-light text-stone transition-transform duration-300 group-open:rotate-45">+</span>
+      </summary>
+      <div className="pb-6 text-[15px] leading-relaxed text-stone">{children}</div>
+    </details>
+  );
+}
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
   const { addToCart } = useCart();
-  const { t, language } = useLanguage();
-  
+  const { t } = useLanguage();
+
   const [product, setProduct] = useState<Product | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<'art' | 'wall'>('art');
+  const [quantity, setQuantity] = useState<number>(1);
 
-  // Dimensions come from the product itself, set per-product by admins
-  // in /admin/products. Falls back to the catalogue standard if a legacy
-  // product hasn't had the field saved yet.
-  const DEFAULT_DIMENSIONS = '120cm x 35cm';
   const dimensionsLabel = (product?.dimensions || '').trim() || DEFAULT_DIMENSIONS;
   // Keep the same `standardSize` shape downstream code consumes — the
   // `id` is just an internal sku-like marker for the cart.
   const standardSize = { id: 'M', label: dimensionsLabel };
-  const [quantity, setQuantity] = useState<number>(1);
   const unitPrice = product ? product.price : 0;
   const totalPrice = unitPrice * quantity;
+  const dims = parseDimensions(dimensionsLabel) ?? { w: 120, h: 35 };
 
   useEffect(() => {
     async function loadProduct() {
       try {
         const products = await fetchProducts();
-        const found = products.find(p => p._id === id);
+        const found = products.find((p) => p._id === id);
         if (found) {
           setProduct(found);
+          const others = products.filter((p) => p._id !== found._id && p.inStock);
+          const sameCategory = others.filter((p) => p.category === found.category);
+          const rest = others.filter((p) => p.category !== found.category);
+          setRelated([...sameCategory, ...rest].slice(0, 4));
         } else {
           setError('Product not found');
         }
@@ -55,17 +123,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   // Track product view when product loads successfully
   useEffect(() => {
     if (product && !isLoading && !error) {
-      // Track the product view asynchronously
-      const trackView = async () => {
-        try {
-          await AnalyticsService.trackProductView(product._id);
-        } catch (error) {
-          // Analytics failures should not affect user experience
-          console.warn('Product view tracking failed:', error);
-        }
-      };
-
-      trackView();
+      AnalyticsService.trackProductView(product._id).catch((err: unknown) => {
+        // Analytics failures should not affect user experience
+        console.warn('Product view tracking failed:', err);
+      });
       trackViewContent({
         productId: product._id,
         name: product.name,
@@ -77,261 +138,318 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-         <motion.div 
-           animate={{ rotate: 360 }}
-           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-           className="h-8 w-8 rounded-full border-4 border-blue-600 border-t-transparent shadow-[0_0_15px_rgba(37,99,235,0.5)]"
-         />
+      <div className="flex min-h-screen items-center justify-center bg-ivory">
+        <WheelLoader size="lg" />
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="container mx-auto px-6 py-48 text-center bg-black min-h-screen">
-        <h1 className="text-4xl font-black text-white mb-8 uppercase tracking-tighter">{error || 'Product not found'}</h1>
-        <Link href="/" className="text-blue-600 hover:text-blue-500 font-black uppercase tracking-widest text-[10px]">
-          &larr; {t('backToArtworks')}
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ivory px-6 text-center">
+        <h1 className="font-display text-5xl font-medium text-ink">{error || 'Product not found'}</h1>
+        <Link href="/shop" className={`${btnGhostLight} mt-10`}>
+          {t('backToArtworks')}
         </Link>
       </div>
     );
   }
 
-  const imageUrl = product.image || 'https://via.placeholder.com/800x600?text=No+Image';
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
+  const addAll = () => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart({ ...product, price: unitPrice }, standardSize.id, standardSize.label);
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.8 }
-    }
+  const buyNow = () => {
+    addAll();
+    router.push('/checkout');
   };
+
+  const whatsappOrder = whatsappLink(
+    `Salam L7it, bghit ncommandi:\n${product.name} (${dimensionsLabel}) x${quantity} — ${totalPrice} MAD\n${
+      typeof window !== 'undefined' ? window.location.href : ''
+    }`,
+  );
+
+  const description =
+    product.description?.trim() ||
+    `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Rabat, pre-drilled and ready to mount.`;
+
+  const isNew = isNewEdition(product.name);
 
   return (
-    <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 pt-32 pb-20 md:py-32 lg:py-48 max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6 md:mb-16"
-        >
-          <Link href="/shop" className={btnCompactGhost} aria-label={t('backToArtworks')}>
-            <svg
-              className={`h-3.5 w-3.5 transition-transform ${language === 'ar' ? 'rotate-180 group-hover:translate-x-1' : 'group-hover:-translate-x-1'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            {t('backToArtworks')}
-          </Link>
-        </motion.div>
+    <div className="bg-ivory pb-28 md:pb-0">
+      <div className="container mx-auto max-w-7xl px-5 pt-28 md:pt-36 lg:px-10">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone md:mb-10">
+          <Link href="/" className="hover:text-ink">{t('home')}</Link>
+          <span>/</span>
+          <Link href="/shop" className="hover:text-ink">{t('shop')}</Link>
+          <span>/</span>
+          <span className="text-ink">{product.name}</span>
+        </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-24 lg:gap-32">
-          {/* Kinetic Image Reveal */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative aspect-square w-full max-w-md md:max-w-none mx-auto md:mx-0 overflow-hidden rounded-3xl md:rounded-[4rem] bg-zinc-900 border border-zinc-800 shadow-4xl group"
-          >
-            <motion.img
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              src={imageUrl}
-              alt={product.name}
-              className="h-full w-full object-cover object-center grayscale-[0.2] transition-all duration-1000 group-hover:grayscale-0 brightness-[0.9] group-hover:brightness-100"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x600?text=Image+Unavailable';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-20 transition-opacity duration-1000" />
-            
-            <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12">
-               <span className="flex items-center gap-3 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-3 text-[10px] font-black tracking-[0.4em] text-white uppercase shadow-3xl">
-                  <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_10px_rgba(37,99,235,1)]" />
-                  Limited Edition
-               </span>
-            </div>
-          </motion.div>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
+          {/* ── Visual ─────────────────────────────────────────────── */}
+          <div className="lg:col-span-7">
+            <div className="lg:sticky lg:top-28">
+              <div className="relative aspect-square overflow-hidden ring-1 ring-line sm:aspect-[4/3]">
+                <AnimatePresence mode="wait" initial={false}>
+                  {view === 'art' ? (
+                    <motion.div
+                      key="art"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute inset-0 bg-paper"
+                    >
+                      {product.image && (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                          onError={hideBrokenImage}
+                        />
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="wall"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="wall-light absolute inset-0"
+                    >
+                      {/* floor */}
+                      <div className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-b from-[#DCD2C1] to-[#CFC4B1]" />
+                      {/* sofa, sized against the wall width */}
+                      <div
+                        className="absolute bottom-[13%] left-1/2 -translate-x-1/2"
+                        style={{ width: `${(SOFA_WIDTH_CM / WALL_WIDTH_CM) * 100}%` }}
+                      >
+                        <Sofa />
+                      </div>
+                      {/* artwork at true scale relative to the sofa */}
+                      <div
+                        className="absolute left-1/2 top-[24%] -translate-x-1/2"
+                        style={{ width: `${(dims.w / WALL_WIDTH_CM) * 100}%` }}
+                      >
+                        {product.image && (
+                          <img
+                            src={product.image}
+                            alt={`${product.name} on a wall`}
+                            className="w-full object-contain drop-shadow-[0_14px_14px_rgba(22,19,15,0.25)]"
+                            onError={hideBrokenImage}
+                          />
+                        )}
+                        <div className="mt-3 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-stone">
+                          <span className="h-px flex-1 bg-stone/50" />
+                          {dims.w} cm
+                          <span className="h-px flex-1 bg-stone/50" />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col justify-center"
-          >
-            <motion.div variants={itemVariants} className="space-y-3 mb-4 md:space-y-8 md:mb-16">
-              <span className="inline-block font-mono text-xs md:text-[10px] tracking-[0.35em] md:tracking-[0.5em] text-blue-600 uppercase">
-                {product.category}
-              </span>
-              <h1 className="font-display text-[clamp(2.25rem,7vw,11rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
-                {product.name}
-              </h1>
-              <div className="flex items-center gap-4">
-                <span className="text-2xl font-black text-zinc-500 line-through leading-none">
-                  {Math.ceil(product.price * 1.2)} MAD
-                </span>
-                <p className="text-4xl sm:text-5xl font-black text-blue-600 leading-none">
-                  {unitPrice} <span className="text-base font-black text-zinc-400">MAD</span>
+                {isNew && (
+                  <span className="absolute left-4 top-4 z-10 bg-ivory px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink">
+                    New 3D edition
+                  </span>
+                )}
+              </div>
+
+              {/* View toggle */}
+              <div className="mt-4 inline-flex rounded-sm border border-line bg-paper p-1" role="tablist">
+                {([
+                  ['art', 'Artwork', 'اللوحة'],
+                  ['wall', 'On the wall', 'فالحيط'],
+                ] as const).map(([key, label, ar]) => (
+                  <button
+                    key={key}
+                    role="tab"
+                    aria-selected={view === key}
+                    onClick={() => setView(key)}
+                    className={`rounded-sm px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+                      view === key ? 'bg-ink text-ivory' : 'text-stone hover:text-ink'
+                    }`}
+                  >
+                    {label} <span className="font-ar text-xs normal-case tracking-normal opacity-80">· {ar}</span>
+                  </button>
+                ))}
+              </div>
+              {view === 'wall' && (
+                <p className="mt-2 text-xs text-stone">
+                  Shown to scale above a {SOFA_WIDTH_CM} cm sofa.
                 </p>
-              </div>
-            </motion.div>
-            
-            {/* Description — moved up so customers read about the piece
-                before specs / quantity. Falls back to a meaningful blurb that
-                surfaces the Alocobond material when no per-product copy exists. */}
-            <motion.div variants={itemVariants} className="mb-5 md:mb-10">
-              <p className="max-w-xl text-sm leading-relaxed font-medium text-zinc-600 dark:text-zinc-400 md:text-lg">
-                {product.description?.trim() ||
-                  `${product.name} — premium automotive wall art, laser-cut from 3 mm Alocobond aluminium composite. Hand-finished in Rabat, pre-drilled and ready to mount.`}
-              </p>
-            </motion.div>
+              )}
+            </div>
+          </div>
 
-            {/* Spec panel — replaces the old "Size" pill. Single Dimensions
-                row. Material + finish moved below the CTAs as descriptive
-                blocks (see end of column). */}
-            <motion.div variants={itemVariants} className="mb-5 md:mb-10">
-              <div
-                role="region"
-                aria-label="Product dimensions"
-                className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40"
-              >
-                <div className="px-5 py-4 sm:px-6 sm:py-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Dimensions · <span className="font-sans">القياس</span>
-                  </p>
-                  <p className="mt-1 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
-                    {standardSize.label}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-500">
-                    Standard format — every piece ships at this size.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+          {/* ── Info ───────────────────────────────────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">{product.category}</p>
+            <h1 className="mt-3 font-display text-[clamp(2.6rem,5vw,4.25rem)] font-medium leading-[1] tracking-tight text-ink">
+              {product.name}
+            </h1>
 
-            <motion.div variants={itemVariants} className="space-y-2 mb-4 md:space-y-4 md:mb-16">
-              <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                Quantity
-              </label>
-              <div className="inline-flex items-center gap-1 rounded-full border border-zinc-300 dark:border-zinc-700 px-2 py-1">
+            <div className="mt-5 flex items-baseline gap-3">
+              <span className="text-3xl font-semibold text-ink">
+                {unitPrice} <span className="text-base font-medium text-stone">MAD</span>
+              </span>
+              <span className="text-lg text-stone line-through">{Math.ceil(product.price * 1.2)} MAD</span>
+            </div>
+            <p className="mt-1 text-sm text-stone">
+              Pay cash on delivery · <span className="font-ar">الخلاص عند الاستلام</span>
+            </p>
+
+            <p className="mt-7 text-[15px] leading-relaxed text-ink/80 md:text-base">{description}</p>
+
+            <dl className="mt-8 border-t border-line">
+              <SpecRow
+                label="Size"
+                labelAr="القياس"
+                value={dimensionsLabel}
+                note="120 × 50 cm or a custom size? Message us before ordering."
+              />
+              <SpecRow label="Material" labelAr="المادة" value="Alucobond, 3 mm aluminium composite" note="Light, rigid, weather-resistant." />
+              <SpecRow label="Finish" labelAr="الفينيسيون" value="UV-printed · Matte · Pre-drilled" note="Ready to hang, no frame needed." />
+            </dl>
+
+            {/* Quantity + total */}
+            <div className="mt-8 flex items-center justify-between">
+              <div className="inline-flex items-center rounded-sm border border-line bg-paper">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-zinc-700 hover:bg-zinc-100 disabled:opacity-30 disabled:hover:bg-transparent dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  className="flex h-12 w-12 items-center justify-center text-xl text-ink hover:bg-wall disabled:opacity-30 disabled:hover:bg-transparent"
                   aria-label="Decrease quantity"
                 >
                   −
                 </button>
-                <span className="min-w-[2.5rem] text-center text-base font-medium text-zinc-900 dark:text-zinc-100">
+                <span className="min-w-[2.5rem] text-center text-base font-medium text-ink" aria-live="polite">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  className="flex h-12 w-12 items-center justify-center text-xl text-ink hover:bg-wall"
                   aria-label="Increase quantity"
                 >
                   +
                 </button>
               </div>
-            </motion.div>
+              {quantity > 1 && (
+                <p className="text-sm text-stone">
+                  Total <span className="font-semibold text-ink">{totalPrice} MAD</span>
+                </p>
+              )}
+            </div>
 
-            <motion.div variants={itemVariants} className="space-y-4">
-              <button
-                onClick={() => {
-                  for (let i = 0; i < quantity; i++) {
-                    addToCart(
-                      { ...product, price: unitPrice },
-                      standardSize.id,
-                      standardSize.label
-                    );
-                  }
-                }}
-                disabled={!product.inStock}
-                className={`${btnAccent} flex w-full`}
-              >
+            {/* CTAs */}
+            <div className="mt-6 space-y-3">
+              <button onClick={buyNow} disabled={!product.inStock} className={`${btnDark} w-full`}>
                 {product.inStock ? (
                   <>
-                    <span>Add to Cart • زيد للسلة</span>
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-80">· شري دابا</span>
                   </>
-                ) : t('unavailable')}
+                ) : (
+                  t('unavailable')
+                )}
               </button>
-
-              <button
-                onClick={() => {
-                  for (let i = 0; i < quantity; i++) {
-                    addToCart(
-                      { ...product, price: unitPrice },
-                      standardSize.id,
-                      standardSize.label
-                    );
-                  }
-                  router.push('/checkout');
-                }}
-                disabled={!product.inStock}
-                className={`${btnDark} flex w-full`}
+              <button onClick={addAll} disabled={!product.inStock} className={`${btnGhostLight} w-full`}>
+                {t('addToCart')} <span className="font-ar text-sm normal-case tracking-normal opacity-80">· زيد للسلة</span>
+              </button>
+              <a
+                href={whatsappOrder}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#128C4B] hover:underline hover:underline-offset-4"
               >
-                {product.inStock ? (
-                  <>
-                    <span>Buy Now • شري دابا</span>
-                    <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                  </>
-                ) : t('unavailable')}
-              </button>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12.04 2a9.9 9.9 0 00-8.5 15l-1.4 5 5.1-1.3A9.9 9.9 0 1012.04 2zm5.8 14.1c-.25.7-1.45 1.33-2 1.4-.52.08-1.17.11-1.88-.12a17 17 0 01-1.7-.63c-2.98-1.29-4.93-4.3-5.08-4.5-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.6-.37.8-.37h.57c.18 0 .43-.07.67.51.25.6.84 2.06.92 2.2.07.15.12.33.02.53-.1.2-.15.32-.3.5l-.44.52c-.15.15-.3.3-.13.6.17.3.77 1.27 1.66 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.07.17-.2.74-.87.94-1.17.2-.3.4-.25.67-.15.27.1 1.73.82 2.03.97.3.15.5.22.57.35.07.12.07.72-.17 1.42z" />
+                </svg>
+                Order on WhatsApp <span className="font-ar text-sm normal-case tracking-normal">· طلب فالواتساب</span>
+              </a>
+            </div>
 
-              {/* Secure Transaction Note */}
-              <div className="flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                 <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                 {t('codAvailability')}
-              </div>
+            {/* Assurance */}
+            <ul className="mt-6 grid grid-cols-3 gap-2 border-y border-line py-5 text-center">
+              {[
+                ['Cash on delivery', 'الخلاص فالدار'],
+                ['24h – 3 days', 'التوصيل لكاع المغرب'],
+                ['Made in Rabat', 'صنع فالمغرب'],
+              ].map(([en, ar]) => (
+                <li key={en} className="px-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink sm:text-[11px]">{en}</p>
+                  <p className="mt-0.5 font-ar text-xs text-stone sm:text-sm">{ar}</p>
+                </li>
+              ))}
+            </ul>
 
-              {/* Material + finish — descriptive blocks under the CTAs.
-                  No card chrome, just clean stacked typography separated
-                  from the buttons by a thin top divider. */}
-              <div className="mt-8 space-y-6 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Material
-                  </p>
-                  <p className="mt-2 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
-                    Alocobond — 3 mm aluminium composite
-                  </p>
-                  <p className="mt-1.5 text-xs font-medium leading-relaxed text-zinc-500 dark:text-zinc-500 sm:text-sm">
-                    Premium panel — lightweight, rigid, weather-resistant.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
-                    Finish & mounting
-                  </p>
-                  <p className="mt-2 text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">
-                    UV-printed · Matte · Pre-drilled
-                  </p>
-                  <p className="mt-1.5 text-xs font-medium leading-relaxed text-zinc-500 dark:text-zinc-500 sm:text-sm">
-                    Ready to bolt to the wall — no extra hardware needed.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
+            <div className="mt-2">
+              <Details title="Delivery & payment" titleAr="التوصيل والخلاص">
+                Delivered in 24 hours to 3 days anywhere in Morocco, with a tracking number once it ships. You pay cash when the piece arrives.
+              </Details>
+              <Details title="Hanging & care" titleAr="التعليق والعناية">
+                The panel comes pre-drilled — bolt it straight to the wall. Keep it away from direct sun and moisture and wipe with a soft, dry cloth.
+              </Details>
+              <Details title="Returns" titleAr="الإرجاع">
+                Every piece is printed for your order, so we can&apos;t accept returns. Message us on WhatsApp with any question before ordering.
+              </Details>
+            </div>
           </motion.div>
         </div>
+
+        {/* Related */}
+        {related.length > 0 && (
+          <section className="mt-24 border-t border-line py-20 md:mt-32">
+            <div className="mb-10 flex items-end justify-between gap-6">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">You may also like</p>
+                <h2 className="mt-2 font-display text-4xl font-medium text-ink md:text-5xl">More from the gallery</h2>
+                <p className="mt-1 font-ar text-lg text-stone">حتى هادو غادي يعجبوك</p>
+              </div>
+              <Link href="/shop" className="hidden text-[12px] font-semibold uppercase tracking-[0.16em] text-ink underline decoration-brass-light underline-offset-[6px] hover:text-brass sm:block">
+                See all
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+              {related.map((p) => (
+                <ProductCard key={p._id} product={p} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
+
+      {/* Mobile sticky buy bar */}
+      {product.inStock && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ivory/95 px-4 py-3 backdrop-blur-xl md:hidden"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-display text-lg font-medium leading-tight text-ink">{product.name}</p>
+              <p className="text-sm font-semibold text-ink">
+                {totalPrice} <span className="text-xs font-medium text-stone">MAD</span>
+              </p>
+            </div>
+            <button onClick={buyNow} className="rounded-sm bg-ink px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-ivory">
+              Buy now <span className="font-ar text-sm normal-case tracking-normal">· شري</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

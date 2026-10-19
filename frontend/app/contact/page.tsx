@@ -144,9 +144,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pt-32 pb-40 overflow-hidden relative">
+    <div className="min-h-screen bg-ink text-white pt-32 pb-40 overflow-hidden relative">
       {/* Decorative Gradient */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brass/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-900/10 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
       <div className="container mx-auto px-6 sm:px-10 max-w-7xl relative z-10">
@@ -155,11 +155,11 @@ export default function ContactPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto flex flex-col items-center mb-24"
         >
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-6">Concierge</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brass mb-6">Concierge</span>
           <h1 className="font-display text-[clamp(3.5rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight text-white mb-8 text-center">
             {t('contact')}
           </h1>
-          <div className="h-2 w-32 bg-blue-600 rounded-full mb-10 shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
+          <div className="h-2 w-32 bg-brass rounded-full mb-10 shadow-[0_0_15px_rgba(138,102,53,0.6)]" />
           <p className="max-w-2xl text-center text-xl text-zinc-400 font-medium leading-relaxed">
             {t('contactDesc')} Sophisticated inquiry requires a dedicated response. Our curators are at your disposal.
           </p>
@@ -201,7 +201,7 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       placeholder="مثال: Mohamed El Idrissi"
                       autoComplete="name"
-                      className={`w-full bg-zinc-950 border ${validationErrors.name ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700`}
+                      className={`w-full bg-zinc-950 border ${validationErrors.name ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700`}
                     />
                     {validationErrors.name && (
                       <p className="text-xs text-red-400 ml-1">{validationErrors.name}</p>
@@ -219,7 +219,7 @@ export default function ContactPage() {
                       placeholder="06XXXXXXXX"
                       autoComplete="tel"
                       inputMode="tel"
-                      className={`w-full bg-zinc-950 border ${validationErrors.phone ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700`}
+                      className={`w-full bg-zinc-950 border ${validationErrors.phone ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700`}
                     />
                     {validationErrors.phone && (
                       <p className="text-xs text-red-400 ml-1">{validationErrors.phone}</p>
@@ -236,7 +236,7 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     rows={6}
                     placeholder="كتب الرسالة ديالك هنا — write your inquiry here..."
-                    className={`w-full bg-zinc-950 border ${validationErrors.message ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700 resize-none`}
+                    className={`w-full bg-zinc-950 border ${validationErrors.message ? 'border-red-600' : 'border-zinc-800'} rounded-2xl px-6 py-5 text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700 resize-none`}
                   />
                   {validationErrors.message && (
                     <p className="text-xs text-red-400 ml-1">{validationErrors.message}</p>
@@ -269,7 +269,7 @@ export default function ContactPage() {
                 variants={itemVariants}
                 className="flex items-center gap-8 p-10 rounded-[3rem] border border-zinc-900 bg-zinc-950 hover:bg-zinc-900 transition-colors group cursor-default"
               >
-                <div className="h-16 w-16 flex-none rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-2xl">
+                <div className="h-16 w-16 flex-none rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-brass group-hover:bg-brass group-hover:text-white transition-all duration-500 shadow-2xl">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={item.icon} /></svg>
                 </div>
                 <div className="space-y-1">
@@ -285,7 +285,7 @@ export default function ContactPage() {
                  href="https://instagram.com/l7it.art" 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="block w-full rounded-2xl border border-zinc-900 py-6 text-center text-xs font-black uppercase tracking-widest text-zinc-600 hover:text-white hover:border-blue-600 hover:bg-blue-600/10 transition-all group"
+                 className="block w-full rounded-2xl border border-zinc-900 py-6 text-center text-xs font-black uppercase tracking-widest text-zinc-600 hover:text-white hover:border-brass hover:bg-brass/10 transition-all group"
                >
                  <div className="flex items-center justify-center gap-3">
                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">

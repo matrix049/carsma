@@ -1,18 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { fetchProducts, Product } from '@/lib/apiServices';
 import { useLanguage } from '@/contexts/LanguageContext';
-import CompactProductCard from '@/components/CompactProductCard';
-import { motion, AnimatePresence } from 'framer-motion';
+import ProductCard from '@/components/ProductCard';
 import WheelLoader from '@/components/WheelLoader';
-import { btnAccent } from '@/lib/uiStyles';
-import { applyPin, getPinnedIndex } from '@/lib/pinnedProducts';
+import { btnPrimary, btnGhostDark, whatsappLink } from '@/lib/uiStyles';
+import { applyPin } from '@/lib/pinnedProducts';
 
 export default function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,12 +23,7 @@ export default function ShopPage() {
     async function loadData() {
       try {
         const data = await fetchProducts();
-        const ordered = applyPin(data);
-        setAllProducts(ordered);
-        setFilteredProducts(ordered);
-
-        const uniqueCategories = Array.from(new Set(ordered.map(p => p.category))).filter(Boolean);
-        setCategories(uniqueCategories);
+        setAllProducts(applyPin(data));
       } catch (err: any) {
         console.error('Failed to load shop products:', err);
         setError(err.message || 'Failed to load products');
@@ -40,316 +34,187 @@ export default function ShopPage() {
     loadData();
   }, []);
 
-  useEffect(() => {
+  const categories = useMemo(
+    () => Array.from(new Set(allProducts.map((p) => p.category))).filter(Boolean),
+    [allProducts],
+  );
+
+  const filteredProducts = useMemo(() => {
     let filtered = allProducts;
-
-    // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
+      filtered = filtered.filter((p) => p.category === selectedCategory);
     }
-
-    // Filter by stock
     if (inStockOnly) {
-      filtered = filtered.filter(p => p.inStock);
+      filtered = filtered.filter((p) => p.inStock);
     }
-
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query) ||
-        (p.description && p.description.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          p.category.toLowerCase().includes(query) ||
+          (p.description && p.description.toLowerCase().includes(query)),
       );
     }
-
     // Pinned products always float to the top of whatever's left.
-    setFilteredProducts(applyPin(filtered));
+    return applyPin(filtered);
   }, [selectedCategory, inStockOnly, searchQuery, allProducts]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6 }
-    }
-  };
+  const pill = (active: boolean) =>
+    `shrink-0 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+      active ? 'border-ink bg-ink text-ivory' : 'border-line bg-paper text-stone hover:border-ink hover:text-ink'
+    }`;
 
   return (
-    <div className="bg-white dark:bg-[#0a0a0a] min-h-screen">
-      <div className="container mx-auto px-6 py-32 sm:px-10 max-w-7xl">
-        <div className="flex flex-col lg:flex-row gap-20">
-          {/* Sidebar Filters */}
-          <motion.aside 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="hidden lg:block w-72 shrink-0 space-y-16"
-          >
-            <div className="space-y-8">
-               <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">{t('categories')}</h3>
-               <nav className="flex flex-col gap-5">
-                 <button
-                   onClick={() => setSelectedCategory('all')}
-                   className={`flex items-center justify-between group py-2 transition-all ${selectedCategory === 'all' ? 'text-blue-600' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                 >
-                   <span className="text-xs font-black uppercase tracking-widest">{t('allCategories')}</span>
-                   <motion.div 
-                    animate={{ scale: selectedCategory === 'all' ? 1 : 0 }}
-                    className="h-2 w-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]" 
-                   />
-                 </button>
-                 {categories.map((category) => (
-                   <button
-                     key={category}
-                     onClick={() => setSelectedCategory(category)}
-                     className={`flex items-center justify-between group py-2 transition-all ${selectedCategory === category ? 'text-blue-600' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                   >
-                     <span className="text-xs font-black uppercase tracking-widest">{category}</span>
-                     <motion.div 
-                        animate={{ scale: selectedCategory === category ? 1 : 0 }}
-                        className="h-2 w-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]" 
-                     />
-                   </button>
-                 ))}
-               </nav>
+    <div className="bg-ivory">
+      <div className="container mx-auto max-w-7xl px-5 pb-24 pt-32 md:pt-40 lg:px-10">
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col gap-8 border-b border-line pb-10 md:flex-row md:items-end md:justify-between"
+        >
+          <div>
+            <div className="mb-4 flex items-center gap-3">
+              <span className="h-px w-8 bg-brass-light" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass">The collection</span>
             </div>
-            
-            <div className="pt-12 border-t border-zinc-100 dark:border-zinc-900 space-y-8">
-               <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Inventory Status</h3>
-               <nav className="flex flex-col gap-6">
-                 <button 
-                   onClick={() => setInStockOnly(!inStockOnly)}
-                   className="flex items-center gap-4 cursor-pointer group w-full"
-                 >
-                    <div className={`h-6 w-6 rounded-xl border-2 transition-all flex items-center justify-center ${inStockOnly ? 'bg-blue-600 border-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.4)]' : 'border-zinc-800 bg-zinc-900 group-hover:border-zinc-700'}`}>
-                       {inStockOnly && (
-                         <motion.svg 
-                           initial={{ scale: 0 }} animate={{ scale: 1 }}
-                           className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"
-                         >
-                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                         </motion.svg>
-                       )}
-                    </div>
-                    <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${inStockOnly ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                      In Stock Only
-                    </span>
-                 </button>
-                 
-                 <div className="flex items-center gap-4 opacity-40 cursor-not-allowed group">
-                    <div className="h-6 w-6 rounded-xl border-2 border-zinc-800 bg-zinc-900" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                      Limited Edition
-                    </span>
-                 </div>
-               </nav>
-            </div>
-          </motion.aside>
-
-          {/* Main Content Area */}
-          <div className="flex-1 space-y-16">
-            {/* Header */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
-            >
-              <div className="space-y-4">
-                <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-blue-600">Digital Gallery</span>
-                <h1 className="font-display text-[clamp(3.5rem,10vw,9rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
-                  {t('shop')}
-                </h1>
-                <div className="h-2 w-32 bg-blue-600 rounded-full" />
-              </div>
-              
-              {/* Search Bar */}
-              <div className="relative max-w-2xl">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by car name, brand, or model... ابحث عن السيارة"
-                  className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-5 pl-14 text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-400"
-                />
-                <svg 
-                  className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400"
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Mobile Filters */}
-            <div className="lg:hidden space-y-4">
-               <p className="text-[9px] font-black tracking-[0.3em] text-zinc-400 uppercase">{t('categories')}</p>
-               <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar">
-                  <button
-                    onClick={() => setSelectedCategory('all')}
-                    className={`shrink-0 rounded-xl px-5 py-3 text-[9px] font-black uppercase tracking-widest transition-all border ${
-                      selectedCategory === 'all'
-                        ? 'bg-blue-600 border-blue-500 text-white shadow-2xl shadow-blue-500/30'
-                        : 'bg-zinc-50 border-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-800'
-                    }`}
-                  >
-                    {t('allCategories')}
-                  </button>
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`shrink-0 rounded-xl px-5 py-3 text-[9px] font-black uppercase tracking-widest transition-all border ${
-                        selectedCategory === category
-                          ? 'bg-blue-600 border-blue-500 text-white shadow-2xl shadow-blue-500/30'
-                          : 'bg-zinc-50 border-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-800'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-               </div>
-            </div>
-
-            {/* Grid Content */}
-            <AnimatePresence mode="wait">
-              {isLoading ? (
-                <motion.div 
-                  key="loading"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-32"
-                >
-                  <WheelLoader size="lg" />
-                  <p className="mt-8 text-sm font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-600">
-                    Loading Collection...
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key={selectedCategory}
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-12 mb-32"
-                >
-                  {filteredProducts.map((product) => (
-                    <motion.div key={product._id} variants={itemVariants}>
-                      <CompactProductCard
-                        product={product}
-                        mostPopular={getPinnedIndex(product.name) >= 0}
-                      />
-                    </motion.div>
-                  ))}
-
-                  {/* Custom Design Card - always shown at end of grid */}
-                  {!isLoading && (
-                    <motion.div variants={itemVariants}>
-                      <a
-                        href="/customize"
-                        className="group flex flex-col justify-between h-full min-h-[280px] sm:min-h-[360px] rounded-2xl sm:rounded-3xl border-2 border-dashed border-blue-600/40 bg-blue-600/5 hover:bg-blue-600/10 hover:border-blue-500 transition-all duration-500 p-5 sm:p-8 overflow-hidden relative"
-                      >
-                        {/* Glow */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.08),transparent_70%)]" />
-
-                        <div className="relative z-10 flex flex-col h-full gap-4">
-                          {/* Icon */}
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                          </div>
-
-                          {/* Text */}
-                          <div className="flex-1">
-                            <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.4em] text-blue-500 mb-2">Custom Order</p>
-                            <h3 className="font-display text-2xl sm:text-4xl uppercase leading-tight tracking-tight text-white">
-                              Don't see your car?
-                            </h3>
-                            <p className="text-xs sm:text-sm text-zinc-500 font-medium mt-2 leading-relaxed">
-                              مالقيتيش الطوموبيل لي كاتعجبك؟ صيفط لينا الماركا و الموضيل
-                            </p>
-                          </div>
-
-                          {/* CTA */}
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-500 group-hover:text-blue-400 transition-colors">
-                            <span>Request Custom Design</span>
-                            <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                          </div>
-                        </div>
-                      </a>
-                    </motion.div>
-                  )}
-                  
-                  {filteredProducts.length === 0 && (
-                    <motion.div 
-                      variants={itemVariants}
-                      className="col-span-full py-48 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[4rem]"
-                    >
-                      <p className="text-2xl font-black text-zinc-400 uppercase tracking-widest">{t('noArtworks')}</p>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <h1 className="font-display text-[clamp(3.25rem,8vw,6.5rem)] font-medium leading-[0.95] tracking-tight text-ink">
+              The Gallery
+            </h1>
+            <p className="mt-2 font-ar text-xl text-stone">الݣالوري ديال L7it</p>
           </div>
+
+          {/* Search */}
+          <label className="relative block w-full md:max-w-sm">
+            <span className="sr-only">Search</span>
+            <svg className="absolute left-0 top-1/2 h-5 w-5 -translate-y-1/2 text-stone" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.2-5.2M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+            </svg>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search a car or brand… قلب على طوموبيل"
+              className="w-full border-0 border-b border-ink/25 bg-transparent py-3 pl-8 pr-8 text-base text-ink placeholder:text-stone/70 focus:border-ink focus:outline-none focus:ring-0"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-stone hover:text-ink"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </label>
+        </motion.header>
+
+        {/* Filters */}
+        <div className="sticky top-16 z-30 -mx-5 flex items-center gap-3 bg-ivory/90 px-5 py-4 backdrop-blur-md md:top-20 lg:-mx-10 lg:px-10">
+          <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
+            <button onClick={() => setSelectedCategory('all')} className={pill(selectedCategory === 'all')}>
+              {t('allCategories')}
+            </button>
+            {categories.map((category) => (
+              <button key={category} onClick={() => setSelectedCategory(category)} className={pill(selectedCategory === category)}>
+                {category}
+              </button>
+            ))}
+          </div>
+          <label className="hidden shrink-0 cursor-pointer items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone sm:flex">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={() => setInStockOnly((v) => !v)}
+              className="h-4 w-4 rounded-sm border-line text-ink focus:ring-brass"
+            />
+            In stock only
+          </label>
         </div>
+
+        {!isLoading && !error && (
+          <p className="mb-8 mt-2 text-sm text-stone">
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+          </p>
+        )}
+
+        {/* Grid */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32">
+            <WheelLoader size="lg" />
+          </div>
+        ) : error ? (
+          <p className="py-32 text-center text-stone">{error}</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
+            {filteredProducts.map((product, i) => (
+              <motion.div
+                key={product._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: Math.min(i, 8) * 0.04 }}
+              >
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
+
+            {/* Custom design card — always last */}
+            <Link
+              href="/customize"
+              className="group flex aspect-square flex-col justify-between bg-ink p-5 text-ivory sm:p-7"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brass-light">Custom order</p>
+              <div>
+                <h3 className="font-display text-2xl font-medium leading-tight sm:text-4xl">
+                  Don&apos;t see your car?
+                </h3>
+                <p className="mt-2 font-ar text-sm text-ivory/60 sm:text-base">مالقيتيش الطوموبيل ديالك؟</p>
+              </div>
+              <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
+                Request it
+                <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </span>
+            </Link>
+
+            {filteredProducts.length === 0 && (
+              <p className="col-span-full py-24 text-center font-display text-3xl text-stone">{t('noArtworks')}</p>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Custom Design CTA Section */}
-      <section className="container mx-auto px-6 py-20 max-w-7xl">
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true }} 
-          transition={{ duration: 1 }}
-          className="relative overflow-hidden rounded-[4rem] bg-zinc-950 px-12 py-32 text-left shadow-4xl border border-zinc-900"
-        >
-          <div className="absolute inset-0 z-0 opacity-40">
-            <div className="h-full w-full bg-[radial-gradient(circle_at_70%_50%,#2563eb_0%,transparent_60%)] opacity-20"></div>
+      {/* Custom design CTA */}
+      <section className="relative overflow-hidden bg-ink px-5 py-24 text-ivory md:py-32 lg:px-10">
+        <div className="zellige pointer-events-none absolute inset-0 opacity-40" />
+        <div className="container relative mx-auto max-w-4xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brass-light">Made to order</p>
+          <h2 className="mt-4 font-display text-[clamp(2.5rem,6vw,4.75rem)] font-medium leading-[1.02] tracking-tight">
+            {t('customDesignTitle')}
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ivory/65 md:text-lg">{t('customDesignDesc')}</p>
+          <p className="mt-3 font-ar text-lg text-ivory/55" dir="rtl">
+            مالقيتيش الطوموبيل لي كتعجبك؟ صيفط لينا الماركا والموديل لي بغيتي.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/customize" className={btnPrimary}>
+              {t('contactUsNow')}
+            </Link>
+            <a
+              href={whatsappLink('Salam L7it, bghit lawha custom dyal tomobil dyali.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={btnGhostDark}
+            >
+              WhatsApp
+            </a>
           </div>
-          
-          <div className="relative z-10 max-w-3xl space-y-12">
-            <h2 className="font-display text-[clamp(3rem,8vw,8rem)] uppercase leading-[0.9] tracking-tight text-white">
-              {t('customDesignTitle')}
-            </h2>
-            <p className="text-xl text-zinc-500 font-medium leading-relaxed max-w-xl">
-              {t('customDesignDesc')}
-            </p>
-            <p className="text-lg text-blue-400 font-medium leading-relaxed max-w-xl border-t border-zinc-800 pt-6">
-              مالقيتيش الطوموبيل لي كاتعجبك ، صيفط لينا الماركا و الموضيل لي بغيتي
-            </p>
-            <div className="pt-8">
-              <a href="/customize" className={btnAccent}>
-                {t('contactUsNow')}
-                <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </section>
     </div>
   );

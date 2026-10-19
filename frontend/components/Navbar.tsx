@@ -5,44 +5,30 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Home page sits over a dark hero image — keep the original dark/transparent
-  // navbar there. Every other route uses the light theme so the nav stays
-  // visible against white page backgrounds.
-  const isHome = pathname === '/';
-
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      // Store current scroll position
       const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
       document.body.style.height = '100vh';
       document.body.dataset.scrollY = scrollY.toString();
     } else {
-      // Restore scroll position
       const scrollY = document.body.dataset.scrollY;
       document.body.style.overflow = '';
       document.body.style.height = '';
@@ -52,7 +38,6 @@ export default function Navbar() {
       }
     }
 
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = '';
       document.body.style.height = '';
@@ -60,83 +45,85 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
-  // Highlight active links with a subtle dot or glow
   const isActive = (path: string) => pathname === path;
-
-  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-  const closeMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   const navLinks = [
-    { name: t('home'), path: '/' },
-    { name: t('shop'), path: '/shop' },
-    { name: 'FAQ', path: '/faq' },
-    { name: t('contact'), path: '/contact' },
-    { name: t('customizationRequest'), path: '/customize' }
+    { name: t('home'), ar: 'الرئيسية', path: '/' },
+    { name: t('shop'), ar: 'الݣالوري', path: '/shop' },
+    { name: t('customizationRequest'), ar: 'طلب خاص', path: '/customize' },
+    { name: 'FAQ', ar: 'أسئلة', path: '/faq' },
+    { name: t('contact'), ar: 'تواصل معانا', path: '/contact' },
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-[60] w-full transition-all duration-500 ${
-      scrolled
-        ? isHome
-          ? 'bg-black/80 backdrop-blur-2xl py-2 border-b border-zinc-900 shadow-2xl'
-          : 'bg-white/90 backdrop-blur-2xl py-2 border-b border-zinc-200 shadow-lg'
-        : isHome
-          ? 'bg-transparent py-6 border-b border-transparent'
-          : 'bg-white/50 backdrop-blur-md py-6 border-b border-zinc-200/40'
-    }`}>
-      <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <Link href="/" onClick={closeMenu} className={`group inline-block font-display text-[2.75rem] leading-none tracking-tight ${isHome ? 'text-white' : 'text-zinc-900'}`}>
-            L7IT<span className="text-blue-600 transition-all group-hover:drop-shadow-[0_0_10px_rgba(37,99,235,0.8)]">.</span>
-          </Link>
-        </motion.div>
+    <header className="fixed left-0 right-0 top-0 z-[60] w-full">
+      {/* Service bar — collapses once the visitor starts scrolling */}
+      <div
+        className={`relative z-10 overflow-hidden bg-ink text-ivory transition-[max-height] duration-500 ${
+          scrolled ? 'max-h-0' : 'max-h-10'
+        }`}
+      >
+        <p className="flex h-8 items-center justify-center gap-3 px-4 text-[10px] font-medium uppercase tracking-[0.18em] sm:text-[11px]">
+          <span>Cash on delivery</span>
+          <span className="text-brass-light">·</span>
+          <span className="hidden sm:inline">Delivery 24h – 3 days, all Morocco</span>
+          <span className="font-ar text-[12px] normal-case tracking-normal sm:hidden">التوصيل لكاع المغرب</span>
+        </p>
+      </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-10 items-center">
-          {navLinks.map((link, idx) => (
-            <motion.div
-              key={link.path}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-            >
+      <div
+        className={`relative z-10 border-b transition-all duration-500 ${
+          scrolled
+            ? 'border-line bg-ivory/90 shadow-[0_8px_30px_-20px_rgba(22,19,15,0.35)] backdrop-blur-xl'
+            : 'border-transparent bg-ivory/70 backdrop-blur-md'
+        }`}
+      >
+        <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 lg:px-10">
+          <Link href="/" onClick={closeMenu} className="group flex items-baseline gap-2.5 text-ink">
+            <span className="font-display text-[1.9rem] font-semibold leading-none tracking-[0.06em] md:text-[2.2rem]">
+              L7IT
+            </span>
+            <span className="font-ar text-sm text-brass transition-opacity group-hover:opacity-70">الحيط</span>
+          </Link>
+
+          {/* Desktop navigation */}
+          <nav className="hidden items-center gap-9 lg:flex">
+            {navLinks.map((link) => (
               <Link
+                key={link.path}
                 href={link.path}
-                className={`group relative px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
-                  isHome
-                    ? `hover:text-white ${isActive(link.path) ? 'text-white' : 'text-zinc-500'}`
-                    : `hover:text-zinc-900 ${isActive(link.path) ? 'text-zinc-900' : 'text-zinc-500'}`
+                className={`relative py-2 text-[12px] font-medium uppercase tracking-[0.16em] transition-colors hover:text-ink ${
+                  isActive(link.path) ? 'text-ink' : 'text-stone'
                 }`}
               >
-                <span className="relative inline-block">
-                  {link.name}
-                  <span className={`pointer-events-none absolute -bottom-2 left-0 right-0 h-px scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100 ${isHome ? 'bg-zinc-500' : 'bg-zinc-400'}`} />
-                </span>
+                {link.name}
                 {isActive(link.path) && (
-                  <motion.div
+                  <motion.span
                     layoutId="nav-active-bar"
-                    className="absolute -bottom-2 left-0 right-0 h-px bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.9)]"
+                    className="absolute -bottom-0.5 left-0 right-0 h-px bg-brass"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
               </Link>
-            </motion.div>
-          ))}
-        </nav>
+            ))}
+          </nav>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4">
-            <Link href="/cart" className={`relative p-2 transition-all hover:scale-110 ${isHome ? 'text-zinc-500 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+          <div className="flex items-center gap-1">
+            <Link
+              href="/cart"
+              aria-label="Cart"
+              className="relative flex h-11 w-11 items-center justify-center text-ink transition-colors hover:text-brass"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 7h12l-1 13H7L6 7z" />
+                <path d="M9 7V5.5a3 3 0 0 1 6 0V7" />
               </svg>
               {itemCount > 0 && (
-                <motion.span 
-                  initial={{ scale: 0 }} animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 text-[8px] font-black leading-none text-white bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]"
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute right-0.5 top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brass px-1 text-[10px] font-semibold leading-none text-white"
                 >
                   {itemCount}
                 </motion.span>
@@ -144,74 +131,53 @@ export default function Navbar() {
             </Link>
 
             <button
-              className={`md:hidden p-2 ${isHome ? 'text-zinc-400 hover:text-white' : 'text-zinc-700 hover:text-zinc-900'}`}
-              onClick={toggleMenu}
+              className="flex h-11 w-11 items-center justify-center text-ink lg:hidden"
+              onClick={() => setIsMobileMenuOpen((o) => !o)}
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileMenuOpen}
             >
               <div className="space-y-1.5">
-                <motion.div animate={isMobileMenuOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }} className="h-0.5 w-6 bg-current origin-center" />
-                <motion.div animate={isMobileMenuOpen ? { opacity: 0 } : { opacity: 1 }} className="h-0.5 w-6 bg-current" />
-                <motion.div animate={isMobileMenuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} className="h-0.5 w-6 bg-current origin-center" />
+                <motion.div animate={isMobileMenuOpen ? { rotate: 45, y: 4 } : { rotate: 0, y: 0 }} className="h-px w-6 origin-center bg-current" />
+                <motion.div animate={isMobileMenuOpen ? { rotate: -45, y: -3 } : { rotate: 0, y: 0 }} className="h-px w-6 origin-center bg-current" />
               </div>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Fullscreen Overlay */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-3xl md:hidden flex flex-col items-center justify-center p-8"
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999,
-              width: '100vw',
-              height: '100vh'
-            }}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-0 flex flex-col bg-ivory px-6 pb-10 pt-32 lg:hidden"
           >
-            {/* Close Button */}
-            <button 
-              onClick={closeMenu}
-              className="absolute top-8 right-6 p-2 text-zinc-400 hover:text-white transition-all"
-              aria-label="Close menu"
-            >
-              <div className="space-y-1.5">
-                <motion.div 
-                  initial={{ rotate: 0, y: 0 }}
-                  animate={{ rotate: 45, y: 7 }}
-                  className="h-0.5 w-6 bg-current origin-center" 
-                />
-                <motion.div 
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 0 }}
-                  className="h-0.5 w-6 bg-current" 
-                />
-                <motion.div 
-                  initial={{ rotate: 0, y: 0 }}
-                  animate={{ rotate: -45, y: -7 }}
-                  className="h-0.5 w-6 bg-current origin-center" 
-                />
-              </div>
-            </button>
-
-            <div className="flex flex-col gap-8 text-center w-full">
+            <nav className="flex flex-col divide-y divide-line border-y border-line">
               {navLinks.map((link, idx) => (
                 <motion.div
                   key={link.path}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
+                  transition={{ delay: 0.05 + idx * 0.05 }}
                 >
-                  <Link href={link.path} onClick={closeMenu} className={`font-display text-5xl tracking-tight uppercase transition-all ${isActive(link.path) ? 'text-blue-600' : 'text-white'}`}>
-                    {link.name}
+                  <Link
+                    href={link.path}
+                    onClick={closeMenu}
+                    className="flex items-baseline justify-between py-5"
+                  >
+                    <span className={`font-display text-4xl font-medium ${isActive(link.path) ? 'text-brass' : 'text-ink'}`}>
+                      {link.name}
+                    </span>
+                    <span className="font-ar text-base text-stone">{link.ar}</span>
                   </Link>
                 </motion.div>
               ))}
+            </nav>
+            <div className="mt-auto space-y-1 text-center text-xs text-stone">
+              <p className="uppercase tracking-[0.18em]">Cash on delivery · 24h – 3 days</p>
+              <p className="font-ar text-sm">الخلاص عند الاستلام · التوصيل لكاع المغرب</p>
             </div>
           </motion.div>
         )}

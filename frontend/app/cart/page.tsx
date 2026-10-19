@@ -22,18 +22,18 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-500">
+    <div className="min-h-screen bg-ivory transition-colors duration-500">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-24 sm:py-32">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-12 sm:mb-20 space-y-3 sm:space-y-4"
         >
-          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-blue-600">Your Selection</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-brass">Your Selection</span>
           <h1 className="font-display text-[clamp(3rem,9vw,8rem)] uppercase leading-[0.85] tracking-tight text-zinc-900 dark:text-zinc-50">
             {t('shoppingCart')}
           </h1>
-          <div className="h-1.5 sm:h-2 w-24 sm:w-32 bg-blue-600 rounded-full" />
+          <div className="h-1.5 sm:h-2 w-24 sm:w-32 bg-brass rounded-full" />
         </motion.div>
 
         {cart.length === 0 ? (
@@ -72,9 +72,9 @@ export default function CartPage() {
                     transition={{ duration: 0.6 }}
                     layout
                     exit={{ opacity: 0, scale: 0.9, x: -50 }}
-                    className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-8 p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-zinc-50 dark:bg-[#0d0d0d] border border-zinc-100 dark:border-zinc-900 hover:border-blue-500/30 transition-all duration-500 shadow-xl"
+                    className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-8 p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-zinc-50 dark:bg-[#0d0d0d] border border-zinc-100 dark:border-zinc-900 hover:border-brass/30 transition-all duration-500 shadow-xl"
                   >
-                    <div className="h-28 w-full sm:h-40 sm:w-40 flex-shrink-0 overflow-hidden rounded-xl sm:rounded-[2rem] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 group-hover:border-blue-500/40 transition-colors">
+                    <div className="h-28 w-full sm:h-40 sm:w-40 flex-shrink-0 overflow-hidden rounded-xl sm:rounded-[2rem] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 group-hover:border-brass/40 transition-colors">
                       <img
                         src={item.image || 'https://via.placeholder.com/400x400?text=L7IT'}
                         alt={item.name}
@@ -85,7 +85,7 @@ export default function CartPage() {
                     <div className="flex flex-1 flex-col justify-between w-full">
                       <div className="flex justify-between items-start mb-3 sm:mb-4">
                         <div className="space-y-0.5 sm:space-y-1">
-                          <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600">
+                          <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-brass">
                             {item.category}
                             {item.selectedSize && ` • ${item.sizeLabel || item.selectedSize}`}
                           </p>
@@ -137,7 +137,7 @@ export default function CartPage() {
             >
               <div className="rounded-2xl sm:rounded-[3rem] border border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0d0d0d] p-6 sm:p-10 shadow-3xl overflow-hidden relative group">
                 {/* Decorative Pattern */}
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-blue-600/5 blur-3xl" />
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-brass/5 blur-3xl" />
                 
                 <h2 className="font-display text-2xl sm:text-4xl text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-6 sm:mb-10">{t('orderSummary')}</h2>
                 
@@ -153,7 +153,7 @@ export default function CartPage() {
                   <div className="pt-4 sm:pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-end">
                     <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white">{t('total')}</span>
                     <div className="text-right">
-                       <p className="text-3xl sm:text-4xl font-black text-blue-600 font-serif leading-none">{calculateTotal().toFixed(0)}</p>
+                       <p className="text-3xl sm:text-4xl font-black text-brass font-serif leading-none">{calculateTotal().toFixed(0)}</p>
                        <p className="text-[8px] sm:text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 sm:mt-2">MAD (Order Total)</p>
                     </div>
                   </div>
@@ -173,8 +173,8 @@ export default function CartPage() {
                   </Link>
                 </div>
                 
-                <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-blue-600/5 border border-blue-500/10">
-                   <p className="text-[8px] sm:text-[9px] font-black uppercase leading-relaxed text-blue-500/80 tracking-widest text-center">
+                <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-brass/5 border border-brass/10">
+                   <p className="text-[8px] sm:text-[9px] font-black uppercase leading-relaxed text-brass/80 tracking-widest text-center">
                      Gallery pieces are archived securely and dispatched within 48 hours. Secure Settlement via Cash on Delivery.
                    </p>
                 </div>

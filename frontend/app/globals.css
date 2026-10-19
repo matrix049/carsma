@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --surface: #f8fafc;
-  --primary: #2563eb;
+  --background: #F7F3EC;
+  --foreground: #16130F;
+  --surface: #FBF9F5;
+  --primary: #8A6635;
   --font-jakarta: var(--font-jakarta);
   --font-inter: var(--font-inter);
 }
@@ -20,20 +20,34 @@ body {
 }
 
 ::selection {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  background-color: rgba(138, 102, 53, 0.2);
+  color: #16130F;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-thumb { background: #CFC6B5; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #B3A893; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .text-balance { text-wrap: balance; }
+
+/* Faint eight-point zellige star lattice — used behind placeholders and
+ * on the dark craft band. Stroke colour comes from `currentColor`. */
+.zellige {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g fill='none' stroke='%238A6635' stroke-opacity='0.18' stroke-width='1'><rect x='20' y='20' width='24' height='24'/><rect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/><path d='M0 32h8M56 32h8M32 0v8M32 56v8'/></g></svg>");
+  background-size: 64px 64px;
+}
+
+/* Soft spotlight falling on a gallery wall */
+.wall-light {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 0%, rgba(255, 255, 255, 0.75), transparent 70%),
+    #ECE5D8;
+}
 
 /* Soft film-grain overlay used on dark sections */
 .grain::after {
@@ -179,4 +193,11 @@ body {
 .admin-shell input::placeholder,
 .admin-shell textarea::placeholder {
   color: #a1a1aa;
+}
+
+/* Cormorant defaults to old-style figures ("911" reads as "9II") —
+ * car names need lining numerals. */
+.font-display,
+.font-serif {
+  font-variant-numeric: lining-nums;
 }

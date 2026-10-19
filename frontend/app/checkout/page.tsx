@@ -117,10 +117,10 @@ export default function CheckoutPage() {
 
   if (success) {
     return (
-      <div className="container mx-auto max-w-2xl px-6 py-48 text-center bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center">
+      <div className="container mx-auto max-w-2xl px-6 py-48 text-center bg-ink min-h-screen flex flex-col items-center justify-center">
         <motion.div 
           initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }}
-          className="mb-12 inline-flex h-32 w-32 items-center justify-center rounded-full bg-blue-600/20 text-blue-500 border border-blue-500/30 shadow-[0_0_50px_rgba(37,99,235,0.2)]">
+          className="mb-12 inline-flex h-32 w-32 items-center justify-center rounded-full bg-brass/20 text-brass border border-brass/30 shadow-[0_0_50px_rgba(138,102,53,0.2)]">
           <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
           </svg>
@@ -136,22 +136,22 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="container mx-auto px-6 py-48 text-center bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center">
+      <div className="container mx-auto px-6 py-48 text-center bg-ink min-h-screen flex flex-col items-center justify-center">
          <h1 className="font-display text-6xl md:text-8xl uppercase leading-[0.85] tracking-tight mb-8 text-white">{t('emptyCart')}</h1>
-         <Link href="/shop" className="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px] hover:underline underline-offset-8 transition-all">{t('continueShopping')}</Link>
+         <Link href="/shop" className="text-brass font-black uppercase tracking-[0.3em] text-[10px] hover:underline underline-offset-8 transition-all">{t('continueShopping')}</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pt-32 pb-48">
+    <div className="min-h-screen bg-ink text-white pt-32 pb-48">
       <div className="container mx-auto px-4 sm:px-6 md:px-10 max-w-7xl">
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           className="mb-12 sm:mb-24 space-y-3 sm:space-y-4"
         >
-          <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-blue-600">Secure Protocol</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-brass">Secure Protocol</span>
           <h1 className="font-display text-[clamp(3rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight">
             Gallery<span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"> Checkout</span>
           </h1>
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
             {/* Identity & Logistics Section */}
             <motion.section variants={itemVariants} className="space-y-8 sm:space-y-12">
               <div className="flex items-center gap-4 sm:gap-6">
-                <div className="h-0.5 w-8 sm:w-12 bg-blue-600" />
+                <div className="h-0.5 w-8 sm:w-12 bg-brass" />
                 <h2 className="text-lg sm:text-2xl font-display uppercase tracking-tight">01. Identity & Logistics</h2>
               </div>
 
@@ -183,7 +183,7 @@ export default function CheckoutPage() {
                       </svg>
                     </span>
                     <input required type="text" name="firstName" placeholder="Khalid Alami" value={formData.firstName} onChange={handleChange}
-                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700" />
                   </div>
                 </div>
 
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                       </svg>
                     </span>
                     <input required type="tel" name="phone" placeholder="0675749377" value={formData.phone} onChange={handleChange}
-                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700" />
                   </div>
                 </div>
 
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
                       </svg>
                     </span>
                     <input required type="text" name="address" placeholder="Boulevard de l'Aviation, Building 4, Apt 12" value={formData.address} onChange={handleChange}
-                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700" />
                   </div>
                 </div>
 
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
                       </svg>
                     </span>
                     <input required type="text" name="city" placeholder="Casablanca" value={formData.city} onChange={handleChange}
-                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-blue-600 focus:outline-none transition-all placeholder:text-zinc-700" />
+                      className="w-full bg-zinc-950 border border-zinc-900 rounded-xl sm:rounded-[1.5rem] pl-12 sm:pl-14 pr-5 py-4 sm:px-8 sm:py-6 sm:pl-14 text-base sm:text-sm font-medium focus:border-brass focus:outline-none transition-all placeholder:text-zinc-700" />
                   </div>
                 </div>
               </form>
@@ -235,12 +235,12 @@ export default function CheckoutPage() {
             {/* Payment Section */}
             <motion.section variants={itemVariants} className="space-y-8 sm:space-y-12">
               <div className="flex items-center gap-4 sm:gap-6">
-                <div className="h-0.5 w-8 sm:w-12 bg-blue-600" />
+                <div className="h-0.5 w-8 sm:w-12 bg-brass" />
                 <h2 className="text-lg sm:text-2xl font-display uppercase tracking-tight">02. Settlement</h2>
               </div>
 
-              <div className="relative p-6 sm:p-10 rounded-2xl sm:rounded-[2.5rem] border-2 border-blue-600 bg-blue-600/5 flex items-center gap-6 sm:gap-10 shadow-[0_0_40px_rgba(37,99,235,0.1)]">
-                <div className="flex-none h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-600 flex items-center justify-center shadow-3xl shadow-blue-500/40 outline outline-4 outline-blue-600/20">
+              <div className="relative p-6 sm:p-10 rounded-2xl sm:rounded-[2.5rem] border-2 border-brass bg-brass/5 flex items-center gap-6 sm:gap-10 shadow-[0_0_40px_rgba(138,102,53,0.1)]">
+                <div className="flex-none h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-brass flex items-center justify-center shadow-3xl shadow-brass/40 outline outline-4 outline-brass/20">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <div className="flex-1">
@@ -263,7 +263,7 @@ export default function CheckoutPage() {
               className="rounded-2xl sm:rounded-[4rem] bg-zinc-900 border border-zinc-800 p-6 sm:p-12 shadow-4xl sticky top-32 overflow-hidden"
             >
               {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[80px] rounded-full" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brass/5 blur-[80px] rounded-full" />
 
               <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] text-zinc-500 mb-8 sm:mb-12">Manifesto & Total</h2>
               
@@ -324,7 +324,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-end text-3xl sm:text-5xl font-black text-white pt-6 sm:pt-10 mt-6 sm:mt-10 border-t border-zinc-800 font-jakarta">
                   <div className="space-y-1.5 sm:space-y-2">
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.5em] sm:tracking-[0.6em] text-blue-600 block">Total Liability</span>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.5em] sm:tracking-[0.6em] text-brass block">Total Liability</span>
                     <span>{finalTotal}</span>
                   </div>
                   <span className="text-base sm:text-xl mb-1 sm:mb-1.5 opacity-50">MAD</span>

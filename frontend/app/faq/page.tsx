@@ -72,7 +72,7 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pt-32 pb-40">
+    <div className="min-h-screen bg-ink text-white pt-32 pb-40">
       <div className="container mx-auto px-6 sm:px-10 max-w-5xl">
         {/* Header */}
         <motion.div 
@@ -80,11 +80,11 @@ export default function FAQPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-24 space-y-6"
         >
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600">Support Center</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brass">Support Center</span>
           <h1 className="font-display text-[clamp(3.5rem,9vw,9rem)] uppercase leading-[0.85] tracking-tight text-white">
             FAQ
           </h1>
-          <div className="h-2 w-32 bg-blue-600 rounded-full mx-auto shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
+          <div className="h-2 w-32 bg-brass rounded-full mx-auto shadow-[0_0_15px_rgba(138,102,53,0.6)]" />
           <p className="text-xl text-zinc-400 font-medium max-w-2xl mx-auto">
             Frequently Asked Questions • الأسئلة الشائعة
           </p>
@@ -120,7 +120,7 @@ export default function FAQPage() {
                   className="flex-none"
                 >
                   <svg 
-                    className="w-6 h-6 text-blue-600" 
+                    className="w-6 h-6 text-brass" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -144,7 +144,7 @@ export default function FAQPage() {
                         {language === 'ar' ? faq.answerAr : faq.answer}
                       </p>
                       {language !== 'ar' && (
-                        <p className="text-sm text-blue-400 leading-relaxed font-medium">
+                        <p className="text-sm text-brass-light leading-relaxed font-medium">
                           {faq.answerAr}
                         </p>
                       )}
