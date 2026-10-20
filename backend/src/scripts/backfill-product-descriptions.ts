@@ -16,7 +16,7 @@ dotenv.config();
  *
  * Rule:
  *   - description missing / empty / whitespace  → write a short,
- *     name + brand aware blurb that matches the Alocobond / Rabat
+ *     name + brand aware blurb that matches the Alocobond / Salé
  *     material story used everywhere else on the site.
  *   - description already has real text          → leave it alone.
  *
@@ -26,12 +26,12 @@ dotenv.config();
 function shortDescription(name: string, category: string): string {
   const brand = (category || '').trim();
   // "BMW M3 E93 — BMW silhouette wall art, laser-cut from 3 mm
-  //  Alocobond aluminium composite and hand-finished in Rabat.
+  //  Alocobond aluminium composite and hand-finished in Salé.
   //  Pre-drilled and ready to mount."
   const lead = brand ? `${brand} silhouette wall art` : 'automotive wall art';
   return (
     `${name} — ${lead}, laser-cut from 3 mm Alocobond aluminium ` +
-    `composite and hand-finished in Rabat. Pre-drilled and ready to mount.`
+    `composite and hand-finished in Salé. Pre-drilled and ready to mount.`
   );
 }
 

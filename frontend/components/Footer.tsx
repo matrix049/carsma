@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="col-span-2 space-y-5 md:col-span-5">
             <Plate size="md" left="L7IT" letter="ح" right="1" aria-label="L7IT" />
             <div className="space-y-1 text-sm text-smoke">
-              <p>Automotive wall art, made in Rabat.</p>
+              <p>Automotive wall art, made in Salé.</p>
               <p className="w-fit font-ar" dir="rtl">علّق الحلم ديالك.</p>
             </div>
           </div>
@@ -43,7 +43,6 @@ export default function Footer() {
                 </a>
               </li>
               <li><Link href="/contact" className={linkClass}>{t('contact')}</Link></li>
-              <li><a href="mailto:support@l7it.com" className={linkClass}>support@l7it.com</a></li>
             </ul>
           </div>
         </div>

@@ -451,7 +451,7 @@ export default function CartPage() {
                       </li>
                       <li className="flex items-center gap-2.5">
                         <FlagIcon className="h-4 w-4 shrink-0 text-chalk" />
-                        Made in Rabat · ready to hang
+                        Made in Salé · ready to hang
                       </li>
                     </ul>
                   </div>
@@ -460,32 +460,34 @@ export default function CartPage() {
             </div>
           )}
         </div>
-
-        {/* Phones: total + checkout always within thumb reach. Sits below the
-            WhatsApp bubble (which floats ~140px up). */}
-        {cart.length > 0 && (
-          <div
-            className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-asphalt/90 backdrop-blur-xl lg:hidden"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          >
-            <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3 sm:px-6">
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
-                  {t('total')} <span className="text-smoke">· COD</span>
-                </p>
-                <p className="truncate font-display text-2xl font-semibold leading-tight tabular-nums text-chalk">
-                  {total}
-                  <span className="ms-1 font-mono text-[11px] font-bold text-smoke">MAD</span>
-                </p>
-              </div>
-              <Link href="/checkout" className={`${btnPrimary} shrink-0 !gap-2 !px-6`}>
-                {t('checkout')}
-                <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100" />
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Phones: total + checkout always within thumb reach, under the
+          WhatsApp fob. Kept outside the page's `isolate` container: inside
+          it, the footer (later in the DOM) painted over the bar once it
+          scrolled into view. */}
+      {cart.length > 0 && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-asphalt/90 backdrop-blur-xl lg:hidden"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3 sm:px-6">
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-smoke">
+                {t('total')} <span className="text-smoke">· COD</span>
+              </p>
+              <p className="truncate font-display text-2xl font-semibold leading-tight tabular-nums text-chalk">
+                {total}
+                <span className="ms-1 font-mono text-[11px] font-bold text-smoke">MAD</span>
+              </p>
+            </div>
+            <Link href="/checkout" className={`${btnPrimary} shrink-0 !gap-2 !px-6`}>
+              {t('checkout')}
+              <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100" />
+            </Link>
+          </div>
+        </div>
+      )}
     </MotionConfig>
   );
 }

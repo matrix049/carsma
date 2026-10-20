@@ -241,7 +241,7 @@ export default function ContactPage() {
               </span>
               <span>
                 <span className="block text-xs uppercase tracking-[0.18em] text-smoke">Studio</span>
-                <span className="mt-0.5 block text-lg font-semibold text-chalk">Rabat, Morocco</span>
+                <span className="mt-0.5 block text-lg font-semibold text-chalk">Salé, Morocco</span>
               </span>
             </div>
 

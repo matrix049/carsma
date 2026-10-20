@@ -183,7 +183,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const description =
     product.description?.trim() ||
-    `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Rabat, pre-drilled and ready to mount.`;
+    `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Salé, pre-drilled and ready to mount.`;
 
   const isNew = isNewEdition(product.name);
   const pin = getPinnedIndex(product.name);
