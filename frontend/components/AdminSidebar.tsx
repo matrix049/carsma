@@ -2,19 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { createPortal } from 'react-dom';
+import Plate from '@/components/Plate';
 
 const NAV_ITEMS = [
   {
     label: 'Dashboard',
     href: '/admin/dashboard',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+    icon: 'M4 13h6V4H4v9zm0 7h6v-5H4v5zm10 0h6v-9h-6v9zm0-16v5h6V4h-6z',
   },
   {
     label: 'Analytics',
     href: '/admin/analytics',
-    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   },
   {
     label: 'Products',
@@ -24,7 +25,7 @@ const NAV_ITEMS = [
   {
     label: 'Orders',
     href: '/admin/orders',
-    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h4',
   },
   {
     label: 'Custom Orders',
@@ -43,13 +44,97 @@ const NAV_ITEMS = [
   },
 ];
 
+function SidebarContent({ pathname, onLogout, onClose }: { pathname: string | null; onLogout: () => void; onClose?: () => void }) {
+  return (
+    <div className="flex h-full flex-col p-6">
+      {/* Logo */}
+      <div className="mb-10 flex items-center justify-between">
+        <Link href="/admin/dashboard" onClick={onClose} className="flex items-center gap-3" aria-label="L7IT admin — dashboard">
+          <Plate size="sm" left="L7IT" letter="ح" right="1" />
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.28em] text-smoke">Admin</span>
+        </Link>
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-smoke transition-colors hover:bg-white/[0.06] hover:text-chalk md:hidden"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 space-y-1" aria-label="Admin">
+        {NAV_ITEMS.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={onClose}
+              aria-current={active ? 'page' : undefined}
+              className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-white/[0.06] text-chalk ring-1 ring-inset ring-white/10'
+                  : 'text-smoke hover:bg-white/[0.03] hover:text-chalk'
+              }`}
+            >
+              <svg className="h-[18px] w-[18px] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <path d={item.icon} />
+              </svg>
+              <span className="flex-1">{item.label}</span>
+              {active && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-xenon shadow-[0_0_8px_#8FCBFF]" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="mt-auto space-y-3 pt-8">
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-smoke transition-colors hover:bg-white/[0.03] hover:text-chalk"
+        >
+          <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" />
+          </svg>
+          View store
+        </a>
+        <div className="flex items-center gap-3 rounded-2xl bg-carbon p-3 ring-1 ring-white/[0.08]">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-chalk font-display text-sm font-semibold text-asphalt">
+            A
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-chalk">Amine</p>
+            <p className="text-xs text-smoke">Master Admin</p>
+          </div>
+          <button
+            onClick={() => { onClose?.(); onLogout(); }}
+            aria-label="Sign out"
+            title="Sign out"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-smoke transition-colors hover:bg-white/[0.06] hover:text-chalk"
+          >
+            <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l5-5-5-5M15 12H4" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface AdminSidebarProps {
   onLogout: () => void;
 }
 
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -86,129 +171,41 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
     };
   }, [mobileOpen]);
 
-  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
-    <div className="flex flex-col h-full p-8 md:p-10">
-      {/* Logo */}
-      <div className="mb-12 md:mb-16 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-white font-jakarta">L7IT</h2>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 mt-1">
-            Noir Collection
-          </p>
-        </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="md:hidden h-9 w-9 flex items-center justify-center rounded-xl bg-zinc-800 text-zinc-400 hover:text-white transition-all"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 space-y-6 md:space-y-8">
-        {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <button
-              key={item.label}
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(item.href);
-                onClose?.();
-              }}
-              className={`flex items-center gap-4 md:gap-5 group transition-all w-full text-left ${
-                active ? 'text-blue-500' : 'text-zinc-600 hover:text-white'
-              }`}
-            >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={item.icon} />
-              </svg>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="mt-auto space-y-5 md:space-y-6">
-        <button
-          onClick={() => { onClose?.(); onLogout(); }}
-          className="w-full py-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all"
-        >
-          Sign Out Securely
-        </button>
-        <div className="p-4 md:p-5 rounded-3xl bg-zinc-900/50 border border-zinc-800 flex items-center gap-3 md:gap-4">
-          <div className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xs shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-            A
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-[10px] font-black uppercase tracking-tight text-white truncate">
-              Amine
-            </p>
-            <p className="text-[8px] font-bold text-zinc-600 mt-1 uppercase tracking-widest">
-              Master Admin
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
       {/* ── Desktop sidebar ──────────────────────────── */}
-      <aside className="hidden md:flex w-72 border-r border-zinc-900 flex-none flex-col sticky top-0 h-screen">
-        <SidebarContent />
+      <aside className="sticky top-0 hidden h-screen w-64 flex-none flex-col border-r border-white/[0.07] bg-[#0E0F11] md:flex">
+        <SidebarContent pathname={pathname} onLogout={onLogout} />
       </aside>
 
       {/* ── Mobile top bar ───────────────────────────── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-5 py-4 bg-black border-b border-zinc-900">
-        <div>
-          <span className="text-xl font-black tracking-tighter text-white font-jakarta">L7IT</span>
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 ml-2">Admin</span>
-        </div>
+      <div className="fixed left-0 right-0 top-0 z-[70] flex items-center justify-between border-b border-white/[0.07] bg-asphalt/90 px-4 py-3 backdrop-blur-xl md:hidden">
+        <Link href="/admin/dashboard" className="flex items-center gap-2.5" aria-label="L7IT admin — dashboard">
+          <Plate size="sm" left="L7IT" letter="ح" right="1" />
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.28em] text-smoke">Admin</span>
+        </Link>
         <button
           onClick={() => setMobileOpen(true)}
-          className="h-10 w-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-all"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-silver transition-colors hover:bg-white/[0.06] hover:text-chalk"
           aria-label="Open menu"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
       </div>
 
       {/* ── Mobile drawer overlay ────────────────────── */}
       {mobileOpen && mounted && createPortal(
-        <div 
-          className="md:hidden fixed inset-0 z-[9999] flex"
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0,
-            zIndex: 9999,
-            width: '100vw',
-            height: '100vh'
-          }}
-        >
+        <div className="admin-shell fixed inset-0 z-[9999] flex md:hidden" style={{ background: 'transparent' }}>
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-asphalt/70 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
           {/* Drawer */}
-          <aside 
-            className="relative z-10 w-72 max-w-[85vw] bg-black border-r border-zinc-900 h-full overflow-y-auto"
-          >
-            <SidebarContent onClose={() => setMobileOpen(false)} />
+          <aside className="relative z-10 h-full w-72 max-w-[85vw] overflow-y-auto border-r border-white/[0.07] bg-[#0E0F11]">
+            <SidebarContent pathname={pathname} onLogout={onLogout} onClose={() => setMobileOpen(false)} />
           </aside>
         </div>,
         document.body

@@ -164,137 +164,141 @@ body {
 }
 
 /* ============================================================================
- * Admin shell — light theme override
+ * Admin shell — showroom theme
  *
- * Admin pages were authored in dark colours (bg-black, text-white,
- * bg-zinc-900, etc.) without dark: variants, so they can't be flipped via
- * Tailwind's dark mode toggle. Instead, we tag the admin tree with
- * .admin-shell in app/admin/layout.tsx and override only the colour
- * utilities here, scoped to that ancestor. Storefront pages stay dark
- * because they live outside .admin-shell.
- *
- * We intentionally leave coloured utilities alone (text-blue-500,
- * bg-emerald-500/10, etc.) because those are status badges / accent
- * highlights that should keep their meaning in either theme.
+ * Admin pages were authored with raw zinc / black / blue utilities. Rather
+ * than rewrite every page, the admin tree is tagged with .admin-shell (see
+ * app/admin/layout.tsx) and those utilities are re-pointed here at the
+ * storefront palette: graphite surfaces, readable greys, platinum primary
+ * buttons and a xenon accent. Status colours (emerald, amber, rose) keep
+ * their meaning and are left alone.
  * ========================================================================== */
 
 .admin-shell {
-  background-color: #fafafa;
-  color: #18181b;
-  /* storefront :root is color-scheme: dark — keep native admin controls light */
-  color-scheme: light;
+  background-color: #0A0A0B;
+  color: #F2F3F5;
+  color-scheme: dark;
 }
 
-/* ── Backgrounds ─────────────────────────────────────────────────────── */
-.admin-shell .bg-black,
+/* ── Surfaces ────────────────────────────────────────────────────────── */
+.admin-shell .bg-black { background-color: #0A0A0B !important; }
 .admin-shell .bg-zinc-950,
 .admin-shell .bg-\[\#0a0a0a\],
-.admin-shell .bg-\[\#0d0d0d\] {
-  background-color: #ffffff !important;
-}
-.admin-shell .bg-zinc-900,
+.admin-shell .bg-\[\#0d0d0d\] { background-color: #0E0F11 !important; }
+.admin-shell .bg-zinc-900 { background-color: #1A1B1F !important; }
+.admin-shell .bg-zinc-900\/20,
+.admin-shell .bg-zinc-900\/30,
 .admin-shell .bg-zinc-900\/40,
 .admin-shell .bg-zinc-900\/50,
-.admin-shell .bg-zinc-900\/60 {
-  background-color: #f4f4f5 !important;
-}
-.admin-shell .bg-zinc-800,
+.admin-shell .bg-zinc-900\/60 { background-color: #121316 !important; }
+.admin-shell .bg-zinc-800 { background-color: #25272C !important; }
 .admin-shell .bg-zinc-800\/40,
-.admin-shell .bg-zinc-800\/50 {
-  background-color: #e4e4e7 !important;
-}
+.admin-shell .bg-zinc-800\/50 { background-color: #1A1B1F !important; }
+.admin-shell .bg-zinc-700 { background-color: #2E3036 !important; }
+.admin-shell .bg-black\/60,
 .admin-shell .bg-black\/80,
 .admin-shell .bg-black\/90,
 .admin-shell .bg-black\/95 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  color: #18181b !important;
-  backdrop-filter: blur(20px);
+  background-color: rgba(5, 5, 6, 0.82) !important;
+  backdrop-filter: blur(16px);
 }
 
 /* Hover backgrounds */
-.admin-shell .hover\:bg-zinc-800:hover,
-.admin-shell .hover\:bg-zinc-800\/10:hover,
-.admin-shell .hover\:bg-zinc-800\/40:hover,
-.admin-shell .hover\:bg-zinc-900:hover {
-  background-color: #f4f4f5 !important;
-}
+.admin-shell .hover\:bg-zinc-900:hover,
+.admin-shell .hover\:bg-zinc-900\/40:hover { background-color: #1A1B1F !important; }
+.admin-shell .hover\:bg-zinc-800:hover { background-color: #25272C !important; }
+.admin-shell .hover\:bg-zinc-700:hover { background-color: #2E3036 !important; }
+.admin-shell .hover\:bg-zinc-800\/10:hover { background-color: rgba(255, 255, 255, 0.025) !important; }
+.admin-shell .hover\:bg-zinc-800\/30:hover { background-color: rgba(255, 255, 255, 0.045) !important; }
 
 /* ── Text ────────────────────────────────────────────────────────────── */
-/* Map every dark-theme zinc text shade to a readable colour on white.
- * Earlier mappings preserved the dark-theme hierarchy (lower zinc = lighter)
- * which inverted on a light background — zinc-700 ended up lighter than
- * zinc-500, and zinc-500/600 came out as low-contrast mid-greys. Flip the
- * scale so heavier zinc = darker text, and pull everything toward near-black
- * so secondary copy stays legible (the order list, dates, address lines,
- * "Qty:" / "MAD" labels were unreadable before).
- */
-.admin-shell .text-white {
-  color: #18181b !important;
-}
-.admin-shell .text-zinc-100 {
-  color: #18181b !important;
-}
-.admin-shell .text-zinc-200 {
-  color: #18181b !important;
-}
-.admin-shell .text-zinc-300 {
-  color: #27272a !important;
-}
-.admin-shell .text-zinc-400 {
-  color: #27272a !important;
-}
-.admin-shell .text-zinc-500 {
-  color: #3f3f46 !important;
-}
-.admin-shell .text-zinc-600 {
-  color: #3f3f46 !important;
-}
-.admin-shell .text-zinc-700 {
-  color: #18181b !important;
-}
-
-/* Hover text colours */
-.admin-shell .hover\:text-white:hover {
-  color: #18181b !important;
-}
-.admin-shell .hover\:text-zinc-100:hover,
-.admin-shell .hover\:text-zinc-200:hover,
-.admin-shell .hover\:text-zinc-300:hover {
-  color: #27272a !important;
-}
+/* The darker zinc shades were near-invisible on black; lift them so dates,
+ * phone numbers and labels stay readable. zinc-800 is only used for the
+ * dimmed half of two-tone headings. */
+.admin-shell .text-white { color: #F2F3F5 !important; }
+.admin-shell .text-zinc-100,
+.admin-shell .text-zinc-200 { color: #E4E7EB !important; }
+.admin-shell .text-zinc-300 { color: #C3C8CF !important; }
+.admin-shell .text-zinc-400 { color: #A9AEB6 !important; }
+.admin-shell .text-zinc-500,
+.admin-shell .text-zinc-600 { color: #8E929A !important; }
+.admin-shell .text-zinc-700 { color: #80868F !important; }
+.admin-shell .text-zinc-800 { color: #44474E !important; }
+.admin-shell .hover\:text-white:hover { color: #FFFFFF !important; }
+.admin-shell .hover\:text-zinc-300:hover { color: #E4E7EB !important; }
 
 /* ── Borders ─────────────────────────────────────────────────────────── */
 .admin-shell .border-zinc-900,
-.admin-shell .border-zinc-900\/60,
-.admin-shell .border-zinc-800 {
-  border-color: #e4e4e7 !important;
-}
-.admin-shell .border-zinc-700 {
-  border-color: #d4d4d8 !important;
-}
-.admin-shell .border-b-zinc-900,
-.admin-shell .border-t-zinc-900 {
-  border-color: #e4e4e7 !important;
-}
-.admin-shell .hover\:border-zinc-700:hover,
-.admin-shell .hover\:border-blue-500\/30:hover {
-  border-color: #a1a1aa !important;
+.admin-shell .border-zinc-900\/60 { border-color: rgba(255, 255, 255, 0.07) !important; }
+.admin-shell .border-zinc-800 { border-color: rgba(255, 255, 255, 0.1) !important; }
+.admin-shell .border-zinc-700 { border-color: rgba(255, 255, 255, 0.16) !important; }
+.admin-shell .hover\:border-zinc-800:hover,
+.admin-shell .hover\:border-zinc-700:hover { border-color: rgba(255, 255, 255, 0.22) !important; }
+.admin-shell .divide-zinc-900\/50 > :not([hidden]) ~ :not([hidden]),
+.admin-shell .divide-zinc-900\/60 > :not([hidden]) ~ :not([hidden]),
+.admin-shell .divide-zinc-800\/60 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-/* Divide colours (the `divide-y divide-zinc-900` table separators) */
-.admin-shell .divide-zinc-900\/60 > :not([hidden]) ~ :not([hidden]),
-.admin-shell .divide-zinc-900 > :not([hidden]) ~ :not([hidden]),
-.admin-shell .divide-zinc-800 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #e4e4e7 !important;
+/* ── Accent: blue → xenon (tints, text) and platinum (filled buttons) ── */
+.admin-shell .text-blue-300,
+.admin-shell .text-blue-400,
+.admin-shell .text-blue-500,
+.admin-shell .text-blue-600 { color: #8FCBFF !important; }
+.admin-shell .bg-blue-500 { background-color: #8FCBFF !important; }
+.admin-shell .bg-blue-500\/10,
+.admin-shell .bg-blue-600\/10,
+.admin-shell .bg-blue-600\/15,
+.admin-shell .bg-blue-950\/20 { background-color: rgba(143, 203, 255, 0.08) !important; }
+.admin-shell .hover\:bg-blue-500\/20:hover { background-color: rgba(143, 203, 255, 0.16) !important; }
+.admin-shell .border-blue-500\/20,
+.admin-shell .border-blue-500\/30,
+.admin-shell .border-blue-500\/40,
+.admin-shell .border-blue-600\/30 { border-color: rgba(143, 203, 255, 0.28) !important; }
+.admin-shell .border-blue-600 { border-color: #C3C8CF !important; }
+.admin-shell .focus\:border-blue-500:focus,
+.admin-shell .focus\:border-blue-600:focus { border-color: rgba(143, 203, 255, 0.7) !important; }
+.admin-shell .focus\:ring-blue-500:focus,
+.admin-shell .focus\:ring-blue-600:focus { --tw-ring-color: rgba(143, 203, 255, 0.6) !important; }
+
+/* Filled primary buttons — brushed platinum with graphite text (declared
+ * after the text rules so it wins over an explicit text-white). */
+.admin-shell .bg-blue-600 {
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #D5D9DF 100%) !important;
+  background-color: #E4E7EB !important;
+  color: #0A0A0B !important;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18) !important;
 }
+.admin-shell .bg-blue-600 .text-white { color: #0A0A0B !important; }
+.admin-shell .hover\:bg-blue-500:hover,
+.admin-shell .hover\:bg-blue-700:hover {
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #ECEEF1 100%) !important;
+}
+/* Progress bars use bg-blue-600 too — keep those flat silver. */
+.admin-shell .h-full.rounded-full.bg-blue-600 {
+  background-image: linear-gradient(90deg, #80868F, #E4E7EB) !important;
+  box-shadow: none !important;
+}
+
+/* ── Type ────────────────────────────────────────────────────────────── */
+/* Everything was authored in font-black (900); bold reads calmer. */
+.admin-shell .font-black { font-weight: 700; }
+/* Headings: the storefront's wide display face instead of Jakarta black. */
+.admin-shell .font-jakarta {
+  font-family: var(--font-anybody), Arial, sans-serif;
+  font-variation-settings: "wdth" 125;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+/* Micro labels were authored at 7–9px; nudge them up to stay legible. */
+.admin-shell .text-\[7px\] { font-size: 9px; }
+.admin-shell .text-\[8px\] { font-size: 10px; }
+.admin-shell .text-\[9px\] { font-size: 10.5px; }
 
 /* ── Form controls ───────────────────────────────────────────────────── */
 .admin-shell input,
 .admin-shell select,
-.admin-shell textarea {
-  color: #18181b;
-}
+.admin-shell textarea { color: #F2F3F5; }
 .admin-shell input::placeholder,
-.admin-shell textarea::placeholder {
-  color: #a1a1aa;
-}
+.admin-shell textarea::placeholder { color: #6B7078; }
+.admin-shell select option { background-color: #1A1B1F; color: #F2F3F5; }

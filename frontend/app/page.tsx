@@ -31,30 +31,57 @@ const FALLBACK_BRANDS = ['Porsche', 'Mercedes', 'BMW', 'Audi'];
  * Brand rail — emblems along the bottom of the hero, each one a filtered shop
  * --------------------------------------------------------------------------*/
 
+/** Each marquee copy holds at least this many logos, so it's wider than any screen. */
+const RAIL_MIN_ITEMS = 14;
+
 function BrandRail({ categories }: { categories: string[] }) {
+  const repeats = Math.max(1, Math.ceil(RAIL_MIN_ITEMS / categories.length));
+  const row = Array.from({ length: repeats }, () => categories).flat();
+
+  const item = (category: string, focusable: boolean) => {
+    const brand = findBrand(category);
+    return (
+      <Link
+        href={`/shop?category=${encodeURIComponent(category)}`}
+        tabIndex={focusable ? undefined : -1}
+        className="group flex h-full min-w-[96px] flex-col items-center gap-2.5 rounded-2xl px-4 py-3 text-silver transition-colors hover:bg-white/[0.05] hover:text-chalk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xenon sm:min-w-[120px]"
+      >
+        <BrandLogo brand={brand ?? category} className="h-8 w-8 transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-9 sm:w-9" />
+        <span className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.16em] text-smoke transition-colors group-hover:text-silver-light">
+          {brand?.name ?? category}
+        </span>
+      </Link>
+    );
+  };
+
   return (
     <nav aria-label="Shop by brand" className="w-full">
       <p className="mb-4 text-center font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-smoke">
         Shop by brand <span className="font-ar normal-case tracking-normal">· اختار الماركا</span>
       </p>
-      <div className="no-scrollbar overflow-x-auto [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)] md:[mask-image:none]">
+
+      {/* Endless slide — two identical copies, the track moves by one copy. Pauses on hover/focus. */}
+      <div className="group/rail relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)] motion-reduce:hidden">
+        <div
+          className="flex w-max animate-marquee group-hover/rail:[animation-play-state:paused] group-focus-within/rail:[animation-play-state:paused]"
+          style={{ '--marquee-duration': `${row.length * 2.6}s` } as React.CSSProperties}
+        >
+          {[0, 1].map((copy) => (
+            <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-stretch gap-2 pr-2 sm:gap-4 sm:pr-4">
+              {row.map((category, i) => (
+                <li key={`${category}-${i}`}>{item(category, copy === 0 && i < categories.length)}</li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+
+      {/* Reduced motion: a still, scrollable row */}
+      <div className="no-scrollbar hidden overflow-x-auto motion-reduce:block">
         <ul className="mx-auto flex w-max items-stretch gap-2 px-6 sm:gap-3">
-          {categories.map((category) => {
-            const brand = findBrand(category);
-            return (
-              <li key={category}>
-                <Link
-                  href={`/shop?category=${encodeURIComponent(category)}`}
-                  className="group flex h-full min-w-[84px] flex-col items-center gap-2.5 rounded-2xl px-4 py-3 text-silver transition-colors hover:bg-white/[0.05] hover:text-chalk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xenon sm:min-w-[96px]"
-                >
-                  <BrandLogo brand={brand ?? category} className="h-8 w-8 transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-9 sm:w-9" />
-                  <span className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.16em] text-smoke transition-colors group-hover:text-silver-light">
-                    {brand?.name ?? category}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
+          {categories.map((category) => (
+            <li key={category}>{item(category, true)}</li>
+          ))}
         </ul>
       </div>
     </nav>
@@ -240,7 +267,10 @@ export default function Home() {
               variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } } }}
               className="mt-5 text-base text-silver sm:text-lg"
             >
-              Then go get it. <span className="font-ar text-smoke">· ومن بعد سير جيبو</span>
+              On the wall today. In the garage tomorrow.
+              <span className="mt-1 block font-ar text-lg text-smoke sm:text-xl" dir="rtl">
+                اليوم فالحيط… وغدا فالكاراج
+              </span>
             </motion.p>
 
             <motion.div

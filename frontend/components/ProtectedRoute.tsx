@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/Loader';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -27,8 +28,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Show loading while auth is initializing
   if (!isInitialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-asphalt">
+        <Loader size="lg" />
       </div>
     );
   }
@@ -36,8 +37,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Show loading while redirecting to login
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-asphalt">
+        <Loader size="lg" />
       </div>
     );
   }

@@ -303,7 +303,7 @@ export default function AdminOrdersPage() {
       <div className="flex min-h-screen bg-black text-white font-inter">
         <AdminSidebar onLogout={logout} />
 
-        <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-14">
+        <main className="min-w-0 flex-1 overflow-y-auto px-5 pb-6 pt-20 md:p-14">
           {/* Header */}
           <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-8 lg:mb-16">
             <div>

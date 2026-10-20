@@ -7,6 +7,7 @@ import CustomOrderTable from '@/components/CustomOrderTable';
 import { fetchCustomOrders, CustomOrder } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
+import Loader from '@/components/Loader';
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function AdminCustomOrders() {
@@ -41,7 +42,7 @@ export default function AdminCustomOrders() {
       <div className="flex min-h-screen bg-black text-white font-inter">
         <AdminSidebar onLogout={logout} />
 
-        <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-14">
+        <main className="min-w-0 flex-1 overflow-y-auto px-5 pb-6 pt-20 md:p-14">
           {/* Header */}
           <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-8 lg:mb-16">
             <div>
@@ -98,7 +99,7 @@ export default function AdminCustomOrders() {
           {/* Loading */}
           {isLoading ? (
             <div className="flex justify-center py-32">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+              <Loader size="lg" />
             </div>
           ) : (
             <div className="rounded-xl md:rounded-[2rem] lg:rounded-[2.5rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">

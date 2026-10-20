@@ -4,6 +4,18 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { adminLogin } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
+import NightDrive from '@/components/NightDrive';
+import Plate from '@/components/Plate';
+import Loader from '@/components/Loader';
+import { btnPrimary, fieldLabel, inputField } from '@/lib/uiStyles';
+
+function FullScreenLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-asphalt">
+      <Loader size="lg" />
+    </div>
+  );
+}
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -40,83 +52,65 @@ function LoginForm() {
     }
   };
 
-  // Show loading while auth is initializing
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  // If authenticated, show loading while redirecting
-  if (isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
+  // Show loading while auth is initializing, or while redirecting once signed in
+  if (!isInitialized || isAuthenticated) {
+    return <FullScreenLoader />;
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center py-8 md:py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-black">
-      <div className="w-full max-w-md space-y-6 md:space-y-8 rounded-2xl md:rounded-3xl border border-zinc-200 bg-white p-6 md:p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div>
-          <h2 className="mt-2 text-center text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Admin Login
-          </h2>
-          <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Sign in to access the dashboard
-          </p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-asphalt px-4 py-12">
+      <NightDrive className="absolute inset-0 h-full w-full opacity-50" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(10,10,11,0.55),rgba(10,10,11,0.95)_75%)]" />
+
+      <div className="relative w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <Plate size="md" left="L7IT" letter="ح" right="1" aria-label="L7IT" />
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-smoke">Admin</p>
         </div>
-        <form className="mt-6 md:mt-8 space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
-              <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
-            </div>
-          )}
-          <div className="space-y-3 md:space-y-4">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email address</label>
+
+        <div className="rounded-3xl bg-carbon/90 p-6 ring-1 ring-white/[0.08] backdrop-blur-xl sm:p-8">
+          <h1 className="font-display text-xl font-semibold uppercase text-chalk stretch-125">Sign in</h1>
+          <p className="mt-1 text-sm text-smoke">Manage orders, products and messages.</p>
+
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            {error && (
+              <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300 ring-1 ring-inset ring-red-400/30">
+                {error}
+              </div>
+            )}
+            <label htmlFor="email-address" className="block space-y-2">
+              <span className={fieldLabel}>Email</span>
               <input
                 id="email-address"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
-                placeholder="Email address"
+                className={inputField}
+                placeholder="admin@l7it.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+            </label>
+            <label htmlFor="password" className="block space-y-2">
+              <span className={fieldLabel}>Password</span>
               <input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="relative block w-full rounded-xl border-zinc-300 px-4 py-3 placeholder-zinc-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white border"
-                placeholder="Password"
+                className={inputField}
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-          </div>
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`flex w-full justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-black hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200'
-              }`}
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            </label>
+            <button type="submit" disabled={isLoading} className={`${btnPrimary} !mt-6 w-full`}>
+              {isLoading ? 'Signing in…' : 'Sign in'}
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -124,11 +118,7 @@ function LoginForm() {
 
 export default function AdminLoginPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    }>
+    <Suspense fallback={<FullScreenLoader />}>
       <LoginForm />
     </Suspense>
   );

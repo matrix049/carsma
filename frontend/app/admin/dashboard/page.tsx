@@ -7,6 +7,7 @@ import { fetchOrders, fetchStats, Order, DashboardStats } from '@/lib/apiService
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Loader from '@/components/Loader';
 
 // ── CSV Export ───────────────────────────────────────────────────────────────
 function exportCSV(orders: Order[]) {
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-black items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <Loader size="lg" />
       </div>
     );
   }
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
         <AdminSidebar onLogout={logout} />
 
         {/* Main Workspace */}
-        <main className="flex-1 overflow-y-auto pt-20 md:pt-0 px-5 py-6 md:p-16">
+        <main className="min-w-0 flex-1 overflow-y-auto px-5 pb-6 pt-20 md:p-16">
           {/* Header */}
           <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-10">
             <div>

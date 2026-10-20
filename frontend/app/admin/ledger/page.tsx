@@ -181,9 +181,9 @@ export default function AdminLedgerPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-black text-white">
+      <div className="flex min-h-screen bg-black text-white">
         <AdminSidebar onLogout={logout} />
-        <main className="lg:ml-64 px-4 sm:px-6 lg:px-10 py-6 sm:py-10 pt-20 lg:pt-10">
+        <main className="min-w-0 flex-1 px-4 pb-10 pt-20 sm:px-6 md:pt-10 lg:px-10">
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <h1 className="font-display text-3xl sm:text-4xl md:text-5xl uppercase leading-none tracking-tight">
