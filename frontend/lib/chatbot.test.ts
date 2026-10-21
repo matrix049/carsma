@@ -1,0 +1,57 @@
+import { matchTopics, planReply, normalise, topicAnswer } from './chatbot';
+
+describe('chatbot intent matching', () => {
+  it.each([
+    ['ch7al taman dyal lawha?', 'price'],
+    ['combien ça coûte ?', 'price'],
+    ['how much is it', 'price'],
+    ['شحال الثمن؟', 'price'],
+    ['واش كتوصلو للعيون؟', 'delivery'],
+    ['vous livrez à Agadir ?', 'delivery'],
+    ['wach kayn lon zr9?', 'colors'],
+    ['est-ce que vous faites en rouge', 'colors'],
+    ['واش كاين اللون الأحمر', 'colors'],
+    ['ch7al l 3d', 'style'],
+    ['taille disponible ?', 'size'],
+    ['wach kayn retour?', 'returns'],
+    ['fin wslat la commande dyali', 'order'],
+  ])('%s → %s', (text, topic) => {
+    expect(matchTopics(text)).toContain(topic);
+  });
+
+  it('does not read Casablanca (البيضاء) as the colour white', () => {
+    expect(matchTopics('واش كتوصلو للدار البيضاء')).not.toContain('colors');
+  });
+
+  it('treats "can you deliver" as a delivery question, not a custom request', () => {
+    const topics = matchTopics('wach t9dro twslo l agadir');
+    expect(topics).toContain('delivery');
+    expect(topics).not.toContain('custom');
+  });
+
+  it('starts the custom-request questions, prefilled when a car is named', () => {
+    expect(planReply('wach t9dro tdirou lia golf 7 r 2018')).toEqual({
+      kind: 'flow',
+      prefillItem: 'wach t9dro tdirou lia golf 7 r 2018',
+      lead: undefined,
+    });
+    expect(planReply('vous pouvez faire mon logo ?')).toMatchObject({ kind: 'flow', prefillItem: undefined });
+    expect(planReply('عندي لوغو واش تقدرو تديروه')).toMatchObject({ kind: 'flow' });
+  });
+
+  it('answers short known questions instantly and sends the rest to the AI', () => {
+    expect(planReply('salam, ch7al taman?')).toEqual({ kind: 'answer', topics: ['price'] });
+    expect(planReply('bghit chi haja zwina l salon dyali')).toMatchObject({ kind: 'ai' });
+    // A named car goes to the AI so it can suggest matching pieces.
+    expect(planReply('ch7al bmw?')).toMatchObject({ kind: 'ai', fallback: ['price'] });
+  });
+
+  it('normalises Arabic spelling variants', () => {
+    expect(normalise('الأَلوان')).toBe(normalise('الالوان'));
+  });
+
+  it('fills the catalogue price range into the price answer', () => {
+    expect(topicAnswer('en', 'price', { min: 179, max: 199 })).toContain('179–199 MAD');
+    expect(topicAnswer('fr', 'price')).toContain('Garage');
+  });
+});

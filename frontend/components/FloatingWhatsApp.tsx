@@ -75,6 +75,10 @@ export default function FloatingWhatsApp() {
     },
   ];
 
+  // The contact page has the chat assistant and its own WhatsApp card; the
+  // fob would only cover the chat's send button.
+  if (pathname === '/contact') return null;
+
   // Product and cart pages have a sticky buy bar on small screens — sit above it.
   const lift = onProduct ? 'bottom-24 md:bottom-6' : onCart ? 'bottom-24 lg:bottom-6' : 'bottom-5 md:bottom-6';
 

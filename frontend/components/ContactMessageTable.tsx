@@ -9,6 +9,38 @@ interface ContactMessageTableProps {
   onStatusUpdate: () => void;
 }
 
+/** "Chatbot" tag + the full conversation, for hand-offs from the chat assistant. */
+function ChatbotBadge() {
+  return (
+    <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-blue-400">
+      <span className="h-1 w-1 rounded-full bg-blue-500" />
+      Chatbot
+    </span>
+  );
+}
+
+function Transcript({ message }: { message: ContactMessage }) {
+  if (!message.transcript?.length) return null;
+  return (
+    <details className="mt-3 group/tr">
+      <summary className="cursor-pointer list-none text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white [&::-webkit-details-marker]:hidden">
+        <span className="group-open/tr:hidden">View conversation ({message.transcript.length}) ↓</span>
+        <span className="hidden group-open/tr:inline">Hide conversation ↑</span>
+      </summary>
+      <ol className="mt-3 space-y-2 border-l border-zinc-800 pl-3">
+        {message.transcript.map((turn, i) => (
+          <li key={i} className="text-[11px] leading-relaxed" dir="auto">
+            <span className={`font-black uppercase tracking-widest ${turn.role === 'user' ? 'text-white' : 'text-zinc-500'}`}>
+              {turn.role === 'user' ? 'Customer' : 'Bot'}
+            </span>{' '}
+            <span className="whitespace-pre-wrap text-zinc-300">{turn.text}</span>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
 const STATUS_BADGE: Record<string, string> = {
   unread:   'bg-amber-500/10 text-amber-400 border-amber-500/20',
   read:     'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -85,11 +117,13 @@ export default function ContactMessageTable({ messages, onStatusUpdate }: Contac
                   {message.customer.email && (
                     <p className="text-[9px] text-zinc-700 mt-0.5">{message.customer.email}</p>
                   )}
+                  {message.source === 'chatbot' && <ChatbotBadge />}
                 </td>
                 <td className="px-8 py-7">
-                  <p className="text-[10px] leading-relaxed max-w-md whitespace-pre-wrap text-zinc-500 line-clamp-3">
+                  <p className={`text-[10px] leading-relaxed max-w-md whitespace-pre-wrap text-zinc-500 ${message.source === 'chatbot' ? '' : 'line-clamp-3'}`}>
                     {message.message}
                   </p>
+                  <Transcript message={message} />
                 </td>
                 <td className="px-8 py-7">
                   <div className="flex flex-col items-center gap-3">
@@ -148,12 +182,14 @@ export default function ContactMessageTable({ messages, onStatusUpdate }: Contac
             {message.customer.email && (
               <p className="text-[10px] text-zinc-700 mt-0.5">{message.customer.email}</p>
             )}
+            {message.source === 'chatbot' && <ChatbotBadge />}
 
             {/* Message */}
             <div className="mt-3 pt-3 border-t border-zinc-900/60">
               <p className="text-[10px] leading-relaxed text-zinc-500 whitespace-pre-wrap">
                 {message.message}
               </p>
+              <Transcript message={message} />
             </div>
 
             {/* Status changer */}

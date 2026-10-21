@@ -9,6 +9,10 @@ export interface IContactMessage extends Document {
   };
   message: string;
   status: 'unread' | 'read' | 'resolved' | 'archived';
+  /** Where it came from: the old contact form or the chat assistant hand-off. */
+  source: 'form' | 'chatbot';
+  /** Chat hand-offs keep the whole conversation for the team. */
+  transcript?: { role: 'user' | 'assistant'; text: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +55,21 @@ const ContactMessageSchema = new Schema<IContactMessage>(
       type: String,
       enum: ['unread', 'read', 'resolved', 'archived'],
       default: 'unread'
+    },
+    source: {
+      type: String,
+      enum: ['form', 'chatbot'],
+      default: 'form'
+    },
+    transcript: {
+      type: [
+        {
+          _id: false,
+          role: { type: String, enum: ['user', 'assistant'], required: true },
+          text: { type: String, required: true, maxlength: 1200 }
+        }
+      ],
+      default: undefined
     }
   },
   {

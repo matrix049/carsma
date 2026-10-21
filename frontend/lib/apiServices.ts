@@ -146,8 +146,23 @@ export interface ContactMessage {
   };
   message: string;
   status: 'unread' | 'read' | 'resolved' | 'archived';
+  /** "chatbot" for hand-offs from the chat assistant. Older records have none. */
+  source?: 'form' | 'chatbot';
+  transcript?: ChatTurn[];
   createdAt: string;
   updatedAt: string;
+}
+
+/** One message in a chat-assistant conversation. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+export interface ChatReply {
+  reply: string;
+  offerHandoff: boolean;
+  products: Pick<Product, '_id' | 'name' | 'price' | 'image' | 'category' | 'inStock'>[];
 }
 
 export interface CreateContactMessageRequest {
@@ -360,6 +375,32 @@ export async function createContactMessage(
     },
     false // Public endpoint
   );
+}
+
+/**
+ * Ask the chat assistant. Throws ApiError (status 503) when no AI model is
+ * available — callers fall back to built-in answers.
+ */
+export async function sendChatMessage(messages: ChatTurn[], language: string): Promise<ChatReply> {
+  return apiRequest<ChatReply>('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({ messages, language }),
+  });
+}
+
+/** Send a chat conversation to the team (lands in Admin → Contact Messages). */
+export async function sendChatHandoff(data: {
+  name: string;
+  phone: string;
+  note?: string;
+  language: string;
+  messages: ChatTurn[];
+  details?: string[];
+}): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>('/api/chat/handoff', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 /**
