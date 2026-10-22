@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CustomOrder, updateCustomOrderStatus } from '@/lib/apiServices';
 import { motion } from 'framer-motion';
+import { ChatbotBadge, ChatTranscript } from '@/components/ChatTranscript';
 
 interface CustomOrderTableProps {
   orders: CustomOrder[];
@@ -77,6 +78,7 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
                   {order.customer.email && (
                     <p className="text-[9px] text-zinc-700 mt-0.5">{order.customer.email}</p>
                   )}
+                  {order.source === 'chatbot' && <ChatbotBadge />}
                 </td>
                 <td className="px-8 py-7">
                   <p className="text-[11px] font-black text-white truncate max-w-[150px]">{order.carDetails.carName}</p>
@@ -91,6 +93,7 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
                   <p className="text-[10px] leading-relaxed max-w-xs whitespace-pre-wrap italic text-zinc-500">
                     {order.notes || 'No notes provided.'}
                   </p>
+                  <ChatTranscript transcript={order.transcript} />
                 </td>
                 <td className="px-8 py-7">
                   <div className="flex flex-col items-center gap-3">
@@ -148,6 +151,7 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
             {order.customer.email && (
               <p className="text-[10px] text-zinc-700 mt-0.5">{order.customer.email}</p>
             )}
+            {order.source === 'chatbot' && <ChatbotBadge />}
 
             {/* Car */}
             <div className="mt-3 pt-3 border-t border-zinc-900/60">
@@ -161,8 +165,9 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
                 </span>
               </div>
               {order.notes && (
-                <p className="text-[10px] italic text-zinc-600 mt-2 leading-relaxed">{order.notes}</p>
+                <p className="text-[10px] italic text-zinc-600 mt-2 leading-relaxed whitespace-pre-wrap">{order.notes}</p>
               )}
+              <ChatTranscript transcript={order.transcript} />
             </div>
 
             {/* Status changer */}

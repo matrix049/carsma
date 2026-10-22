@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChatBot from './ChatBot';
-import { sendChatMessage, sendChatHandoff } from '@/lib/apiServices';
+import { sendChatMessage, sendChatOrder } from '@/lib/apiServices';
 
 jest.mock('framer-motion', () => {
   const React = jest.requireActual('react');
@@ -21,10 +21,11 @@ jest.mock('@/lib/apiServices', () => ({
   fetchProducts: jest.fn().mockResolvedValue([{ price: 179 }, { price: 199 }]),
   sendChatMessage: jest.fn(),
   sendChatHandoff: jest.fn(),
+  sendChatOrder: jest.fn(),
 }));
 
 const mockSend = sendChatMessage as jest.MockedFunction<typeof sendChatMessage>;
-const mockHandoff = sendChatHandoff as jest.MockedFunction<typeof sendChatHandoff>;
+const mockOrder = sendChatOrder as jest.MockedFunction<typeof sendChatOrder>;
 
 beforeAll(() => {
   Element.prototype.scrollTo = jest.fn();
@@ -56,35 +57,67 @@ describe('ChatBot', () => {
     expect(mockSend).not.toHaveBeenCalled();
   });
 
-  it('walks through a custom request and sends it to the team', async () => {
-    mockHandoff.mockResolvedValue({ success: true });
+  it('walks through a custom request and confirms the order with just name and phone', async () => {
+    mockOrder.mockResolvedValue({ success: true });
     render(<ChatBot />);
     fireEvent.click(screen.getByRole('button', { name: /English/ }));
 
     type('can you make my car? golf 7 r 2018');
     expect(screen.getByText('Which side?')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Side' }));
-    fireEvent.click(screen.getByRole('button', { name: '3D' }));
+
+    // 2D and 3D are both presented positively — no "cheaper" / "costs more".
+    expect(screen.getByText(/closest to the real car/)).toBeInTheDocument();
+    expect(screen.queryByText(/cheaper|costs more/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '3D · detailed' }));
     fireEvent.click(screen.getByRole('button', { name: 'Black' }));
 
-    expect(screen.getByText(/Your request:/)).toBeInTheDocument();
-    expect(screen.getByText(/partial advance payment/)).toBeInTheDocument();
+    expect(screen.getByText(/Your order:/)).toBeInTheDocument();
+    expect(screen.getByText(/Do you want to confirm this order\?/)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Send to the team' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, confirm ✅' }));
+    // Only name and phone to fill — the recap is already written.
+    const form = screen.getByLabelText('Name').closest('form')!;
+    expect(form.querySelectorAll('input')).toHaveLength(2);
+    expect(form).toHaveTextContent('Style: 3D · detailed');
+
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Yassine' } });
     fireEvent.change(screen.getByLabelText('Phone'), { target: { value: '0612345678' } });
-    fireEvent.submit(screen.getByLabelText('Name').closest('form')!);
+    fireEvent.submit(form);
 
-    await waitFor(() => expect(screen.getByText(/Request received/)).toBeInTheDocument());
-    expect(mockHandoff).toHaveBeenCalledWith(
+    await waitFor(() => expect(screen.getByText(/Order confirmed/)).toBeInTheDocument());
+    // The confirmed recap can't be sent a second time.
+    expect(screen.queryByRole('button', { name: 'Yes, confirm ✅' })).not.toBeInTheDocument();
+    expect(mockOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Yassine',
         phone: '0612345678',
         language: 'en',
-        details: expect.arrayContaining(['Side: Side', 'Style: 3D', 'Colour: Black']),
+        item: 'golf 7 r 2018',
+        summary: expect.arrayContaining(['Side: Side', 'Style: 3D · detailed', 'Colour: Black']),
       }),
     );
     expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it('opens the order form when the customer answers "yes" to the AI asking to confirm', async () => {
+    mockSend.mockResolvedValue({
+      reply: 'BMW M4 Competition, 179 MAD. Do you want to confirm your order?',
+      offerHandoff: false,
+      askConfirm: true,
+      orderSummary: ['BMW M4 Competition', '120 × 35 cm', '179 MAD'],
+      products: [],
+    });
+    render(<ChatBot />);
+    fireEvent.click(screen.getByRole('button', { name: /English/ }));
+    type('I want the bmw m4 one');
+    await waitFor(() => expect(screen.getByText(/confirm your order/)).toBeInTheDocument());
+
+    type('yes');
+    const form = screen.getByLabelText('Name').closest('form')!;
+    expect(form).toHaveTextContent('BMW M4 Competition');
+    expect(form).toHaveTextContent('179 MAD');
+    expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it('asks the AI for open questions and shows its reply', async () => {

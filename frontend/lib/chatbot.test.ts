@@ -1,4 +1,4 @@
-import { matchTopics, planReply, normalise, topicAnswer } from './chatbot';
+import { matchTopics, planReply, normalise, topicAnswer, isAffirmative } from './chatbot';
 
 describe('chatbot intent matching', () => {
   it.each([
@@ -32,9 +32,10 @@ describe('chatbot intent matching', () => {
   it('starts the custom-request questions, prefilled when a car is named', () => {
     expect(planReply('wach t9dro tdirou lia golf 7 r 2018')).toEqual({
       kind: 'flow',
-      prefillItem: 'wach t9dro tdirou lia golf 7 r 2018',
+      prefillItem: 'golf 7 r 2018',
       lead: undefined,
     });
+    expect(planReply('ديرو ليا طوموبيلتي BMW M3 E46')).toMatchObject({ kind: 'flow', prefillItem: 'BMW M3 E46' });
     expect(planReply('vous pouvez faire mon logo ?')).toMatchObject({ kind: 'flow', prefillItem: undefined });
     expect(planReply('عندي لوغو واش تقدرو تديروه')).toMatchObject({ kind: 'flow' });
   });
@@ -53,5 +54,13 @@ describe('chatbot intent matching', () => {
   it('fills the catalogue price range into the price answer', () => {
     expect(topicAnswer('en', 'price', { min: 179, max: 199 })).toContain('179–199 MAD');
     expect(topicAnswer('fr', 'price')).toContain('Garage');
+  });
+
+  it.each(['wakha', 'ah', 'oui', 'yes please', 'واخا', 'نعم', 'إيه أكد'])('"%s" confirms', (text) => {
+    expect(isAffirmative(text)).toBe(true);
+  });
+
+  it.each(['la', 'non merci', 'not yet', 'لا', 'ماشي دابا', 'ch7al taman?'])('"%s" does not confirm', (text) => {
+    expect(isAffirmative(text)).toBe(false);
   });
 });

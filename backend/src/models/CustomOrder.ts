@@ -14,6 +14,10 @@ export interface ICustomOrder extends Document {
   };
   status: 'pending' | 'reviewed' | 'contacted' | 'completed' | 'cancelled';
   notes?: string;
+  /** "chatbot" when the customer confirmed the order in the chat assistant. */
+  source: 'form' | 'chatbot';
+  /** Chat orders keep the whole conversation for the team. */
+  transcript?: { role: 'user' | 'assistant'; text: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +78,21 @@ const CustomOrderSchema = new Schema<ICustomOrder>(
     notes: {
       type: String,
       trim: true
+    },
+    source: {
+      type: String,
+      enum: ['form', 'chatbot'],
+      default: 'form'
+    },
+    transcript: {
+      type: [
+        {
+          _id: false,
+          role: { type: String, enum: ['user', 'assistant'], required: true },
+          text: { type: String, required: true, maxlength: 1200 }
+        }
+      ],
+      default: undefined
     }
   },
   {

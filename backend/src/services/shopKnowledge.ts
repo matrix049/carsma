@@ -15,14 +15,14 @@ PRODUCT
 - Wall panels printed with UV ink on 3 mm Alucobond (aluminium composite). Pre-drilled, ready to hang, no frame needed.
 - Finish: matte or glossy; the team confirms the finish with the customer after the order.
 - Standard size 120 x 35 cm. Also 120 x 50 cm. A custom size is possible on some orders — the customer must ask the team before ordering.
-- Two styles: 2D (flat print) and 3D (layered, real depth). 2D is cheaper. 3D costs more because it takes much more work.
+- Two styles, both premium: 2D = a clean, elegant design with the car's essential lines. 3D = rich in details with real depth, the closest to the real car. Present both positively and let the customer choose. Only if the customer asks about price: 3D is priced higher than 2D because of the extra detail, and the team confirms the exact price.
 - Colours: black and white are always possible. Any other colour must first be checked by the team; the team then replies. Never promise another colour.
 - Care: keep away from direct sun and moisture; wipe with a soft dry cloth.
 
 CUSTOM WORK
 - Yes, we make anything custom: any car, a motorbike, a plane, a logo, a brand, anything the customer wants.
 - To prepare a custom piece we need: what exactly (car make, model and year, or the logo/design), which side (front, side or rear), 2D or 3D, and the colour.
-- Custom pieces that are not in the catalogue need a partial advance payment (a deposit) before production. Not the full price — only part of it. The rest is paid on delivery.
+- To start a custom piece that is not in the catalogue we ask for a partial advance payment. Not the full price — only part of it. The rest is paid on delivery.
 - Custom prices are quoted by the team (they depend on the design, size and 2D/3D). Never invent a custom price.
 
 ORDERING, PAYMENT, DELIVERY

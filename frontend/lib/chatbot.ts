@@ -65,9 +65,19 @@ interface Strings {
     summary: string;
     labels: { item: string; side: string; style: string; color: string };
     deposit: string;
-    sendToTeam: string;
+    confirm: string;
+    confirmYes: string;
+    notYet: string;
     edit: string;
     other: string;
+  };
+  order: {
+    title: string;
+    hint: string;
+    submit: string;
+    sending: string;
+    done: string;
+    error: string;
   };
   handoff: {
     offer: string;
@@ -75,7 +85,6 @@ interface Strings {
     title: string;
     name: string;
     phone: string;
-    note: string;
     submit: string;
     sending: string;
     cancel: string;
@@ -110,7 +119,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       delivery: 'كنوصلو لكاع مدن المغرب ف 24 ساعة حتى 3 أيام، والتوصيل فابور 🚚. كيوصلك رقم التتبع ملي تخرج الكوموند.',
       payment: 'القطع ديال الكاتالوغ كتخلصها ملي توصلك، ما كتخلص والو قبل. القطع الخاصة لي ماكايناش ف الكاتالوغ كنطلبو فيها تسبيق جزئي (ماشي الثمن كامل).',
       size: 'المقاس العادي 120×35 سم، وكاين حتى 120×50 سم. مصنوعة من Alucobond 3 مم بطباعة UV، مثقوبة وواجدة للتعليق بلا إطار.',
-      style: '2D هي الأرخص. 3D فيها عمق وخدمة كثر، داكشي علاش ثمنها كثر. بجوج كيبانو زوينين ف الحيط 😉',
+      style: '2D تصميم نقي وأنيق بالخطوط الأساسية ديال الطوموبيل. 3D عامرة بالتفاصيل وفيها عمق حقيقي، كتبان قريبة بزاف للطوموبيل الحقيقية. بجوج كيجيو زوينين ف الحيط 😉',
       returns: 'كل لوحة كتصاوب خصيصا ليك، داكشي علاش ما كنقبلوش الإرجاع. سولنا على أي حاجة قبل ما تكوموندي.',
       hang: 'اللوحة كتجي مثقوبة وواجدة للتعليق، ما محتاجاش إطار. بعدها من الشمس والرطوبة ونقيها بشيفون ناشف.',
       location: 'الستوديو ديالنا ف سلا، وكنوصلو لكاع المغرب. تقدر تكوموندي من السيت ولا ف الواتساب.',
@@ -126,15 +135,17 @@ export const STRINGS: Record<ChatLang, Strings> = {
       item: 'شنو بغيتي نديرو ليك؟ كتب الطوموبيل، الموديل والعام (مثلا: Golf 7 R 2018)، ولا وصف اللوغو.',
       side: 'منين بغيتي تبان؟',
       sides: ['من القدام', 'من الجنب', 'من اللور', 'نصحوني'],
-      style: '2D ولا 3D؟ 2D هي الأرخص، و 3D غالية شوية حيت فيها خدمة كثر.',
-      styles: ['2D', '3D', 'نصحوني'],
+      style: 'كيفاش بغيتيها؟ 2D: تصميم نقي وأنيق بالخطوط ديال الطوموبيل. 3D: عامرة بالتفاصيل وفيها عمق حقيقي، قريبة بزاف للطوموبيل الحقيقية.',
+      styles: ['2D · نقية', '3D · بالتفاصيل', 'عاوني نختار'],
       color: 'شنو اللون؟ الكحل والبيض ديما ممكنين، الألوان الأخرى خاص الفريق يتأكد منها.',
       colors: ['كحل', 'بيض', 'لون آخر'],
       otherColor: 'شمن لون بغيتي؟',
-      summary: 'ها الطلب ديالك:',
+      summary: 'ها الكوموند ديالك:',
       labels: { item: 'الطلب', side: 'الجهة', style: 'النوع', color: 'اللون' },
-      deposit: 'ملاحظة: القطع الخاصة لي ماكايناش ف الكاتالوغ كنطلبو فيها تسبيق جزئي قبل ما نبداو.',
-      sendToTeam: 'صيفط للفريق',
+      deposit: 'باش نبداو القطعة الخاصة كنطلبو غير تسبيق جزئي، والباقي كتخلصو ملي توصلك.',
+      confirm: 'بغيتي تأكد هاد الكوموند؟',
+      confirmYes: 'إيه، أكد ✅',
+      notYet: 'ماشي دابا',
       edit: 'بدل',
       other: 'سؤال آخر',
     },
@@ -144,11 +155,18 @@ export const STRINGS: Record<ChatLang, Strings> = {
       title: 'صيفط للفريق',
       name: 'السمية',
       phone: 'التيليفون',
-      note: 'زيد شي حاجة (اختياري)',
       submit: 'صيفط',
       sending: 'كنصيفط…',
       cancel: 'رجوع',
       done: 'وصلنا الطلب ديالك ✅ الفريق غادي يتاصل بيك قريب.',
+      error: 'وقع مشكل، عاود جرب ولا كلمنا ف الواتساب.',
+    },
+    order: {
+      title: 'أكد الكوموند ديالك',
+      hint: 'غير سميتك ورقمك، والفريق يتاصل بيك باش يكمل معاك.',
+      submit: 'أكد الكوموند',
+      sending: 'كنأكد…',
+      done: 'تأكدات الكوموند ديالك ✅ الفريق غادي يتاصل بيك قريب باش يكمل معاك.',
       error: 'وقع مشكل، عاود جرب ولا كلمنا ف الواتساب.',
     },
     viewPiece: 'شوف',
@@ -177,7 +195,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       delivery: 'Livraison dans toutes les villes du Maroc en 24 h à 3 jours, gratuite 🚚. Vous recevez un numéro de suivi à l’expédition.',
       payment: 'Les pièces du catalogue se paient à la livraison, rien à payer avant. Pour le sur-mesure hors catalogue, on demande une avance partielle (pas le prix complet).',
       size: 'Taille standard 120 × 35 cm, aussi en 120 × 50 cm. Alucobond 3 mm imprimé UV, prépercé et prêt à accrocher, sans cadre.',
-      style: 'Le 2D est le moins cher. Le 3D a du relief et demande plus de travail, donc il coûte plus cher.',
+      style: 'Le 2D, c’est un design épuré et élégant avec les lignes essentielles de la voiture. Le 3D est riche en détails, avec un vrai relief — au plus proche de la vraie voiture. Les deux rendent superbement au mur 😉',
       returns: 'Chaque pièce est fabriquée sur commande, nous n’acceptons donc pas les retours. Posez-nous vos questions avant de commander.',
       hang: 'La pièce arrive prépercée, prête à accrocher, sans cadre. Évitez le soleil direct et l’humidité ; nettoyez avec un chiffon sec.',
       location: 'Notre studio est à Salé et nous livrons partout au Maroc. Commandez sur le site ou sur WhatsApp.',
@@ -193,15 +211,17 @@ export const STRINGS: Record<ChatLang, Strings> = {
       item: 'Qu’est-ce qu’on vous fait ? Écrivez la voiture, le modèle et l’année (ex. Golf 7 R 2018), ou décrivez le logo.',
       side: 'Quel côté ?',
       sides: ['De face', 'De profil', 'De l’arrière', 'Conseillez-moi'],
-      style: '2D ou 3D ? Le 2D est moins cher, le 3D coûte plus car il demande plus de travail.',
-      styles: ['2D', '3D', 'Conseillez-moi'],
+      style: 'Quel rendu préférez-vous ? 2D : un design épuré et élégant, les lignes essentielles de la voiture. 3D : riche en détails, avec un vrai relief — au plus proche de la vraie voiture.',
+      styles: ['2D · épuré', '3D · détaillé', 'Aidez-moi à choisir'],
       color: 'Quelle couleur ? Le noir et le blanc sont toujours possibles ; les autres couleurs sont à confirmer par l’équipe.',
       colors: ['Noir', 'Blanc', 'Autre couleur'],
       otherColor: 'Quelle couleur souhaitez-vous ?',
-      summary: 'Votre demande :',
+      summary: 'Votre commande :',
       labels: { item: 'Demande', side: 'Côté', style: 'Style', color: 'Couleur' },
-      deposit: 'À noter : pour les pièces sur mesure hors catalogue, on demande une avance partielle avant de commencer.',
-      sendToTeam: 'Envoyer à l’équipe',
+      deposit: 'Pour lancer une pièce sur mesure, on demande juste une avance partielle ; le reste se paie à la livraison.',
+      confirm: 'Voulez-vous confirmer cette commande ?',
+      confirmYes: 'Oui, je confirme ✅',
+      notYet: 'Pas encore',
       edit: 'Modifier',
       other: 'Autre question',
     },
@@ -211,11 +231,18 @@ export const STRINGS: Record<ChatLang, Strings> = {
       title: 'Envoyer à l’équipe',
       name: 'Nom',
       phone: 'Téléphone',
-      note: 'Ajouter un détail (facultatif)',
       submit: 'Envoyer',
       sending: 'Envoi…',
       cancel: 'Retour',
       done: 'Demande bien reçue ✅ L’équipe vous contactera très vite.',
+      error: 'Un problème est survenu. Réessayez ou écrivez-nous sur WhatsApp.',
+    },
+    order: {
+      title: 'Confirmer votre commande',
+      hint: 'Juste votre nom et votre numéro : l’équipe vous appelle pour finaliser.',
+      submit: 'Confirmer la commande',
+      sending: 'Confirmation…',
+      done: 'Commande confirmée ✅ L’équipe vous appelle très vite pour finaliser.',
       error: 'Un problème est survenu. Réessayez ou écrivez-nous sur WhatsApp.',
     },
     viewPiece: 'Voir',
@@ -244,7 +271,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       delivery: 'We deliver to every city in Morocco in 24 hours to 3 days, free 🚚. You get a tracking number when it ships.',
       payment: 'Catalogue pieces are paid cash on delivery — nothing upfront. Custom pieces outside the catalogue need a partial advance payment (not the full price).',
       size: 'Standard size is 120 × 35 cm, also 120 × 50 cm. 3 mm Alucobond with UV print, pre-drilled and ready to hang — no frame needed.',
-      style: '2D is the cheaper option. 3D has real depth and takes more work, so it costs more.',
+      style: '2D is a clean, elegant design with the car’s essential lines. 3D is rich in detail with real depth — the closest to the real car. Both look great on the wall 😉',
       returns: 'Every piece is made to order, so we can’t accept returns. Ask us anything before you order.',
       hang: 'It arrives pre-drilled and ready to hang, no frame needed. Keep it out of direct sun and moisture; wipe with a soft dry cloth.',
       location: 'Our studio is in Salé and we deliver anywhere in Morocco. Order on the website or on WhatsApp.',
@@ -260,15 +287,17 @@ export const STRINGS: Record<ChatLang, Strings> = {
       item: 'What should we make? Write the car, model and year (e.g. Golf 7 R 2018), or describe the logo.',
       side: 'Which side?',
       sides: ['Front', 'Side', 'Rear', 'Not sure, advise me'],
-      style: '2D or 3D? 2D is cheaper; 3D costs more because it takes more work.',
-      styles: ['2D', '3D', 'Advise me'],
+      style: 'Which look do you prefer? 2D: a clean, elegant design with the car’s essential lines. 3D: rich in detail with real depth — the closest to the real car.',
+      styles: ['2D · clean', '3D · detailed', 'Help me choose'],
       color: 'Which colour? Black and white are always possible; other colours need a check by the team.',
       colors: ['Black', 'White', 'Another colour'],
       otherColor: 'Which colour would you like?',
-      summary: 'Your request:',
+      summary: 'Your order:',
       labels: { item: 'Item', side: 'Side', style: 'Style', color: 'Colour' },
-      deposit: 'Note: custom pieces outside the catalogue need a partial advance payment before we start.',
-      sendToTeam: 'Send to the team',
+      deposit: 'To start a custom piece we just ask for a partial advance; the rest is paid on delivery.',
+      confirm: 'Do you want to confirm this order?',
+      confirmYes: 'Yes, confirm ✅',
+      notYet: 'Not yet',
       edit: 'Edit',
       other: 'Ask something else',
     },
@@ -278,11 +307,18 @@ export const STRINGS: Record<ChatLang, Strings> = {
       title: 'Send to the team',
       name: 'Name',
       phone: 'Phone',
-      note: 'Add a detail (optional)',
       submit: 'Send',
       sending: 'Sending…',
       cancel: 'Back',
       done: 'Request received ✅ The team will contact you soon.',
+      error: 'Something went wrong. Try again or message us on WhatsApp.',
+    },
+    order: {
+      title: 'Confirm your order',
+      hint: 'Just your name and number — the team calls you to finalise.',
+      submit: 'Confirm order',
+      sending: 'Confirming…',
+      done: 'Order confirmed ✅ The team will call you soon to finalise it.',
       error: 'Something went wrong. Try again or message us on WhatsApp.',
     },
     viewPiece: 'View',
@@ -311,7 +347,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       delivery: 'نوصل إلى جميع مدن المغرب خلال 24 ساعة إلى 3 أيام، والتوصيل مجاني 🚚. يصلك رقم التتبع عند الشحن.',
       payment: 'قطع الكتالوج تُدفع عند الاستلام دون أي دفعة مسبقة. أما القطع الخاصة خارج الكتالوج فتتطلب دفعة مسبقة جزئية (وليس السعر كاملًا).',
       size: 'المقاس القياسي 120 × 35 سم، ومتوفر أيضًا 120 × 50 سم. لوح ألوكوبوند 3 مم بطباعة UV، مثقوب وجاهز للتعليق دون إطار.',
-      style: '2D هو الخيار الأرخص. 3D فيه عمق حقيقي ويتطلب عملًا أكثر، لذلك سعره أعلى.',
+      style: '2D تصميم أنيق بخطوط السيارة الأساسية، و3D غني بالتفاصيل بعمق حقيقي — الأقرب إلى السيارة الحقيقية. كلاهما رائع على الحائط 😉',
       returns: 'كل قطعة تُصنع حسب الطلب، لذلك لا نقبل الإرجاع. اسألنا قبل الطلب.',
       hang: 'تصل القطعة مثقوبة وجاهزة للتعليق دون إطار. أبعدها عن الشمس المباشرة والرطوبة، ونظفها بقطعة قماش جافة.',
       location: 'الاستوديو في سلا، ونوصل لكل المغرب. اطلب من الموقع أو عبر واتساب.',
@@ -327,15 +363,17 @@ export const STRINGS: Record<ChatLang, Strings> = {
       item: 'ماذا تريد أن نصنع لك؟ اكتب السيارة والموديل والسنة (مثال: Golf 7 R 2018)، أو صف الشعار.',
       side: 'من أي جهة؟',
       sides: ['من الأمام', 'من الجانب', 'من الخلف', 'انصحوني'],
-      style: '2D أم 3D؟ 2D أرخص، و3D أغلى لأنه يتطلب عملًا أكثر.',
-      styles: ['2D', '3D', 'انصحوني'],
+      style: 'أي شكل تفضّل؟ 2D: تصميم أنيق بخطوط السيارة الأساسية. 3D: غني بالتفاصيل بعمق حقيقي — الأقرب إلى السيارة الحقيقية.',
+      styles: ['2D · أنيق', '3D · مفصّل', 'ساعدوني في الاختيار'],
       color: 'ما اللون؟ الأسود والأبيض متاحان دائمًا، والألوان الأخرى تحتاج تأكيد الفريق.',
       colors: ['أسود', 'أبيض', 'لون آخر'],
       otherColor: 'ما اللون الذي تريده؟',
       summary: 'طلبك:',
       labels: { item: 'الطلب', side: 'الجهة', style: 'النوع', color: 'اللون' },
-      deposit: 'ملاحظة: القطع الخاصة خارج الكتالوج تتطلب دفعة مسبقة جزئية قبل البدء.',
-      sendToTeam: 'أرسل للفريق',
+      deposit: 'لبدء قطعة خاصة نطلب فقط دفعة مسبقة جزئية، والباقي يُدفع عند الاستلام.',
+      confirm: 'هل تريد تأكيد هذا الطلب؟',
+      confirmYes: 'نعم، أؤكد ✅',
+      notYet: 'ليس الآن',
       edit: 'تعديل',
       other: 'سؤال آخر',
     },
@@ -345,11 +383,18 @@ export const STRINGS: Record<ChatLang, Strings> = {
       title: 'أرسل للفريق',
       name: 'الاسم',
       phone: 'الهاتف',
-      note: 'أضف تفصيلًا (اختياري)',
       submit: 'إرسال',
       sending: 'جارٍ الإرسال…',
       cancel: 'رجوع',
       done: 'وصلنا طلبك ✅ سيتصل بك الفريق قريبًا.',
+      error: 'حدث خطأ. حاول مجددًا أو راسلنا عبر واتساب.',
+    },
+    order: {
+      title: 'تأكيد طلبك',
+      hint: 'فقط اسمك ورقمك، وسيتصل بك الفريق لإتمام الطلب.',
+      submit: 'تأكيد الطلب',
+      sending: 'جارٍ التأكيد…',
+      done: 'تم تأكيد طلبك ✅ سيتصل بك الفريق قريبًا لإتمامه.',
       error: 'حدث خطأ. حاول مجددًا أو راسلنا عبر واتساب.',
     },
     viewPiece: 'عرض',
@@ -507,6 +552,28 @@ export function mentionsCar(message: string): boolean {
     .some((w) => w.length >= 3 && !!findBrand(w));
 }
 
+const YES_LATIN = /^(ah+|ih|iyeh|iyih|eyh|yeh|wakha|wkha|safi|ok|okay|oki|oui|ouais|yes|yeah|yep|sure|go|vas y|d accord|dac|bien sur|of course|n3am|na3am|mzyan|tmam|confirm\w*)\b/;
+const YES_ARABIC = ['اه', 'ايه', 'اييه', 'واخا', 'صافي', 'نعم', 'اكيد', 'موافق', 'تمام', 'مزيان', 'اوكي', 'كونفيرمي', 'اكد', 'كنأكد', 'كناكد'];
+const NO_LATIN = /^(la+|non|no|nope|pas encore|not yet|machi daba|mabghitch|ma bghitch)\b/;
+const NO_ARABIC = ['لا', 'ماشي', 'مابغيتش', 'ليس'];
+
+/** "yes / wakha / oui / نعم" in reply to "do you want to confirm this order?" */
+export function isAffirmative(message: string): boolean {
+  const text = normalise(message);
+  if (!text || NO_LATIN.test(text) || NO_ARABIC.includes(text.split(' ')[0])) return false;
+  return YES_LATIN.test(text) || YES_ARABIC.includes(text.split(' ')[0]);
+}
+
+/** "can you make my car? golf 7 r 2018" → "golf 7 r 2018" (from the first car word on). */
+export function carPart(message: string): string {
+  const words = message.trim().split(/\s+/);
+  const start = words.findIndex((w) => {
+    const n = normalise(w);
+    return n.length >= 2 && (!!brandOf({ name: n }) || (n.length >= 3 && !!findBrand(n)));
+  });
+  return start > 0 ? words.slice(start).join(' ') : message.trim();
+}
+
 export type LocalPlan =
   | { kind: 'flow'; prefillItem?: string; lead?: Exclude<TopicId, 'custom'>[] }
   | { kind: 'answer'; topics: Exclude<TopicId, 'custom'>[] }
@@ -525,7 +592,7 @@ export function planReply(message: string): LocalPlan {
   const car = mentionsCar(message);
 
   if (topics.includes('custom')) {
-    return { kind: 'flow', prefillItem: car ? message.trim() : undefined, lead: plain.includes('colors') ? ['colors'] : undefined };
+    return { kind: 'flow', prefillItem: car ? carPart(message) : undefined, lead: plain.includes('colors') ? ['colors'] : undefined };
   }
   if (!plain.length || words > 14) return { kind: 'ai', fallback: plain.slice(0, 2) };
   // "ch7al bmw" — the AI can quote that brand's pieces; keep built-ins as fallback.

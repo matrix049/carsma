@@ -112,6 +112,9 @@ export interface CustomOrder {
   };
   status: 'pending' | 'reviewed' | 'contacted' | 'completed' | 'cancelled';
   notes?: string;
+  /** "chatbot" when confirmed in the chat assistant. */
+  source?: 'form' | 'chatbot';
+  transcript?: ChatTurn[];
   createdAt: string;
   updatedAt: string;
 }
@@ -162,6 +165,9 @@ export interface ChatTurn {
 export interface ChatReply {
   reply: string;
   offerHandoff: boolean;
+  /** The assistant asked "do you want to confirm your order?" — recap in orderSummary. */
+  askConfirm?: boolean;
+  orderSummary?: string[];
   products: Pick<Product, '_id' | 'name' | 'price' | 'image' | 'category' | 'inStock'>[];
 }
 
@@ -385,6 +391,21 @@ export async function sendChatMessage(messages: ChatTurn[], language: string): P
   return apiRequest<ChatReply>('/api/chat', {
     method: 'POST',
     body: JSON.stringify({ messages, language }),
+  });
+}
+
+/** Confirm an order from the chat (lands in Admin → Custom Orders). */
+export async function sendChatOrder(data: {
+  name: string;
+  phone: string;
+  language: string;
+  summary: string[];
+  item?: string;
+  messages: ChatTurn[];
+}): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>('/api/chat/order', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 }
 

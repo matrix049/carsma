@@ -12,7 +12,7 @@ const CHAT_INPUT_ID = 'chat-input';
 // Client-only: the chat restores the conversation saved in this browser tab.
 const ChatBot = dynamic(() => import('@/components/ChatBot'), {
   ssr: false,
-  loading: () => <div aria-hidden="true" className="h-[min(680px,78vh)] min-h-[460px] rounded-3xl bg-carbon ring-1 ring-white/[0.08]" />,
+  loading: () => <div aria-hidden="true" className="h-[min(540px,70vh)] min-h-[400px] rounded-3xl bg-carbon ring-1 ring-white/[0.08]" />,
 });
 
 const Chevron = () => (

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { chat, handoff } from '../controllers/chatController';
+import { chat, handoff, confirmOrder } from '../controllers/chatController';
 import { rateLimit } from '../middleware/rateLimit';
 
 const router = Router();
@@ -14,6 +14,11 @@ router.post(
   '/handoff',
   rateLimit({ windowMs: 60 * 60 * 1000, max: 6, message: 'Too many requests, please try again later' }),
   handoff
+);
+router.post(
+  '/order',
+  rateLimit({ windowMs: 60 * 60 * 1000, max: 6, message: 'Too many orders, please try again later' }),
+  confirmOrder
 );
 
 export default router;
