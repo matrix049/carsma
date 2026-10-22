@@ -100,6 +100,11 @@ const startServer = async () => {
     console.log(`✓ Server is running on port ${PORT}`);
     console.log(`✓ Listening on 0.0.0.0:${PORT}`);
     console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(
+      process.env.GEMINI_API_KEY?.trim()
+        ? '✓ Chat assistant: Gemini key found'
+        : '⚠ Chat assistant: GEMINI_API_KEY not set — built-in answers only'
+    );
   });
 
   // Connect to MongoDB in the background (non-blocking)

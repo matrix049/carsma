@@ -5,7 +5,8 @@
  * pieces…) are answered right here, instantly and without using the AI
  * quota. Anything else goes to the backend (/api/chat), which answers from
  * the same shop rules (backend/src/services/shopKnowledge.ts) — keep the two
- * in sync when a policy changes.
+ * in sync when a policy changes. The chat UI lives in components/ChatBot.tsx
+ * and is shown on the contact page.
  */
 import { brandOf, findBrand } from '@/lib/brands';
 
