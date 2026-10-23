@@ -1,7 +1,1 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="6" fill="#0A0A0B"/>
-  <!-- tachometer arc with a xenon needle -->
-  <path d="M7 21a9 9 0 1 1 18 0" stroke="#C3C8CF" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M16 21l6-6" stroke="#8FCBFF" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="16" cy="21" r="2" fill="#F2F3F5"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><rect width="256" height="256" fill="#0A0A0A"/><g transform="translate(39.87,198.08) scale(1.6300)"><path fill="#FFFFFF" d="M3.80859375 0.0V-85.9375H20.99609375V-14.6484375H38.671875V0.0Z"/><path fill="#FFFFFF" d="M44.326171875 -0.048828125Q45.107421875 -12.060546875 47.6953125 -22.509765625Q50.283203125 -32.958984375 53.65234375 -41.9677734375Q57.021484375 -50.9765625 60.146484375 -58.49609375L64.931640625 -70.068359375H40.6640625V-85.986328125H84.0234375V-76.611328125Q84.0234375 -71.435546875 82.314453125 -66.162109375Q80.60546875 -60.888671875 77.822265625 -54.541015625Q71.767578125 -40.771484375 68.1787109375 -27.1240234375Q64.58984375 -13.4765625 63.759765625 -0.048828125Z"/><path fill="#2563EB" d="M86.845703125 -0.048828125V-14.599609375H104.326171875V-0.048828125Z"/></g></svg>

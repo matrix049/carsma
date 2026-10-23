@@ -48,9 +48,6 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "L7it - الحيط",
   description: "Automotive wall art for people who dream in horsepower. Made in Salé, delivered across Morocco.",
-  icons: {
-    icon: '/icon.svg',
-  },
 };
 
 export const viewport = {
