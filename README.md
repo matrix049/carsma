@@ -59,8 +59,8 @@ FRONTEND_URL=http://localhost:3000
 MONGODB_URI=mongodb://localhost:27017/wall-decoration-ecommerce
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=7d
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=you@example.com
+ADMIN_PASSWORD=choose-a-long-unique-password
 ```
 
 **Frontend (.env.local)**

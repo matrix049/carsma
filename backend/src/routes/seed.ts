@@ -7,13 +7,25 @@ const router = Router();
 // Seed endpoint - should be protected in production
 router.post('/seed-database', async (req: Request, res: Response) => {
   try {
-    // Check for a secret key to prevent unauthorized seeding
-    const { secretKey } = req.body;
-    
-    if (secretKey !== process.env.SEED_SECRET_KEY) {
+    // Check for a secret key to prevent unauthorized seeding. With no key
+    // configured the endpoint is closed — `undefined !== undefined` used to
+    // let anyone wipe the database.
+    const { secretKey } = req.body ?? {};
+    const expectedKey = process.env.SEED_SECRET_KEY;
+
+    if (!expectedKey || secretKey !== expectedKey) {
       return res.status(403).json({ 
         error: true, 
         message: 'Unauthorized: Invalid secret key' 
+      });
+    }
+
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) {
+      return res.status(500).json({
+        error: true,
+        message: 'ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding'
       });
     }
 
@@ -94,9 +106,6 @@ router.post('/seed-database', async (req: Request, res: Response) => {
     const createdProducts = await Product.insertMany(products);
 
     // Seed admin user
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
     const admin = await Admin.create({
       email: adminEmail,
       password: adminPassword

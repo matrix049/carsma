@@ -72,6 +72,16 @@ export async function apiRequest<T>(
       );
     }
 
+    // A rejected admin session (expired, revoked, password changed): drop it
+    // and go back to the login screen instead of leaving a broken dashboard.
+    if (requiresAuth && response.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('wall-decoration-auth-token');
+      localStorage.removeItem('wall-decoration-admin');
+      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+        window.location.replace('/admin/login');
+      }
+    }
+
     // Handle HTTP error responses
     if (!response.ok) {
       throw new ApiError(

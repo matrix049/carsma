@@ -9,13 +9,17 @@ dotenv.config();
 const updateAdmin = async () => {
   console.log('👤 Updating admin credentials...\n');
 
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    console.error('❌ Set ADMIN_EMAIL and ADMIN_PASSWORD before running this script.');
+    process.exit(1);
+  }
+
   try {
     // Connect to database
     const dbConnection = new DatabaseConnection();
     await dbConnection.connect();
-
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@l7it.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'bo3bola2026';
 
     // Delete existing admin
     await Admin.deleteMany({});
@@ -33,7 +37,6 @@ const updateAdmin = async () => {
     console.log('📊 Admin Update Summary:');
     console.log('=======================');
     console.log(`Email: ${admin.email}`);
-    console.log(`Password: ${adminPassword}`);
 
     console.log('\n✅ Admin credentials updated successfully!');
 

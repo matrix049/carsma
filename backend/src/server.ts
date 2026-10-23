@@ -112,15 +112,24 @@ const startServer = async () => {
   db.connect()
     .then(async () => {
       console.log('✓ MongoDB connected successfully');
-      // Sync admin credentials from env vars on every startup
+      // Sync admin credentials from env vars on every startup. The env admin
+      // is kept (not recreated) so redeploys don't end its sessions; every
+      // other admin is removed, which ends theirs (see middleware/auth).
       try {
         const Admin = (await import('./models/Admin')).default;
-        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
         const adminPassword = process.env.ADMIN_PASSWORD;
         if (adminEmail && adminPassword) {
-          await Admin.deleteMany({});
-          await Admin.create({ email: adminEmail, password: adminPassword });
-          console.log(`✓ Admin synced: ${adminEmail}`);
+          const removed = await Admin.deleteMany({ email: { $ne: adminEmail } });
+          const existing = await Admin.findOne({ email: adminEmail });
+          if (!existing) {
+            await Admin.create({ email: adminEmail, password: adminPassword });
+          } else if (!(await existing.comparePassword(adminPassword))) {
+            // New password: saving stamps passwordChangedAt, revoking old tokens.
+            existing.password = adminPassword;
+            await existing.save();
+          }
+          console.log(`✓ Admin synced: ${adminEmail}${removed.deletedCount ? ` (removed ${removed.deletedCount} other admin login(s))` : ''}`);
         }
       } catch (e) {
         console.error('⚠ Admin sync failed:', e);

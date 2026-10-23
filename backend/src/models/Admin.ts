@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt';
 export interface IAdmin extends Document {
   email: string;
   password: string;
+  /** Tokens issued before this moment are rejected (see middleware/auth). */
+  passwordChangedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -23,6 +25,9 @@ const AdminSchema = new Schema<IAdmin>(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters']
+    },
+    passwordChangedAt: {
+      type: Date
     }
   },
   {
@@ -41,6 +46,9 @@ AdminSchema.pre('save', async function () {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  // Back-dated a second: JWT `iat` is whole seconds, so a login straight
+  // after the change must not look older than it.
+  this.passwordChangedAt = new Date(Date.now() - 1000);
 });
 
 // Method to compare passwords

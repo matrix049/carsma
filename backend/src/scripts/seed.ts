@@ -10,6 +10,13 @@ dotenv.config();
 const seedData = async () => {
   console.log('🌱 Starting database seed...\n');
 
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    console.error('❌ Set ADMIN_EMAIL and ADMIN_PASSWORD before seeding.');
+    process.exit(1);
+  }
+
   try {
     // Connect to database
     const dbConnection = new DatabaseConnection();
@@ -55,9 +62,6 @@ const seedData = async () => {
 
     // Seed admin user
     console.log('Seeding admin user...');
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
     // Always update/recreate admin with current env vars
     await Admin.deleteMany({});
     const admin = await Admin.create({
