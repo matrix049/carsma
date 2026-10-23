@@ -34,5 +34,14 @@
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.4.9",
     "typescript": "5.3.3"
-  }
+  },
+  "browserslist": [
+    "chrome >= 64",
+    "edge >= 79",
+    "firefox >= 67",
+    "safari >= 12",
+    "ios_saf >= 12",
+    "samsung >= 9",
+    "opera >= 51"
+  ]
 }

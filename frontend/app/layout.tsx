@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ConditionalShell from "@/components/ConditionalShell";
 import MetaPageTracker from "@/components/MetaPageTracker";
+import { LEGACY_POLYFILLS } from "@/lib/legacyPolyfills";
 
 const CLARITY_PROJECT_ID = "wkug7mu05f";
 const META_PIXEL_ID = "1634924527624582";
@@ -69,6 +70,8 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${inter.variable} ${jetbrainsMono.variable} ${anybody.variable} ${changa.variable} h-full antialiased`}
     >
       <head>
+        {/* Must stay first: back-fills built-ins for older phones before any app code runs. */}
+        <script dangerouslySetInnerHTML={{ __html: LEGACY_POLYFILLS }} />
         <Script id="ms-clarity" strategy="afterInteractive">
           {`
 (function(c,l,a,r,i,t,y){
