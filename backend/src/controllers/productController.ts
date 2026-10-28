@@ -60,6 +60,16 @@ function parseStock(value: unknown): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
+/** Extra photo URLs: trimmed, non-empty, at most 8. */
+function parseGallery(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((u): u is string => typeof u === 'string')
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
 /**
  * Create new product
  * POST /api/products
@@ -67,7 +77,7 @@ function parseStock(value: unknown): number | null {
  */
 export async function createProduct(req: Request, res: Response): Promise<void> {
   try {
-    const { name, price, image, description, category, inStock, dimensions, stockQuantity } = req.body;
+    const { name, price, image, description, category, inStock, dimensions, stockQuantity, gallery } = req.body;
 
     // Validate required fields
     if (!name || !price || !image || !category) {
@@ -89,7 +99,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       category: category.trim(),
       inStock: inStock !== undefined ? Boolean(inStock) : true,
       dimensions: trimmedDimensions || '120cm x 35cm',
-      stockQuantity: parseStock(stockQuantity)
+      stockQuantity: parseStock(stockQuantity),
+      gallery: parseGallery(gallery)
     });
 
     res.status(201).json({
@@ -114,7 +125,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, price, image, description, category, inStock, dimensions, stockQuantity } = req.body;
+    const { name, price, image, description, category, inStock, dimensions, stockQuantity, gallery } = req.body;
 
     // Find and update product
     const product = await Product.findByIdAndUpdate(
@@ -129,7 +140,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
         ...(typeof dimensions === 'string' && dimensions.trim()
           ? { dimensions: dimensions.trim() }
           : {}),
-        ...(stockQuantity !== undefined && { stockQuantity: parseStock(stockQuantity) })
+        ...(stockQuantity !== undefined && { stockQuantity: parseStock(stockQuantity) }),
+        ...(gallery !== undefined && { gallery: parseGallery(gallery) })
       },
       { new: true, runValidators: true }
     );

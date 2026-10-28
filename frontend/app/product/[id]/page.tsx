@@ -96,6 +96,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(!cached.product);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  // Which photo is shown — tied to the product so a new product starts on its main photo.
+  const [photoState, setPhotoState] = useState<{ id: string; index: number }>({ id, index: 0 });
+  const touchX = useRef<number | null>(null);
   const trackedRef = useRef<string | null>(null);
 
   const dimensionsLabel = dimensionsOf(product);
@@ -197,6 +200,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const edition = editionOf(product.name);
   const available = isAvailable(product);
   const left = piecesLeft(product);
+  const photos = [product.image, ...(product.gallery ?? [])].filter(Boolean);
+  const photo = photoState.id === product._id ? Math.min(photoState.index, photos.length - 1) : 0;
+  const showPhoto = (index: number) => setPhotoState({ id: product._id, index: (index + photos.length) % photos.length });
   const pin = getPinnedIndex(product.name);
   const brand = brandOf(product);
 
@@ -216,14 +222,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           {/* ── Showroom ───────────────────────────────────────────── */}
           <div className="min-w-0 lg:col-span-7">
             <div className="lg:sticky lg:top-28">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-carbon-2 ring-1 ring-white/[0.08]">
-                {product.image && (
+              <div
+                className="group/photos relative aspect-[4/3] overflow-hidden rounded-3xl bg-carbon-2 ring-1 ring-white/[0.08]"
+                onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+                onTouchEnd={(e) => {
+                  if (touchX.current === null || photos.length < 2) return;
+                  const dx = e.changedTouches[0].clientX - touchX.current;
+                  touchX.current = null;
+                  if (Math.abs(dx) > 40) showPhoto(photo + (dx < 0 ? 1 : -1));
+                }}
+              >
+                {photos[photo] && (
                   <img
-                    key={product._id}
-                    data-vt-hero
-                    src={product.image}
-                    alt={product.name}
-                    style={{ viewTransitionName: 'car-hero' } as React.CSSProperties}
+                    key={`${product._id}-${photo}`}
+                    // Only the main photo takes part in the card → page morph.
+                    {...(photo === 0 ? { 'data-vt-hero': true, style: { viewTransitionName: 'car-hero' } as React.CSSProperties } : {})}
+                    src={photos[photo]}
+                    alt={photo === 0 ? product.name : `${product.name} — photo ${photo + 1}`}
                     className="h-full w-full object-cover"
                     onError={hideBrokenImage}
                   />
@@ -232,21 +247,67 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(255,255,255,0.08),transparent_60%),radial-gradient(ellipse_at_center,transparent_55%,rgba(10,10,11,0.5)_100%)]" />
 
                 {/* Brand emblem, like the badge on a showroom wall */}
-                {brand && (
+                {brand && photo === 0 && (
                   <span className="absolute right-3 top-3 flex h-12 w-12 items-center justify-center rounded-full bg-black/45 text-chalk ring-1 ring-white/15 backdrop-blur-md sm:right-4 sm:top-4 sm:h-14 sm:w-14">
                     <BrandLogo brand={brand} labelled className="h-6 w-6 sm:h-7 sm:w-7" />
                   </span>
                 )}
 
-                {(isNew || pin >= 0) && (
+                {(isNew || pin >= 0) && photo === 0 && (
                   <span className="absolute left-3 top-3 rounded-full bg-chalk px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-asphalt sm:left-4 sm:top-4">
                     {isNew ? 'New · 3D' : 'Most wanted'}
                   </span>
                 )}
+
+                {photos.length > 1 && (
+                  <>
+                    {([-1, 1] as const).map((dir) => (
+                      <button
+                        key={dir}
+                        type="button"
+                        onClick={() => showPhoto(photo + dir)}
+                        aria-label={dir < 0 ? 'Previous photo' : 'Next photo'}
+                        className={`absolute top-1/2 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-chalk opacity-0 ring-1 ring-white/15 backdrop-blur-md transition-opacity hover:bg-black/60 focus-visible:opacity-100 group-hover/photos:opacity-100 md:flex ${
+                          dir < 0 ? 'left-4' : 'right-4'
+                        }`}
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d={dir < 0 ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} />
+                        </svg>
+                      </button>
+                    ))}
+                    <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                      {photos.map((_, i) => (
+                        <span key={i} aria-hidden="true" className={`h-1.5 rounded-full transition-all ${i === photo ? 'w-5 bg-chalk' : 'w-1.5 bg-white/40'}`} />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
+              {/* Photo strip */}
+              {photos.length > 1 && (
+                <div className="mt-3 flex gap-2.5" role="tablist" aria-label="Photos">
+                  {photos.map((src, i) => (
+                    <button
+                      key={src}
+                      type="button"
+                      role="tab"
+                      aria-selected={i === photo}
+                      aria-label={`Photo ${i + 1}`}
+                      onClick={() => showPhoto(i)}
+                      className={`aspect-[4/3] w-24 overflow-hidden rounded-xl bg-carbon-2 ring-2 transition-[box-shadow,opacity] sm:w-28 ${
+                        i === photo ? 'opacity-100 ring-chalk' : 'opacity-60 ring-transparent hover:opacity-100'
+                      }`}
+                    >
+                      <img src={src} alt="" loading="lazy" onError={hideBrokenImage} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Showroom-floor reflection */}
-              {product.image && (
+              {product.image && photos.length < 2 && (
                 <div aria-hidden="true" className="pointer-events-none relative hidden h-20 overflow-hidden rounded-b-3xl opacity-20 [mask-image:linear-gradient(to_bottom,black,transparent)] md:block">
                   <img src={product.image} alt="" className="h-[600%] w-full -scale-y-100 object-cover object-bottom blur-[2px]" />
                 </div>

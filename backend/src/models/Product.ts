@@ -18,6 +18,8 @@ export interface IProduct extends Document {
    * null/absent = not tracked. 0 = sold out.
    */
   stockQuantity?: number | null;
+  /** Extra photos shown after `image` on the product page (e.g. real-size card, room shot). */
+  gallery: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,6 +62,10 @@ const ProductSchema = new Schema<IProduct>(
       type: Number,
       min: [0, 'Stock cannot be negative'],
       default: null
+    },
+    gallery: {
+      type: [String],
+      default: []
     }
   },
   {

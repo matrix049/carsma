@@ -32,6 +32,7 @@ export default function AdminProductsPage() {
     inStock: true,
     dimensions: DEFAULT_DIMENSIONS,
     stockQuantity: '',
+    gallery: '',
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -82,6 +83,7 @@ export default function AdminProductsPage() {
         inStock: product.inStock,
         dimensions: product.dimensions || DEFAULT_DIMENSIONS,
         stockQuantity: typeof product.stockQuantity === 'number' ? String(product.stockQuantity) : '',
+        gallery: (product.gallery ?? []).join('\n'),
       });
       setPreviewUrl(product.image);
     } else {
@@ -95,6 +97,7 @@ export default function AdminProductsPage() {
         inStock: true,
         dimensions: DEFAULT_DIMENSIONS,
         stockQuantity: '',
+        gallery: '',
       });
       setPreviewUrl('');
     }
@@ -116,6 +119,7 @@ export default function AdminProductsPage() {
       inStock: true,
       dimensions: DEFAULT_DIMENSIONS,
       stockQuantity: '',
+      gallery: '',
     });
   };
 
@@ -163,6 +167,7 @@ export default function AdminProductsPage() {
         dimensions: formData.dimensions.trim() || DEFAULT_DIMENSIONS,
         // Empty = stock not tracked (made to order).
         stockQuantity: formData.stockQuantity.trim() === '' ? null : Math.max(0, Math.floor(Number(formData.stockQuantity))),
+        gallery: formData.gallery.split('\n').map((u) => u.trim()).filter(Boolean),
       };
 
       if (editingProduct) {
@@ -438,6 +443,9 @@ export default function AdminProductsPage() {
                             <p className="text-[10px] md:text-xs text-zinc-700 font-bold mt-1">
                               {product.dimensions || '120cm x 35cm'}
                             </p>
+                            {!!product.gallery?.length && (
+                              <p className="text-[10px] md:text-xs text-zinc-500 font-bold mt-1">+{product.gallery.length} more photos</p>
+                            )}
                             {typeof product.stockQuantity === 'number' && (
                               <p className={`text-[10px] md:text-xs font-bold mt-1 ${product.stockQuantity > 0 ? 'text-zinc-400' : 'text-rose-400'}`}>
                                 {product.stockQuantity > 0 ? `${product.stockQuantity} pieces left` : 'Sold out (0 left)'}
@@ -644,6 +652,29 @@ export default function AdminProductsPage() {
                       <p className="text-xs text-zinc-600 mt-1.5">
                         Required. Keep it short — one or two sentences customers read before buying.
                       </p>
+                    </div>
+
+                    {/* Extra photos — shown after the main image on the product page */}
+                    <div>
+                      <label className="block text-sm font-bold text-zinc-400 mb-2">
+                        Extra photos <span className="font-normal text-zinc-600">(optional, one link per line)</span>
+                      </label>
+                      <textarea
+                        name="gallery"
+                        rows={3}
+                        value={formData.gallery}
+                        onChange={handleInputChange}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white text-xs font-mono focus:outline-none focus:border-blue-600 transition-all resize-y"
+                        placeholder={'https://res.cloudinary.com/…/photo-2.jpg\nhttps://res.cloudinary.com/…/photo-3.jpg'}
+                      />
+                      {formData.gallery.trim() && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {formData.gallery.split('\n').map((u) => u.trim()).filter(Boolean).map((u) => (
+                            <img key={u} src={u} alt="" className="h-14 w-20 rounded-lg object-cover border border-zinc-800" />
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-zinc-600 mt-2">Shown after the main image on the product page (swipe or arrows).</p>
                     </div>
 
                     {/* Pieces in stock — only for counted pieces like the 3D editions */}

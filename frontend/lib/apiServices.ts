@@ -24,6 +24,8 @@ export interface Product {
   dimensions?: string;
   /** Pieces left when tracked (the limited 3D editions); null/absent = not tracked, 0 = sold out. */
   stockQuantity?: number | null;
+  /** Extra photos shown after `image` on the product page. */
+  gallery?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -525,6 +527,7 @@ export async function createProduct(productData: {
   inStock?: boolean;
   dimensions?: string;
   stockQuantity?: number | null;
+  gallery?: string[];
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     '/api/products',
@@ -553,6 +556,7 @@ export async function updateProduct(productId: string, productData: {
   inStock?: boolean;
   dimensions?: string;
   stockQuantity?: number | null;
+  gallery?: string[];
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     `/api/products/${productId}`,

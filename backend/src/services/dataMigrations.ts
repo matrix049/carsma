@@ -63,6 +63,25 @@ const MIGRATIONS: DataMigration[] = [
       }
     },
   },
+  {
+    // Real-size card + room shot made from the shop's photos (served by the
+    // storefront from frontend/public/editions).
+    key: '2026-10-3d-editions-gallery',
+    run: async () => {
+      const galleries: [RegExp, string[]][] = [
+        [EDITIONS[0].match, ['/editions/g-class-3d-size.jpg', '/editions/g-class-3d-room.jpg']],
+        [EDITIONS[1].match, ['/editions/911-3d-size.jpg', '/editions/911-3d-room.jpg']],
+      ];
+      for (const [match, gallery] of galleries) {
+        const product = await Product.findOne({ name: match });
+        if (product && !product.gallery?.length) {
+          product.gallery = gallery;
+          await product.save();
+          console.log(`✓ Added photos to ${product.name}`);
+        }
+      }
+    },
+  },
 ];
 
 export async function runDataMigrations(): Promise<void> {
