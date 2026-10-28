@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
 import { fetchOrders, updateOrderStatus, updateOrder, Order, OrderFinish } from '@/lib/apiServices';
+import { duoDiscount } from '@/lib/bundles';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Loader from '@/components/Loader';
@@ -186,7 +187,8 @@ export default function AdminOrdersPage() {
   // ── Order editing (items + finish) ────────────────────────────────────────
   const draftTotal = useMemo(() => {
     if (!draftOrder) return 0;
-    return draftOrder.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+    // Same rule as the server: the 3D duo offer comes off complete pairs.
+    return draftOrder.products.reduce((sum, p) => sum + p.price * p.quantity, 0) - duoDiscount(draftOrder.products).amount;
   }, [draftOrder]);
 
   // Compare draft vs selected to know whether the Save button should appear.
@@ -561,6 +563,11 @@ export default function AdminOrdersPage() {
                                   {order.totalPrice.toFixed(0)}
                                 </span>
                                 <span className="text-[10px] text-zinc-700 ml-1">MAD</span>
+                                {order.discount && (
+                                  <span className="block text-[12px] font-semibold text-blue-400">
+                                    {order.discount.label} −{order.discount.amount}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-5 py-6 xl:px-8 xl:py-7">
                                 <div className="flex flex-col items-center gap-3">
@@ -885,6 +892,11 @@ export default function AdminOrdersPage() {
                         {selectedOrder.totalPrice.toFixed(0)}
                         <span className="text-base md:text-xl text-zinc-600 ml-1.5 md:ml-2">MAD</span>
                       </p>
+                      {selectedOrder.discount && (
+                        <p className="mt-1 text-[13px] font-semibold text-blue-400">
+                          Includes {selectedOrder.discount.label}: −{selectedOrder.discount.amount} MAD
+                        </p>
+                      )}
                     </div>
                     <p className="text-[13px] font-semibold text-zinc-400">
                       {paymentLabel(selectedOrder.paymentMethod)}

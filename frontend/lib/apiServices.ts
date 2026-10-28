@@ -56,6 +56,8 @@ export interface Order {
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
   /** Finish chosen for the wall art — set by admins after confirming with the customer. */
   finish?: OrderFinish;
+  /** Offer already taken off totalPrice (e.g. the 3D duo). */
+  discount?: OrderDiscount | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -112,6 +114,12 @@ export interface RequestBrief {
   price?: string;
   /** What the customer still waits for from the team. */
   pending?: string;
+}
+
+/** An offer taken off an order's total (e.g. the 3D duo). */
+export interface OrderDiscount {
+  label: string;
+  amount: number;
 }
 
 export interface CustomOrder {

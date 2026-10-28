@@ -10,6 +10,7 @@ import Plate from '@/components/Plate';
 import TransitionLink from '@/components/TransitionLink';
 import { hideBrokenImage } from '@/components/ProductCard';
 import { dimensionsOf, shortDimensions } from '@/lib/dimensions';
+import { DUO_LABEL, DUO_LABEL_AR } from '@/lib/bundles';
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -181,13 +182,14 @@ function EmptyBay({ className = '' }: { className?: string }) {
 }
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, calculateTotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, calculateTotal, calculateFinalTotal, offer } = useCart();
   const { t } = useLanguage();
 
   // Display-only values derived from the cart.
   const keys = rowKeys(cart);
   const pieces = cart.reduce((n, item) => n + item.quantity, 0);
-  const total = calculateTotal().toFixed(0);
+  const subtotal = calculateTotal().toFixed(0);
+  const total = calculateFinalTotal().toFixed(0);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -385,8 +387,16 @@ export default function CartPage() {
                     <dl className="mt-6 divide-y divide-white/10 border-y border-white/10 font-mono text-[11px] font-bold uppercase tracking-[0.18em]">
                       <div className="flex items-center justify-between gap-4 py-3">
                         <dt className="text-smoke">{t('subtotal')}</dt>
-                        <dd className="tabular-nums text-chalk">{total} MAD</dd>
+                        <dd className="tabular-nums text-chalk">{subtotal} MAD</dd>
                       </div>
+                      {offer.amount > 0 && (
+                        <div className="flex items-center justify-between gap-4 py-3">
+                          <dt className="text-xenon">
+                            {DUO_LABEL} <span className="font-ar normal-case tracking-normal">· {DUO_LABEL_AR}</span>
+                          </dt>
+                          <dd className="tabular-nums text-xenon">−{offer.amount} MAD</dd>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between gap-4 py-3">
                         <dt className="text-smoke">{t('shipping')}</dt>
                         <dd className="text-chalk">Free</dd>

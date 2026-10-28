@@ -225,6 +225,11 @@ export function OrderCard({ order, onStatusChange, updating = false, onOpen, ind
         <span className="text-xl font-semibold tabular-nums text-chalk">
           {order.totalPrice.toFixed(0)}
           <span className="ml-1 text-[12px] font-medium text-smoke">MAD</span>
+          {order.discount && (
+            <span className="ml-2 align-middle text-[12px] font-semibold text-xenon">
+              {order.discount.label} −{order.discount.amount}
+            </span>
+          )}
         </span>
         <span className="flex flex-wrap items-center justify-end gap-1.5">
           {order.finish ? (
@@ -390,6 +395,11 @@ export default function OrderTable({ orders, onOrderUpdated }: OrderTableProps) 
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 align-top text-lg font-semibold text-chalk">
                     {order.totalPrice.toFixed(0)} <span className="text-sm text-smoke">MAD</span>
+                    {order.discount && (
+                      <span className="block text-[12px] font-semibold text-xenon">
+                        {order.discount.label} −{order.discount.amount}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 align-top">
                     <div className="flex max-w-[160px] flex-col gap-3">

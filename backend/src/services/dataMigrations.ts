@@ -126,6 +126,26 @@ const MIGRATIONS: DataMigration[] = [
       }
     },
   },
+  {
+    // The first 2D pieces say they're 2D next to their 3D editions, and the
+    // 2D G-Class faces left like every other car on the site (mirrored photo).
+    // Only touches names/photos the admin hasn't changed.
+    key: '2026-10-2d-names-and-g-class-facing-left',
+    run: async () => {
+      const renames: [string, string][] = [
+        ['G Class Amg g63', 'G-Class AMG G63 2D'],
+        ['911 GT3 RS', '911 GT3 RS 2D'],
+      ];
+      for (const [before, after] of renames) {
+        const res = await Product.updateOne({ name: before }, { $set: { name: after } });
+        if (res.modifiedCount) console.log(`✓ Renamed ${before} → ${after}`);
+      }
+      const original = `${CLOUDINARY_BASE}/v1778027111/l7it/products/ksujr2m6aqnd4qfvnxp2.jpg`;
+      const flipped = `${CLOUDINARY_BASE}/a_hflip/v1778027111/l7it/products/ksujr2m6aqnd4qfvnxp2.jpg`;
+      const res = await Product.updateOne({ image: original }, { $set: { image: flipped } });
+      if (res.modifiedCount) console.log('✓ 2D G-Class now faces left');
+    },
+  },
 ];
 
 export async function runDataMigrations(): Promise<void> {

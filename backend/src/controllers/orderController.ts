@@ -3,6 +3,7 @@ import Order from '../models/Order';
 import { AuthRequest } from '../middleware/auth';
 import { notifyNewOrder } from '../services/notificationService';
 import { clearOverviewCache } from '../services/overviewStats';
+import { duoDiscount, DUO_LABEL } from '../services/bundles';
 
 /**
  * Create new order
@@ -54,6 +55,14 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
 
     console.log('✅ All validations passed, creating order...');
 
+    // The 3D duo offer is decided here, not trusted from the browser. A page
+    // that already took it off sends subtotal - offer; an older page sends
+    // the full subtotal, so take it off for them.
+    const duo = duoDiscount(products);
+    const subtotal = products.reduce((sum: number, p: any) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 0), 0);
+    let finalTotal = totalPrice;
+    if (duo.amount > 0 && Math.abs(totalPrice - subtotal) < 1) finalTotal = subtotal - duo.amount;
+
     // Create new order in database
     const order = new Order({
       customer: {
@@ -63,7 +72,8 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
         address: customer.address
       },
       products,
-      totalPrice,
+      totalPrice: finalTotal,
+      discount: duo.amount > 0 ? { label: DUO_LABEL, amount: duo.amount } : null,
       paymentMethod: paymentMethod || 'Cash on Delivery',
       status: 'pending'
     });
@@ -240,11 +250,13 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
         }
       }
       updates.products = products;
-      // Recalculate total so it can't drift from the items.
+      // Recalculate total so it can't drift from the items (offer included).
+      const duo = duoDiscount(products);
       updates.totalPrice = products.reduce(
         (sum, p) => sum + p.price * p.quantity,
         0,
-      );
+      ) - duo.amount;
+      updates.discount = duo.amount > 0 ? { label: DUO_LABEL, amount: duo.amount } : null;
     }
 
     if (Object.keys(updates).length === 0) {

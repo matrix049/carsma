@@ -22,6 +22,8 @@ export interface IOrder extends Document {
    * to the customer. Old orders have no finish set yet.
    */
   finish?: 'brilliant' | 'matte' | null;
+  /** Offer applied to the order (e.g. the 3D duo), already taken off totalPrice. */
+  discount?: { label: string; amount: number } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -94,6 +96,10 @@ const OrderSchema = new Schema<IOrder>(
     finish: {
       type: String,
       enum: ['brilliant', 'matte', null],
+      default: null
+    },
+    discount: {
+      type: new Schema({ label: { type: String, trim: true }, amount: { type: Number, min: 0 } }, { _id: false }),
       default: null
     }
   },

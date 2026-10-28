@@ -13,7 +13,8 @@ import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
 import Plate from '@/components/Plate';
 import BrandLogo from '@/components/BrandLogo';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
-import { editionOf, isNewEdition, twoDVersionOf } from '@/lib/newEditions';
+import { editionOf, isNewEdition, matchEditions, twoDVersionOf } from '@/lib/newEditions';
+import DuoOffer from '@/components/DuoOffer';
 import { isAvailable, piecesLeft } from '@/lib/stock';
 import { getPinnedIndex } from '@/lib/pinnedProducts';
 import { dimensionsOf } from '@/lib/dimensions';
@@ -86,12 +87,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       product: found,
       related: list && found ? relatedFor(list, found) : [],
       twoD: list && found ? twoDVersionOf(list, found.name) : undefined,
+      editions: list ? matchEditions(list) : [],
     };
   });
   const [product, setProduct] = useState<Product | null>(cached.product);
   const [related, setRelated] = useState<Product[]>(cached.related);
   // For a 3D edition: the 2D version of the same car, offered as a lighter-budget option.
   const [twoD, setTwoD] = useState<Product | undefined>(cached.twoD);
+  // Both 3D editions, for the "take both" offer on their pages.
+  const [editions, setEditions] = useState<(Product | undefined)[]>(cached.editions);
   const [isLoading, setIsLoading] = useState(!cached.product);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -117,6 +121,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           setProduct(found);
           setRelated(relatedFor(products, found));
           setTwoD(twoDVersionOf(products, found.name));
+          setEditions(matchEditions(products));
           setError(null);
         } else {
           setProduct(null);
@@ -184,10 +189,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       typeof window !== 'undefined' ? window.location.href : ''
     }`,
   );
-
-  const description =
-    product.description?.trim() ||
-    `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Salé, pre-drilled and ready to mount.`;
 
   const isNew = isNewEdition(product.name);
   const edition = editionOf(product.name);
@@ -352,8 +353,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               Pay cash on delivery · <span className="font-ar">الخلاص عند الاستلام</span>
             </p>
 
-            <p className="mt-6 text-[15px] leading-relaxed text-silver md:text-base">{description}</p>
-
             <div className="mt-7 grid grid-cols-2 gap-2.5">
               <SpecTile label="Size" labelAr="القياس" value={dimensionsLabel} />
               <SpecTile label="Material" labelAr="المادة" value="Alucobond 3 mm" />
@@ -430,6 +429,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </a>
             </div>
 
+            {edition && <DuoOffer editions={editions} compact />}
+
             {edition && twoD && (
               <Link
                 href={`/product/${twoD._id}`}
@@ -444,7 +445,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-smoke">
                     Lighter budget? <span className="font-ar normal-case tracking-normal">· بغيتي ثمن أقل؟</span>
                   </p>
-                  <p className="mt-0.5 truncate text-sm font-semibold text-chalk">{twoD.name} · 2D</p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-chalk">{/\b2\s*d\b/i.test(twoD.name) ? twoD.name : `${twoD.name} · 2D`}</p>
                   <p className="text-xs text-smoke">The same car in 2D — clean, elegant lines.</p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Plate size="sm" left={twoD.price} letter="د.م" right="MAD" aria-label={`${twoD.price} MAD`} />

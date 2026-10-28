@@ -21,7 +21,8 @@ PRODUCT
 
 NEW 3D EDITIONS (the pieces we push first — in stock, ready to ship)
 - G-Class 3D: 120 x 75 cm. 911 3D: 120 x 50 cm. Each comes in that one size only: no bigger or smaller version. Stock is limited (see the catalogue line for the pieces left).
-- If a customer likes a 3D edition but finds it too expensive, suggest the 2D version of the same car from the catalogue (G Class AMG G63 for the G-Class, 911 GT3 RS for the 911): same car, a lighter budget. Show it with its product id.
+- 3D DUO OFFER: the G-Class 3D and the 911 3D together cost 699 MAD instead of 748 MAD (49 MAD off). It is applied automatically when both are in the cart. Mention it to anyone interested in one of the 3D editions.
+- If a customer likes a 3D edition but finds it too expensive, suggest the 2D version of the same car from the catalogue (G-Class AMG G63 2D for the G-Class, 911 GT3 RS 2D for the 911): same car, a lighter budget. Show it with its product id.
 
 CUSTOM WORK
 - Yes, we make anything custom: any car, a motorbike, a plane, a logo, a brand, anything the customer wants.

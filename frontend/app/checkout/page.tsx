@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
+import { DUO_LABEL, DUO_LABEL_AR } from '@/lib/bundles';
 import { motion } from 'framer-motion';
 import { btnPrimary, fieldLabel, inputField, kickerLabel } from '@/lib/uiStyles';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
@@ -19,7 +20,7 @@ const FIELDS = [
 ] as const;
 
 export default function CheckoutPage() {
-  const { cart, calculateTotal, clearCart, removeFromCart, updateQuantity } = useCart();
+  const { cart, calculateTotal, offer, clearCart, removeFromCart, updateQuantity } = useCart();
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,7 +41,8 @@ export default function CheckoutPage() {
   };
 
   const subtotal = Math.round(calculateTotal());
-  const finalTotal = subtotal;
+  // The 3D duo offer comes off here; the server checks it again.
+  const finalTotal = subtotal - offer.amount;
 
   // Fire InitiateCheckout once per checkout-page load when there's a non-empty
   // cart. The ref prevents re-firing when the cart contents shift before the
@@ -53,9 +55,9 @@ export default function CheckoutPage() {
     trackInitiateCheckout({
       productIds: cart.map((item) => item._id),
       numItems: cart.reduce((n, item) => n + item.quantity, 0),
-      value: subtotal,
+      value: finalTotal,
     });
-  }, [cart, subtotal]);
+  }, [cart, finalTotal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,6 +255,14 @@ export default function CheckoutPage() {
                 <dt className="text-smoke">Subtotal</dt>
                 <dd className="text-chalk">{subtotal} MAD</dd>
               </div>
+              {offer.amount > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-xenon">
+                    {DUO_LABEL} <span className="font-ar">· {DUO_LABEL_AR}</span>
+                  </dt>
+                  <dd className="font-semibold text-xenon">−{offer.amount} MAD</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-smoke">
                   Shipping <span className="font-ar">· التوصيل</span>

@@ -25,6 +25,14 @@ describe('3D editions', () => {
     expect(twoDVersionOf(catalog, '911 GT3 RS')).toBeUndefined();
   });
 
+  it('still pairs them once the 2D pieces are named "… 2D"', () => {
+    const renamed = catalog.map((p) => ({ ...p, name: p.name.replace('G Class Amg g63', 'G-Class AMG G63 2D').replace(/^911 GT3 RS$/, '911 GT3 RS 2D') }));
+    expect(isNewEdition('G-Class AMG G63 2D')).toBe(false);
+    expect(isNewEdition('911 GT3 RS 2D')).toBe(false);
+    expect(twoDVersionOf(renamed, 'G-Class AMG G63 3D')?.name).toBe('G-Class AMG G63 2D');
+    expect(twoDVersionOf(renamed, '911 GT3 RS 3D')?.name).toBe('911 GT3 RS 2D');
+  });
+
   it('skips a 2D version that is out of stock', () => {
     const list = catalog.map((p) => (p.name === '911 GT3 RS' ? { ...p, inStock: false } : p));
     expect(twoDVersionOf(list, '911 GT3 RS 3D')).toBeUndefined();

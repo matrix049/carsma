@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Product } from '@/lib/apiServices';
 import { trackAddToCart } from '@/lib/metaPixel';
 import { trackEvent } from '@/lib/tracker';
+import { duoDiscount } from '@/lib/bundles';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -18,6 +19,10 @@ interface CartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   calculateTotal: () => number;
+  /** The 3D duo offer on the current cart (amount 0 when it doesn't apply). */
+  offer: { pairs: number; amount: number };
+  /** What the customer pays: items minus the offer. */
+  calculateFinalTotal: () => number;
   itemCount: number;
   toastMessage: string | null;
 }
@@ -105,6 +110,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  const offer = duoDiscount(cart);
+  const calculateFinalTotal = () => calculateTotal() - offer.amount;
+
   // Calculate total item count
   const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
@@ -117,6 +125,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         clearCart,
         calculateTotal,
+        offer,
+        calculateFinalTotal,
         itemCount,
         toastMessage,
       }}

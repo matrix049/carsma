@@ -14,6 +14,7 @@ import { fetchProducts, Product } from '@/lib/apiServices';
 import { btnPrimary, btnGhostDark, kickerLabel, h2Display, whatsappLink } from '@/lib/uiStyles';
 import { applyPin } from '@/lib/pinnedProducts';
 import { NEW_EDITIONS, NewEdition, matchEditions, isNewEdition } from '@/lib/newEditions';
+import DuoOffer from '@/components/DuoOffer';
 import { brandOf, findBrand } from '@/lib/brands';
 import { dimensionsOf } from '@/lib/dimensions';
 import { isAvailable, piecesLeft } from '@/lib/stock';
@@ -344,6 +345,10 @@ export default function Home() {
                 <EditionStage edition={edition} product={editionProducts[i]} />
               </div>
             ))}
+          </div>
+
+          <div className="sd-reveal mt-5 md:mt-6">
+            <DuoOffer editions={editionProducts} />
           </div>
         </div>
       </section>
