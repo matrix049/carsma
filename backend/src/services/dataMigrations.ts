@@ -108,6 +108,24 @@ const MIGRATIONS: DataMigration[] = [
       }
     },
   },
+  {
+    // The 4th photo again, without LEDs (our pieces have none): the piece on the
+    // plain wall of a daylight gaming setup, framed to show the whole desk.
+    key: '2026-10-3d-editions-setup-without-leds',
+    run: async () => {
+      const swaps: [RegExp, string, string][] = [
+        [EDITIONS[0].match, '/editions/g-class-3d-gaming.jpg', '/editions/g-class-3d-setup.jpg'],
+        [EDITIONS[1].match, '/editions/911-3d-gaming.jpg', '/editions/911-3d-setup.jpg'],
+      ];
+      for (const [match, before, after] of swaps) {
+        const product = await Product.findOne({ name: match });
+        if (!product || !product.gallery.includes(before)) continue;
+        product.gallery = product.gallery.map((u) => (u === before ? after : u));
+        await product.save();
+        console.log(`✓ New setup photo for ${product.name}`);
+      }
+    },
+  },
 ];
 
 export async function runDataMigrations(): Promise<void> {
