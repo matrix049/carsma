@@ -29,7 +29,7 @@ export function briefFromNotes(notes?: string): RequestBrief | null {
 export function BriefView({ brief, heading = 'What they want' }: { brief: RequestBrief; heading?: string }) {
   const chips = DETAILS.filter((d) => brief[d.key]);
   return (
-    <div>
+    <div className="min-w-0 [overflow-wrap:anywhere]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-smoke">{heading}</p>
       <p className="mt-1.5 text-[16px] font-medium leading-snug text-chalk" dir="auto">
         {brief.want}
@@ -37,7 +37,7 @@ export function BriefView({ brief, heading = 'What they want' }: { brief: Reques
       {chips.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {chips.map((d) => (
-            <li key={d.key} className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[12px] ring-1 ring-white/[0.08]" dir="auto">
+            <li key={d.key} className="max-w-full rounded-2xl bg-white/[0.05] px-2.5 py-1 text-[12px] ring-1 ring-white/[0.08]" dir="auto">
               <span className="text-smoke">{d.label}</span> <span className="font-medium text-chalk">{brief[d.key]}</span>
             </li>
           ))}
@@ -88,14 +88,19 @@ export function ContactButtons({ phone, whatsappText }: { phone: string; whatsap
   );
 }
 
-/** "5 min ago", "3 h ago", "Yesterday", "12 Oct". */
+/** "5 min ago", "3 h ago" (today), "Yesterday", "3 days ago", "12 Oct" — by calendar day. */
 export function timeAgo(iso: string): string {
   const then = new Date(iso);
-  const mins = Math.round((Date.now() - then.getTime()) / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins} min ago`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours} h ago`;
-  if (hours < 48) return 'Yesterday';
+  const now = new Date();
+  const mins = Math.round((now.getTime() - then.getTime()) / 60000);
+  const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const daysAgo = Math.round((dayStart(now) - dayStart(then)) / 86400000);
+  if (daysAgo <= 0) {
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min ago`;
+    return `${Math.round(mins / 60)} h ago`;
+  }
+  if (daysAgo === 1) return 'Yesterday';
+  if (daysAgo < 7) return `${daysAgo} days ago`;
   return then.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }

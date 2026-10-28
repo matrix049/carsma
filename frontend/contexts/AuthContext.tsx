@@ -66,6 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
       localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminData));
+      // This device belongs to the team: never count it as a visitor (kept after logout).
+      localStorage.setItem('l7_no_track', '1');
     } catch (error) {
       console.error('Failed to save auth data to localStorage:', error);
     }

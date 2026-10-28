@@ -601,6 +601,8 @@ export interface ProductPerformance {
   visitors: number;
   clicks: number;
   addToCart: number;
+  /** Distinct visitors who added it to the cart. */
+  cartVisitors: number;
   sold: number;
   revenue: number;
 }

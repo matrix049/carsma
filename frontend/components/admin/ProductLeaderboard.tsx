@@ -54,7 +54,7 @@ export default function ProductLeaderboard({ products, limit }: { products: Prod
         <ol className="divide-y divide-white/[0.06]">
           {shown.map((p, i) => {
             const stock = stockNote(p);
-            const viewToCart = p.views ? Math.round((p.addToCart / p.views) * 100) : 0;
+            const viewToCart = p.visitors ? Math.min(100, Math.round((p.cartVisitors / p.visitors) * 100)) : 0;
             return (
               <li key={p._id} className="flex items-center gap-3 py-3">
                 <span className="w-5 flex-none text-right text-[13px] font-semibold text-smoke" style={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -81,7 +81,7 @@ export default function ProductLeaderboard({ products, limit }: { products: Prod
                     <p className="mt-0.5 hidden text-[11px] text-smoke sm:block">
                       {p.revenue ? formatMAD(p.revenue) : `${formatMAD(p.price)} each`}
                       {stock ? ` · ${stock}` : ''}
-                      {p.views ? ` · ${viewToCart}% add to cart` : ''}
+                      {p.visitors ? ` · ${viewToCart}% of viewers add to cart` : ''}
                     </p>
                   )}
                 </div>

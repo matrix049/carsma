@@ -171,9 +171,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const addAll = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart({ ...product, price: unitPrice }, standardSize.id, standardSize.label);
-    }
+    addToCart({ ...product, price: unitPrice }, standardSize.id, standardSize.label, quantity);
   };
 
   const buyNow = () => {

@@ -153,7 +153,9 @@ export default function AdminDashboard() {
 
   const bucket = data?.range.bucket ?? 'day';
   const series = data?.series ?? [];
-  const trackingStartedLate = data && (!data.trackingSince || new Date(data.trackingSince) > new Date(data.range.from));
+  // Visitor numbers can't be compared until the tracker has run for a full previous period too.
+  const trackingStartedLate =
+    data && (!data.trackingSince || new Date(data.trackingSince).getTime() > new Date(data.range.from).getTime() - data.range.days * 86400000);
 
   return (
     <ProtectedRoute>
@@ -211,11 +213,12 @@ export default function AdminDashboard() {
                   href="/admin/products"
                   count={data.inbox.lowStock.length + data.inbox.soldOut}
                   label={
-                    data.inbox.lowStock.length
-                      ? `Low stock: ${data.inbox.lowStock.map((p) => `${p.name} (${p.stockQuantity})`).join(', ')}`
-                      : data.inbox.soldOut
-                        ? `${data.inbox.soldOut} sold out`
-                        : 'Stock is fine'
+                    [
+                      data.inbox.soldOut ? `${data.inbox.soldOut} sold out` : '',
+                      data.inbox.lowStock.length ? `Low stock: ${data.inbox.lowStock.map((p) => `${p.name} (${p.stockQuantity})`).join(', ')}` : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || 'Stock is fine'
                   }
                   tone="rose"
                 />
@@ -227,13 +230,22 @@ export default function AdminDashboard() {
                   {data.trackingSince
                     ? new Date(data.trackingSince).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                     : 'with this update'}
-                  . Before that only product views were counted, so visitor numbers grow from here.
+                  , so visitor numbers and their % changes become complete from here.
                 </p>
               )}
 
               {/* KPIs */}
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-                <StatTile hero label={`Revenue · ${RANGE_WORDS[range]}`} value={formatNumber(data.kpis.revenue.current)} unit="MAD" cmp={data.kpis.revenue} spark={series.map((s) => s.revenue)} />
+                <StatTile
+                  hero
+                  label={`Revenue · ${RANGE_WORDS[data.range.key]}`}
+                  value={formatNumber(data.kpis.revenue.current)}
+                  unit="MAD"
+                  cmp={data.kpis.revenue}
+                  // Today's orders are mostly still waiting for confirmation, so a % vs yesterday would mislead.
+                  note={data.range.key === 'today' ? 'Confirmed + delivered orders placed today' : undefined}
+                  spark={series.map((s) => s.revenue)}
+                />
                 <StatTile label="Orders" value={formatNumber(data.kpis.orders.current)} cmp={data.kpis.orders} spark={series.map((s) => s.orders)} />
                 <StatTile label="Visitors" value={formatNumber(data.kpis.visitors.current)} cmp={data.kpis.visitors} spark={series.map((s) => s.visitors)} />
                 <StatTile label="Visitors who order" value={`${data.kpis.conversion.current}%`} cmp={data.kpis.conversion} points />
@@ -280,6 +292,7 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <ColumnChart
+                      key={data.range.key}
                       rows={series.map((s) => ({ key: s.key, value: s.revenue }))}
                       bucket={bucket}
                       format={formatMAD}
@@ -294,6 +307,7 @@ export default function AdminDashboard() {
 
                 <Card title="Visitors" subtitle={`${formatNumber(data.kpis.pageViews.current)} pages opened · per ${bucket === 'hour' ? 'hour' : 'day'}`}>
                   <AreaChart
+                    key={data.range.key}
                     rows={series.map((s) => ({ key: s.key, value: s.visitors }))}
                     bucket={bucket}
                     ariaLabel="Visitors over time"

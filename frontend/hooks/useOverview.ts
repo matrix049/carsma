@@ -22,7 +22,13 @@ export function useOverview(range: StatsRange) {
       (data) => !cancelled && setLoaded({ range, nonce, data }),
       (err: unknown) =>
         !cancelled &&
-        setLoaded((prev) => ({ range, nonce, data: prev?.data, error: err instanceof Error ? err.message : 'Could not load the numbers' }))
+        setLoaded((prev) => ({
+          range,
+          nonce,
+          // Keep old numbers only when they are for this same period (a failed refresh).
+          data: prev?.range === range ? prev.data : undefined,
+          error: err instanceof Error ? err.message : 'Could not load the numbers',
+        }))
     );
     return () => {
       cancelled = true;

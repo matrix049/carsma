@@ -209,8 +209,9 @@ async function makeBrief(kind: 'order' | 'question', transcript: Turn[], details
 }
 
 function fallbackBrief(transcript: Turn[], details: string[], item?: string): IRequestBrief {
-  const lastAsk = [...transcript].reverse().find((t) => t.role === 'user')?.text || '';
-  const want = (details.length ? details.join(' · ') : lastAsk || item || 'See the conversation').slice(0, 300);
+  // The customer's last few lines (a lone "Talk to the team" chip says nothing on its own).
+  const asked = [...new Set(transcript.filter((t) => t.role === 'user').map((t) => t.text))].slice(-3).join(' · ');
+  const want = (details.length ? details.join(' · ') : asked || item || 'See the conversation').slice(0, 300);
   return item ? { want, piece: item.slice(0, 300) } : { want };
 }
 

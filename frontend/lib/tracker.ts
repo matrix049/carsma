@@ -66,12 +66,18 @@ function visitorId(): string {
   return id;
 }
 
-function device(): 'mobile' | 'tablet' | 'desktop' {
-  const w = window.innerWidth;
-  const touch = window.matchMedia?.('(pointer: coarse)').matches;
-  if (w < 768) return 'mobile';
-  if (w < 1100 && touch) return 'tablet';
-  return 'desktop';
+type Device = 'mobile' | 'tablet' | 'desktop';
+
+/** By the screen's short side, so a phone held sideways is still a phone; fixed for the visit. */
+function device(): Device {
+  const session = storage('session');
+  const saved = session?.getItem('l7_device') as Device | null | undefined;
+  if (saved === 'mobile' || saved === 'tablet' || saved === 'desktop') return saved;
+  const short = Math.min(window.screen?.width || window.innerWidth, window.screen?.height || window.innerHeight);
+  const touch = !!window.matchMedia?.('(pointer: coarse)').matches;
+  const kind: Device = short < 600 ? 'mobile' : touch && short < 1100 ? 'tablet' : 'desktop';
+  session?.setItem('l7_device', kind);
+  return kind;
 }
 
 /** Where this visit came from, e.g. "instagram", "google", "direct". */

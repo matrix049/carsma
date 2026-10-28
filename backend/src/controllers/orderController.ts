@@ -2,6 +2,7 @@ import { Response } from 'express';
 import Order from '../models/Order';
 import { AuthRequest } from '../middleware/auth';
 import { notifyNewOrder } from '../services/notificationService';
+import { clearOverviewCache } from '../services/overviewStats';
 
 /**
  * Create new order
@@ -69,6 +70,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
 
     console.log('💾 Saving order to database...');
     await order.save();
+    clearOverviewCache();
 
     console.log('📦 ===== ORDER CREATED SUCCESSFULLY =====');
     console.log('📦 Order ID:', order._id.toString());
@@ -258,6 +260,7 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
       updates,
       { new: true, runValidators: true }
     );
+    clearOverviewCache();
 
     if (!order) {
       res.status(404).json({

@@ -50,7 +50,7 @@ export default function AdminCustomOrders() {
       <div className="flex min-h-screen bg-asphalt text-chalk">
         <AdminSidebar onLogout={logout} />
 
-        <main className="min-w-0 flex-1 px-4 pb-16 pt-20 sm:px-6 md:px-10 md:pt-10 lg:px-12">
+        <main className="min-w-0 flex-1 overflow-x-clip px-4 pb-16 pt-20 sm:px-6 md:px-10 md:pt-10 lg:px-12">
           <header className="mb-5 flex items-end justify-between gap-4">
             <div>
               <h1 className="font-display text-[28px] font-bold leading-tight tracking-tight text-chalk sm:text-4xl">Custom requests</h1>

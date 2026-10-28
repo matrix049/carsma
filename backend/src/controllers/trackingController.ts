@@ -4,7 +4,8 @@ import PageView from '../models/PageView';
 import SiteEvent, { DEVICES, Device, PAGE_TYPES, PageType, SITE_EVENT_TYPES, SiteEventType } from '../models/SiteEvent';
 
 // Crawlers, link previews and automated browsers don't count as visitors.
-const BOT_UA = /bot|crawl|spider|slurp|preview|headless|lighthouse|pingdom|facebookexternalhit|curl|wget|python|node-fetch|axios/i;
+// (?<!cu): "CUBOT" phones are people, not crawlers.
+const BOT_UA = /(?<!cu)bot|crawl|spider|slurp|preview|headless|lighthouse|pingdom|facebookexternalhit|curl|wget|python|node-fetch|axios/i;
 
 /**
  * The storefront sends beacons as text/plain (no CORS preflight, survives the

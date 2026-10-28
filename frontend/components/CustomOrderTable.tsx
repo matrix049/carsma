@@ -91,7 +91,7 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
             <div className="mt-4 rounded-xl bg-white/[0.025] p-3.5 ring-1 ring-white/[0.05]">
               <BriefView brief={brief} />
               {note && (
-                <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-silver" dir="auto">
+                <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-silver [overflow-wrap:anywhere]" dir="auto">
                   <span className="font-semibold text-smoke">Note: </span>
                   {note}
                 </p>

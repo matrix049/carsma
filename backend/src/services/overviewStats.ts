@@ -65,6 +65,8 @@ export interface Overview {
     visitors: number;
     clicks: number;
     addToCart: number;
+    /** Distinct visitors who added it to the cart. */
+    cartVisitors: number;
     sold: number;
     revenue: number;
   }[];
@@ -130,6 +132,10 @@ export function cityOf(address: string): string {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+// Page views written by the site-wide tracker (Oct 2026+). Older rows came from a
+// product-page-only tracker that also counted the admin, so they are left out.
+const TRACKED = { path: { $exists: true } };
+
 async function distinctSessions(match: Record<string, unknown>, model: typeof PageView | typeof SiteEvent = PageView): Promise<number> {
   const [row] = await (model as typeof PageView).aggregate([{ $match: match }, { $group: { _id: '$sessionId' } }, { $count: 'n' }]);
   return row?.n ?? 0;
@@ -140,9 +146,26 @@ async function distinctSessions(match: Record<string, unknown>, model: typeof Pa
 const cache = new Map<RangeKey, { at: number; data: Overview }>();
 const CACHE_MS = 60 * 1000;
 
+/** Call when orders change so the dashboard never shows stale sales. */
+export function clearOverviewCache(): void {
+  cache.clear();
+}
+
+/** The to-do counts are cheap and must always be live. */
+async function liveCounts() {
+  const [pendingOrders, newCustomOrders, unreadMessages] = await Promise.all([
+    Order.countDocuments({ status: 'pending' }),
+    CustomOrder.countDocuments({ status: 'pending' }),
+    ContactMessage.countDocuments({ status: 'unread' }),
+  ]);
+  return { pendingOrders, newCustomOrders, unreadMessages };
+}
+
 export async function getOverview(key: RangeKey, fresh = false): Promise<Overview> {
   const hit = cache.get(key);
-  if (!fresh && hit && Date.now() - hit.at < CACHE_MS) return hit.data;
+  if (!fresh && hit && Date.now() - hit.at < CACHE_MS) {
+    return { ...hit.data, inbox: { ...hit.data.inbox, ...(await liveCounts()) } };
+  }
   const data = await buildOverview(key);
   cache.set(key, { at: Date.now(), data });
   return data;
@@ -152,10 +175,13 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
   const days = RANGES[key];
   const bucket: 'hour' | 'day' = days === 1 ? 'hour' : 'day';
   const to = new Date();
-  const from = new Date(startOfLocalDay(to).getTime() - (days - 1) * DAY);
+  const todayStart = startOfLocalDay(to);
+  // Local midnight n days ago, snapped so Ramadan clock changes don't shift it by an hour.
+  const midnightDaysAgo = (n: number) => startOfLocalDay(new Date(todayStart.getTime() - n * DAY + 12 * 60 * 60 * 1000));
+  const from = midnightDaysAgo(days - 1);
   // Same length just before, up to the same time of day — a fair comparison.
-  const prevFrom = new Date(from.getTime() - days * DAY);
-  const prevTo = new Date(to.getTime() - days * DAY);
+  const prevFrom = midnightDaysAgo(2 * days - 1);
+  const prevTo = new Date(prevFrom.getTime() + (to.getTime() - from.getTime()));
 
   const cur = { $gte: from, $lte: to };
   const prev = { $gte: prevFrom, $lte: prevTo };
@@ -182,19 +208,17 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
     customOrders,
     messages,
     products,
-    pendingOrders,
-    newCustomOrders,
-    unreadMessages,
+    counts,
     firstTracked,
   ] = await Promise.all([
     Order.find({ createdAt: cur }, { status: 1, totalPrice: 1, products: 1, createdAt: 1, 'customer.address': 1 }).lean(),
     Order.find({ createdAt: prev }, { status: 1, totalPrice: 1 }).lean(),
-    distinctSessions({ timestamp: cur }),
-    distinctSessions({ timestamp: prev }),
-    PageView.countDocuments({ timestamp: cur }),
-    PageView.countDocuments({ timestamp: prev }),
+    distinctSessions({ timestamp: cur, ...TRACKED }),
+    distinctSessions({ timestamp: prev, ...TRACKED }),
+    PageView.countDocuments({ timestamp: cur, ...TRACKED }),
+    PageView.countDocuments({ timestamp: prev, ...TRACKED }),
     PageView.aggregate<{ _id: string; views: number; visitors: number }>([
-      { $match: { timestamp: cur } },
+      { $match: { timestamp: cur, ...TRACKED } },
       { $group: { _id: { k: { $dateToString: { format: dateFormat, date: '$timestamp', timezone: TIME_ZONE } }, s: '$sessionId' }, views: { $sum: 1 } } },
       { $group: { _id: '$_id.k', views: { $sum: '$views' }, visitors: { $sum: 1 } } },
     ]),
@@ -211,21 +235,21 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
       { $limit: 8 },
     ]),
     PageView.aggregate<{ _id: string; views: number; sessions: string[] }>([
-      { $match: { timestamp: cur } },
+      { $match: { timestamp: cur, ...TRACKED } },
       { $group: { _id: '$pageType', views: { $sum: 1 }, sessions: { $addToSet: '$sessionId' } } },
       { $sort: { views: -1 } },
     ]),
     PageView.aggregate<{ _id: unknown; views: number; sessions: string[] }>([
-      { $match: { timestamp: cur, pageType: 'product', productId: { $exists: true, $ne: null } } },
+      { $match: { timestamp: cur, ...TRACKED, pageType: 'product', productId: { $exists: true, $ne: null } } },
       { $group: { _id: '$productId', views: { $sum: 1 }, sessions: { $addToSet: '$sessionId' } } },
     ]),
-    distinctSessions({ timestamp: cur, pageType: 'product' }),
-    distinctSessions({ timestamp: cur, pageType: 'checkout' }),
+    distinctSessions({ timestamp: cur, ...TRACKED, pageType: 'product' }),
+    distinctSessions({ timestamp: cur, ...TRACKED, pageType: 'checkout' }),
     SiteEvent.aggregate<{ _id: string; count: number }>([{ $match: { timestamp: cur } }, { $group: { _id: '$type', count: { $sum: 1 } } }]),
     SiteEvent.aggregate<{ _id: string; count: number }>([{ $match: { timestamp: prev } }, { $group: { _id: '$type', count: { $sum: 1 } } }]),
-    SiteEvent.aggregate<{ _id: { p: unknown; t: string }; count: number }>([
+    SiteEvent.aggregate<{ _id: { p: unknown; t: string }; count: number; sessions: string[] }>([
       { $match: { timestamp: cur, productId: { $exists: true, $ne: null }, type: { $in: ['product_click', 'add_to_cart'] } } },
-      { $group: { _id: { p: '$productId', t: '$type' }, count: { $sum: 1 } } },
+      { $group: { _id: { p: '$productId', t: '$type' }, count: { $sum: 1 }, sessions: { $addToSet: '$sessionId' } } },
     ]),
     distinctSessions({ timestamp: cur, type: 'add_to_cart' }, SiteEvent),
     CustomOrder.aggregate<{ _id: string; count: number }>([
@@ -237,11 +261,12 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
       { $group: { _id: { $ifNull: ['$source', 'form'] }, count: { $sum: 1 } } },
     ]),
     Product.find({}, { name: 1, image: 1, price: 1, category: 1, stockQuantity: 1, inStock: 1 }).lean(),
-    Order.countDocuments({ status: 'pending' }),
-    CustomOrder.countDocuments({ status: 'pending' }),
-    ContactMessage.countDocuments({ status: 'unread' }),
-    PageView.findOne({ path: { $exists: true } }, { timestamp: 1 }).sort({ timestamp: 1 }).lean(),
+    liveCounts(),
+    PageView.findOne(TRACKED, { timestamp: 1 }).sort({ timestamp: 1 }).lean(),
   ]);
+
+  // Visitor numbers only compare when the tracker covered the whole previous period.
+  const comparable = !!firstTracked?.timestamp && new Date(firstTracked.timestamp) <= prevFrom;
 
   // ── Sales ──
   const live = orders.filter((o) => o.status !== 'cancelled');
@@ -257,7 +282,7 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
   // ── Series (every bucket present, even empty ones) ──
   const keys =
     bucket === 'hour'
-      ? Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'))
+      ? Array.from({ length: Number(localParts(to).hour) + 1 }, (_, h) => String(h).padStart(2, '0')) // hours so far
       : Array.from({ length: days }, (_, i) => bucketKey(new Date(from.getTime() + i * DAY + 12 * 60 * 60 * 1000), 'day'));
   const series = new Map(keys.map((k) => [k, { key: k, orders: 0, revenue: 0, visitors: 0, pageViews: 0 }]));
   for (const o of live) {
@@ -283,17 +308,21 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
     .slice(0, 8);
 
   // ── Products ──
-  const stats = new Map<string, { views: number; visitors: number; clicks: number; addToCart: number; sold: number; revenue: number }>();
+  const empty = () => ({ views: 0, visitors: 0, clicks: 0, addToCart: 0, cartVisitors: 0, sold: 0, revenue: 0 });
+  const stats = new Map<string, ReturnType<typeof empty>>();
   const statOf = (id: string) => {
     let s = stats.get(id);
-    if (!s) stats.set(id, (s = { views: 0, visitors: 0, clicks: 0, addToCart: 0, sold: 0, revenue: 0 }));
+    if (!s) stats.set(id, (s = empty()));
     return s;
   };
   for (const v of productViews) Object.assign(statOf(String(v._id)), { views: v.views, visitors: v.sessions.length });
   for (const e of productEvents) {
     const s = statOf(String(e._id.p));
     if (e._id.t === 'product_click') s.clicks += e.count;
-    else s.addToCart += e.count;
+    else {
+      s.addToCart += e.count;
+      s.cartVisitors += e.sessions.length;
+    }
   }
   for (const o of live) {
     for (const line of o.products || []) {
@@ -305,7 +334,7 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
   }
   const productRows = products
     .map((p) => {
-      const s = stats.get(String(p._id)) || { views: 0, visitors: 0, clicks: 0, addToCart: 0, sold: 0, revenue: 0 };
+      const s = stats.get(String(p._id)) || empty();
       return {
         _id: String(p._id),
         name: p.name,
@@ -321,7 +350,7 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
 
   // ── Events ──
   const countOf = (rows: { _id: string; count: number }[], type: string) => rows.find((r) => r._id === type)?.count ?? 0;
-  const compareEvent = (type: string): Compare => ({ current: countOf(eventCounts, type), previous: countOf(prevEventCounts, type) });
+  const compareEvent = (type: string): Compare => ({ current: countOf(eventCounts, type), previous: comparable ? countOf(prevEventCounts, type) : 0 });
 
   const lowStock = products
     .filter((p) => typeof p.stockQuantity === 'number' && p.stockQuantity > 0 && p.stockQuantity <= 3 && p.inStock !== false)
@@ -335,11 +364,11 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
       revenue: { current: revenueOf(orders), previous: revenueOf(prevOrders) },
       orders: { current: live.length, previous: prevLive.length },
       avgOrder: { current: avg(live), previous: avg(prevLive) },
-      visitors: { current: visitors, previous: prevVisitors },
-      pageViews: { current: pageViews, previous: prevPageViews },
+      visitors: { current: visitors, previous: comparable ? prevVisitors : 0 },
+      pageViews: { current: pageViews, previous: comparable ? prevPageViews : 0 },
       conversion: {
         current: visitors ? round1((live.length / visitors) * 100) : 0,
-        previous: prevVisitors ? round1((prevLive.length / prevVisitors) * 100) : 0,
+        previous: comparable && prevVisitors ? round1((prevLive.length / prevVisitors) * 100) : 0,
       },
     },
     series: keys.map((k) => series.get(k)!),
@@ -365,6 +394,6 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
     pages: pages.map((p) => ({ page: p._id, views: p.views, visitors: p.sessions.length })),
     cities,
     products: productRows,
-    inbox: { pendingOrders, newCustomOrders, unreadMessages, soldOut, lowStock },
+    inbox: { ...counts, soldOut, lowStock },
   };
 }

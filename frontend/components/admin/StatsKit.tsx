@@ -24,8 +24,8 @@ export const compact = (n: number) => {
   const abs = Math.abs(n);
   if (abs >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}M`;
   if (abs >= 10_000) return `${Math.round(n / 1000)}K`;
-  if (abs >= 1000) return `${+(n / 1000).toFixed(1)}K`;
-  return String(Math.round(n));
+  if (abs >= 1000) return `${+(n / 1000).toFixed(2)}K`;
+  return Number.isInteger(n) ? String(n) : String(+n.toFixed(1));
 };
 
 export const formatMAD = (n: number) => `${formatNumber(n)} MAD`;
@@ -165,9 +165,12 @@ export function StatTile({
   hero = false,
   points = false,
   unit,
+  note,
 }: {
   label: string;
   value: string;
+  /** Shown instead of the change vs the previous period. */
+  note?: string;
   /** Small suffix after the value, e.g. "MAD". */
   unit?: string;
   cmp: Compare;
@@ -183,7 +186,7 @@ export function StatTile({
         {unit && <span className="ml-1.5 text-[0.45em] font-medium tracking-normal text-smoke">{unit}</span>}
       </p>
       <div className="mt-1.5 min-h-[18px]">
-        <Delta cmp={cmp} points={points} />
+        {note ? <span className="text-[12px] text-smoke">{note}</span> : <Delta cmp={cmp} points={points} />}
       </div>
       {spark && spark.length > 1 && (
         <div className="mt-3">
@@ -234,15 +237,17 @@ function useHover(count: number, plotLeft: number, plotWidth: number) {
       onPointerLeave: (e: React.PointerEvent<SVGElement>) => {
         if (e.pointerType === 'mouse') setHover(null);
       },
+      onPointerCancel: () => setHover(null),
     },
   };
 }
 
+/** Axis top: a round number whose half (the middle gridline) is round too. */
 function niceMax(v: number): number {
-  if (v <= 0) return 1;
+  if (v <= 2) return 2;
   const p = Math.pow(10, Math.floor(Math.log10(v)));
   const n = v / p;
-  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 4 ? 4 : n <= 6 ? 6 : n <= 8 ? 8 : 10) * p;
 }
 
 /** Keep x labels inside the chart: pin the ones near an edge to that edge. */
@@ -288,7 +293,8 @@ export function ColumnChart({
   const max = niceMax(Math.max(...rows.map((r) => r.value), 0));
   const band = plotW / Math.max(1, rows.length);
   const barW = Math.max(2, Math.min(24, band - 2));
-  const { hover, setHover, handlers } = useHover(rows.length, left, plotW);
+  const { hover: rawHover, setHover, handlers } = useHover(rows.length, left, plotW);
+  const hover = rawHover !== null && rawHover < rows.length ? rawHover : null;
   const every = labelEvery(rows.length, plotW);
   const y = (v: number) => top + plotH - (v / max) * plotH;
 
@@ -379,7 +385,9 @@ export function AreaChart({
   const y = (v: number) => top + plotH - (v / max) * plotH;
   const every = labelEvery(rows.length, plotW);
 
-  const [hover, setHover] = useState<number | null>(null);
+  const [rawHover, setHover] = useState<number | null>(null);
+  // A hover index from an earlier, longer period must never index past the new rows.
+  const hover = rawHover !== null && rawHover < rows.length ? rawHover : null;
   const pick = (e: React.PointerEvent<SVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const i = rows.length > 1 ? Math.round((e.clientX - rect.left - left) / step) : 0;
@@ -402,9 +410,10 @@ export function AreaChart({
           onPointerMove={pick}
           onPointerDown={pick}
           onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(null)}
+          onPointerCancel={() => setHover(null)}
           onKeyDown={(e) => {
-            if (e.key === 'ArrowRight') setHover((h) => Math.min(lastIndex, (h ?? -1) + 1));
-            if (e.key === 'ArrowLeft') setHover((h) => Math.max(0, (h ?? rows.length) - 1));
+            if (e.key === 'ArrowRight') setHover(Math.min(lastIndex, (hover ?? -1) + 1));
+            if (e.key === 'ArrowLeft') setHover(Math.max(0, (hover ?? rows.length) - 1));
           }}
           onBlur={() => setHover(null)}
           className="outline-none"

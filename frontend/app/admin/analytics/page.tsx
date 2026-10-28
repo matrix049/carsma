@@ -76,6 +76,12 @@ export default function AdminAnalytics() {
             )
           ) : (
             <div className={`space-y-5 transition-opacity ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
+              {data.trackingSince && new Date(data.trackingSince).getTime() > new Date(data.range.from).getTime() - data.range.days * 86400000 && (
+                <p className="rounded-xl bg-white/[0.03] px-4 py-2.5 text-[13px] text-smoke ring-1 ring-white/[0.06]">
+                  Visitor tracking started {new Date(data.trackingSince).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}, so
+                  numbers before that day are not included and % changes appear once there is a full earlier period to compare.
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <StatTile label="Visitors" value={formatNumber(data.kpis.visitors.current)} cmp={data.kpis.visitors} spark={series.map((s) => s.visitors)} />
                 <StatTile label="Pages opened" value={formatNumber(data.kpis.pageViews.current)} cmp={data.kpis.pageViews} spark={series.map((s) => s.pageViews)} />
@@ -85,6 +91,7 @@ export default function AdminAnalytics() {
 
               <Card title="Pages opened" subtitle={`Per ${bucket === 'hour' ? 'hour' : 'day'} · hover or tap for visitors`}>
                 <AreaChart
+                  key={data.range.key}
                   rows={series.map((s) => ({ key: s.key, value: s.pageViews }))}
                   bucket={bucket}
                   ariaLabel="Pages opened over time"
