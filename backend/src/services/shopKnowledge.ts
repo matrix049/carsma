@@ -12,12 +12,13 @@ SHOP
 - WhatsApp and phone calls: +212 765 810 304. Instagram: @l7it.art. There is no email address.
 
 PRODUCT
-- Wall panels printed with UV ink on 3 mm Alucobond (aluminium composite). Pre-drilled, ready to hang, no frame needed.
+- Wall panels printed with UV ink on 3 mm Alucobond (aluminium composite). No drilling, no frame.
+- Mounting: every piece comes with double-sided tape. Peel the film off one side, place the piece exactly where you want it and press gently (do not force it). It can be taken off later and stuck again with new tape; it does not damage the wall and does not pull the paint off.
 - Finish: matte or glossy; the team confirms the finish with the customer after the order.
-- Standard size 120 x 35 cm. Also 120 x 50 cm. A custom size is possible on some orders — the customer must ask the team before ordering.
+- Sizes: each piece comes in the size listed on its product page (see the catalogue line). Another size is only possible if the team confirms it first.
 - Two styles, both premium: 2D = a clean, elegant design with the car's essential lines. 3D = rich in details with real depth, the closest to the real car. Present both positively and let the customer choose. Only if the customer asks about price: 3D is priced higher than 2D because of the extra detail, and the team confirms the exact price.
 - Colours: black and white are always possible. Any other colour must first be checked by the team; the team then replies. Never promise another colour.
-- Care: keep away from direct sun and moisture; wipe with a soft dry cloth.
+- Care: clean it gently with a soft, dry cloth.
 
 NEW 3D EDITIONS (the pieces we push first — in stock, ready to ship)
 - G-Class 3D: 120 x 75 cm. 911 3D: 120 x 50 cm. Each comes in that one size only: no bigger or smaller version. Stock is limited (see the catalogue line for the pieces left).
@@ -33,8 +34,8 @@ CUSTOM WORK
 ORDERING, PAYMENT, DELIVERY
 - Order on the website (add to cart, checkout with name, phone, address and city) or on WhatsApp.
 - Catalogue pieces: cash on delivery, nothing to pay in advance.
-- Delivery to every city in Morocco (Casablanca, Rabat, Salé, Marrakech, Fès, Tanger, Agadir, Oujda, Laâyoune/العيون, Dakhla and all others) in 24 hours to 3 days. Delivery is free. A tracking number is sent when it ships. No delivery outside Morocco.
-- Returns are not accepted: every piece is made to order. Customers should ask their questions before ordering.
+- Delivery to every city in Morocco (Casablanca, Rabat, Salé, Marrakech, Fès, Tanger, Agadir, Oujda, Laâyoune/العيون, Dakhla and all others) in 48 hours to 3 days. Delivery is free. A tracking number is sent when it ships. No delivery outside Morocco.
+- Returns: only if the piece arrives broken because of the delivery. The customer must film the parcel before and while opening it — without that proof we cannot replace it. No other returns (every piece is made to order).
 - The assistant cannot see orders. For an order status the customer sends a request to the team (or WhatsApp).
 `.trim();
 

@@ -14,9 +14,19 @@ describe('chatbot intent matching', () => {
     ['ch7al l 3d', 'style'],
     ['taille disponible ?', 'size'],
     ['wach kayn retour?', 'returns'],
+    ['kifach nlsa9ha f l7it?', 'hang'],
+    ['do you give the double face scotch?', 'hang'],
+    ['est-ce que la colle est fournie ?', 'hang'],
+    ['كيفاش نلصقها؟', 'hang'],
     ['fin wslat la commande dyali', 'order'],
   ])('%s → %s', (text, topic) => {
     expect(matchTopics(text)).toContain(topic);
+  });
+
+  it('gives the new delivery time and mounting answer', () => {
+    expect(topicAnswer('en', 'delivery')).toContain('48 hours');
+    expect(topicAnswer('fr', 'hang')).toContain('double face');
+    expect(topicAnswer('en', 'returns')).toContain('broken');
   });
 
   it('does not read Casablanca (البيضاء) as the colour white', () => {

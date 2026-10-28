@@ -453,7 +453,7 @@ export default function CartPage() {
                     <ul className="mt-4 space-y-2.5 border-t border-white/10 pt-5 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-smoke">
                       <li className="flex items-center gap-2.5">
                         <TruckIcon className="h-4 w-4 shrink-0 text-chalk" />
-                        Delivery 24h – 3 days · all Morocco
+                        Delivery 48h – 3 days · all Morocco
                       </li>
                       <li className="flex items-center gap-2.5">
                         <RouteIcon className="h-4 w-4 shrink-0 text-chalk" />

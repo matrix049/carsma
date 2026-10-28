@@ -356,8 +356,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="mt-7 grid grid-cols-2 gap-2.5">
               <SpecTile label="Size" labelAr="القياس" value={dimensionsLabel} />
               <SpecTile label="Material" labelAr="المادة" value="Alucobond 3 mm" />
-              <SpecTile label="Delivery" labelAr="التوصيل" value="24h – 3 days" />
-              <SpecTile label="Mount" labelAr="التعليق" value="Pre-drilled" />
+              <SpecTile label="Delivery" labelAr="التوصيل" value="48h – 3 days" />
+              <SpecTile label="Mount" labelAr="التعليق" value="Double-sided tape" />
             </div>
             {edition ? (
               <p className="mt-2.5 text-xs text-smoke">
@@ -462,13 +462,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="mt-4">
               <Details title="Delivery & payment" titleAr="التوصيل والخلاص">
-                Delivered in 24 hours to 3 days anywhere in Morocco, with a tracking number once it ships. You pay cash when the piece arrives.
+                Delivered in 48 hours to 3 days anywhere in Morocco, with a tracking number once it ships. You pay cash when the piece arrives.
               </Details>
               <Details title="Hanging & care" titleAr="التعليق والعناية">
-                The panel comes pre-drilled — bolt it straight to the wall, no frame needed. Keep it away from direct sun and moisture and wipe with a soft, dry cloth.
+                Double-sided tape is included: peel the film off one side, place the piece where you want it and press gently — don&apos;t force it. You can take it off later and put new tape on, without damaging the wall or its paint. Clean it with a soft, dry cloth.
               </Details>
               <Details title="Returns" titleAr="الإرجاع">
-                Every piece is printed for your order, so we can&apos;t accept returns. Message us on WhatsApp with any question before ordering.
+                If your piece arrives broken because of the delivery, we replace it. Film the parcel before and while you open it — we need that proof. Every piece is made to order, so there are no other returns.
               </Details>
             </div>
           </motion.div>

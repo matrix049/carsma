@@ -190,7 +190,7 @@ export default function Navbar() {
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp <span className="font-ar text-base font-normal text-smoke">· كلمنا</span>
               </a>
-              <p className="text-center text-xs text-smoke">Cash on delivery · 24h – 3 days</p>
+              <p className="text-center text-xs text-smoke">Cash on delivery · 48h – 3 days</p>
             </div>
           </motion.div>
         )}

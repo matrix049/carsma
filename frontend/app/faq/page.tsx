@@ -11,62 +11,82 @@ interface FAQItem {
   questionAr: string;
   answer: string;
   answerAr: string;
+  /** Optional button under the answer. */
+  cta?: { label: string; labelAr: string; href: string };
 }
+
+const FAQS: FAQItem[] = [
+  {
+    question: 'What sizes are available?',
+    questionAr: 'شنو هي المقاسات المتوفرة؟',
+    answer:
+      'Each piece comes in the size written on its product page, right under the price. The 3D editions come in one size only: G-Class 3D is 120 × 75 cm and 911 3D is 120 × 50 cm.',
+    answerAr:
+      'كل قطعة كتجي بالمقاس لي مكتوب ف الصفحة ديالها، تحت الثمن. الإصدارات 3D عندها مقاس واحد: G-Class 3D ‏120 × 75 سم و 911 3D ‏120 × 50 سم.',
+  },
+  {
+    question: 'How long does shipping take?',
+    questionAr: 'شحال كياخد التوصيل؟',
+    answer:
+      'Delivery takes 48 hours to 3 days anywhere in Morocco, and it is free. You get a tracking number as soon as your order ships.',
+    answerAr: 'التوصيل كياخد من 48 ساعة ل 3 أيام لكاع مدن المغرب، وهو فابور. كيوصلك رقم التتبع ملي تخرج الكوموند ديالك.',
+  },
+  {
+    question: 'What material do you use?',
+    questionAr: 'شنو هي المادة لي كتخدمو بيها؟',
+    answer:
+      'Premium 3 mm Alucobond (aluminium composite) with UV printing: strong, light, and the colours stay sharp for years.',
+    answerAr: 'كنخدمو بـ Alucobond ديال 3 مم (ألومنيوم مركب) مطبوع بـ UV: قوي، خفيف، والألوان كتبقى واضحة لسنين.',
+  },
+  {
+    question: 'Can I order a custom car?',
+    questionAr: 'واش نقدر نطلب طوموبيل على حسابي؟',
+    answer:
+      "Yes! Any car, any model and year — even a logo or a motorbike. Tell us what you want and the team takes care of the rest. Custom pieces start with a partial advance payment.",
+    answerAr: 'إيه! أي طوموبيل، أي موديل وعام — حتى لوغو ولا موطور. قول لينا شنو بغيتي والفريق كيتكلف بالباقي. القطع الخاصة كتبدا بتسبيق جزئي.',
+    cta: { label: 'Contact us', labelAr: 'تواصل معانا', href: '/contact' },
+  },
+  {
+    question: 'How do I put it on the wall?',
+    questionAr: 'كيفاش نلصقها ف الحيط؟',
+    answer:
+      "Every piece comes with double-sided tape. Peel the film off one side, place the piece exactly where you want it and press gently — don't force it. You can take it off later and stick it again with new tape; it doesn't damage the wall or pull the paint off.",
+    answerAr:
+      'كل قطعة كتجي معاها سكوتش دوبل فاص. حيد الورقة من جهة وحدة، حط القطعة ف البلاصة لي بغيتي وضغط عليها شوية بلا ما تزير. تقدر تحيدها من بعد وتلصقها بسكوتش جديد، وما كتضرش الحيط وما كتحيدش الصباغة.',
+  },
+  {
+    question: 'How do I take care of it?',
+    questionAr: 'كيفاش نحافظ عليها؟',
+    answer: 'Just clean it gently with a soft, dry cloth.',
+    answerAr: 'غير نقيها بلطف بشيفون ناعم وناشف.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    questionAr: 'شنو هي طرق الخلاص؟',
+    answer:
+      'Cash on delivery: you pay when your piece arrives, nothing before. For a custom order we take a partial advance payment before we start working on it.',
+    answerAr: 'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
+  },
+  {
+    question: 'What is your return policy?',
+    questionAr: 'شنو هي سياسة الإرجاع؟',
+    answer:
+      'We take a piece back only if it arrives broken because of the delivery. Film the parcel before and while you open it — we need that proof to replace it. Every piece is made to order, so there are no other returns.',
+    answerAr:
+      'كنقبلو الإرجاع غير إلا وصلاتك القطعة مهرسة بسبب التوصيل. صور الكولي فيديو قبل وملي كتحلو، حيت خاصنا هاد الدليل باش نبدلوها ليك. كل قطعة كتصاوب على حسابك، داكشي علاش ماكاينش إرجاع آخر.',
+  },
+  {
+    question: 'Do I need a frame?',
+    questionAr: 'واش خاصني إطار؟',
+    answer: 'No frame needed: the piece sticks straight to the wall with the double-sided tape that comes with it.',
+    answerAr: 'ما محتاجش إطار: القطعة كتلصق نيشان ف الحيط بالسكوتش دوبل فاص لي كيجي معاها.',
+  },
+];
 
 export default function FAQPage() {
   const { language } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const faqs: FAQItem[] = [
-    {
-      question: "What materials are used for the prints?",
-      questionAr: "شنو هي المواد المستخدمة للطباعة؟",
-      answer: "We use premium Alucobond material that ensures your artwork is durable, lightweight, and maintains vibrant colors. This high-quality aluminum composite material is perfect for modern wall art and provides excellent longevity.",
-      answerAr: "كنستخدمو مادة الألوكوبوند الممتازة لي كتضمن أن اللوحة ديالك تكون قوية وخفيفة وتحافظ على الألوان الزاهية. هاد المادة عالية الجودة مثالية للوحات الحائط العصرية وكتعطي متانة ممتازة."
-    },
-    {
-      question: "How long does shipping take?",
-      questionAr: "شحال كتاخد التوصيل؟",
-      answer: "Shipping takes from 24 hours to 3 days within Morocco. We ensure fast and reliable delivery to all major cities. You'll receive a tracking number once your order ships.",
-      answerAr: "التوصيل كياخد من 24 ساعة ل 3 أيام داخل المغرب. كنضمنو توصيل سريع وموثوق لجميع المدن الكبيرة. غادي توصلك رقم التتبع فاش نصيفطو الطلب ديالك."
-    },
-    {
-      question: "Can I request a custom car design?",
-      questionAr: "واش نقدر نطلب تصميم خاص بالطوموبيل ديالي؟",
-      answer: "Absolutely! If you don't find your favorite car in our gallery, you can request a custom design. Just provide us with the car brand, model, and any specific preferences, and our team will create a unique artwork for you.",
-      answerAr: "طبعاً! إلا مالقيتيش الطوموبيل لي كاتعجبك فالݣالوري ديالنا، تقدر تطلب تصميم خاص. غير عطينا الماركا والموديل وأي تفاصيل خاصة، وفريقنا غادي يديرلك لوحة فريدة."
-    },
-    {
-      question: "What sizes are available?",
-      questionAr: "شنو هي المقاسات المتوفرة؟",
-      answer: "Our standard size is 120cm x 35cm, and we also offer a larger 120cm x 50cm format. Both are carefully selected for modern wall art and fit beautifully in most spaces, providing an elegant and impactful display. On some orders we can also customise the size to fit your wall — just message us before ordering.",
-      answerAr: "المقاس الستاندارد ديالنا هو 120 سم × 35 سم، وعندنا حتى مقاس كبير 120 سم × 50 سم. بجوج مختارين بعناية ومثاليين للوحات الحائط العصرية وكيناسبو معظم المساحات وكيعطيو عرض أنيق ومؤثر. وفـ بعض الطلبات نقدرو نخدمو ليك المقاس على حساب الحيط ديالك — غير صيفط لينا رسالة قبل ما تكوماندي."
-    },
-    {
-      question: "Do you offer framing services?",
-      questionAr: "واش كتقدمو خدمة الإطار؟",
-      answer: "Currently, our prints come unframed to give you the flexibility to choose a frame that matches your interior style. However, we can recommend local framing services in major Moroccan cities.",
-      answerAr: "حالياً، اللوحات كيجيو بلا إطار باش تقدر تختار الإطار لي كيناسب الديكور ديالك. ولكن نقدرو ننصحوك بمحلات الإطارات فالمدن الكبيرة."
-    },
-    {
-      question: "What is your return policy?",
-      questionAr: "شنو هي سياسة الإرجاع؟",
-      answer: "We do not accept returns on our custom artwork. Each piece is carefully crafted and printed specifically for your order. Please review your selection carefully before placing your order to ensure complete satisfaction.",
-      answerAr: "ما كنقبلوش الإرجاع على اللوحات المخصصة ديالنا. كل قطعة كتتصنع وتتطبع خصيصاً للطلب ديالك. عافاك راجع الاختيار ديالك مزيان قبل ما تأكد الطلب باش تكون راضي تماماً."
-    },
-    {
-      question: "How do I care for my artwork?",
-      questionAr: "كيفاش نحافظ على اللوحة ديالي؟",
-      answer: "Keep your artwork away from direct sunlight and moisture. Clean gently with a soft, dry cloth. Avoid touching the printed surface directly. With proper care, your artwork will maintain its quality for years.",
-      answerAr: "خلي اللوحة ديالك بعيدة على الشمس المباشرة والرطوبة. نقيها بلطف بقماش ناعم وناشف. تجنب تلمس السطح المطبوع مباشرة. مع العناية الصحيحة، اللوحة ديالك غادي تبقى بجودة عالية لسنين."
-    },
-    {
-      question: "What payment methods do you accept?",
-      questionAr: "شنو هي طرق الدفع المقبولة؟",
-      answer: "We currently accept Cash on Delivery (COD) for all orders within Morocco. You pay when your artwork arrives at your doorstep. This ensures a secure and convenient shopping experience.",
-      answerAr: "حالياً كنقبلو الدفع عند الاستلام (COD) لجميع الطلبات داخل المغرب. كتخلص فاش توصلك اللوحة للدار. هادشي كيضمن تجربة شراء آمنة ومريحة."
-    }
-  ];
+  const faqs = FAQS;
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -132,6 +152,11 @@ export default function FAQPage() {
                           <p className="mt-3 font-ar text-sm leading-relaxed text-smoke" dir="rtl">
                             {faq.answerAr}
                           </p>
+                        )}
+                        {faq.cta && (
+                          <Link href={faq.cta.href} className={`${btnPrimary} mt-5`}>
+                            {faq.cta.label} <span className="font-ar text-sm normal-case tracking-normal opacity-70">· {faq.cta.labelAr}</span>
+                          </Link>
                         )}
                       </div>
                     </motion.div>

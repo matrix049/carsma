@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
@@ -95,6 +95,69 @@ function BrandRail({ categories }: { categories: string[] }) {
  * New drops — the two 3D editions, unveiled like a car launch
  * --------------------------------------------------------------------------*/
 
+const ROTATE_MS = 5000;
+
+/**
+ * An edition's photos, one after another every 5 s while the card is on
+ * screen (paused on hover, in a background tab, and for reduced motion).
+ * The photo on show carries data-vt-img, so tapping morphs it into the page.
+ */
+function RotatingPhotos({ photos, alt }: { photos: string[]; alt: string }) {
+  const [index, setIndex] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const count = photos.length;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || count < 2) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    let onScreen = !('IntersectionObserver' in window);
+    let hovered = false;
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(([e]) => (onScreen = e.isIntersecting), { threshold: 0.35 }) : null;
+    io?.observe(el);
+    const enter = (e: PointerEvent) => e.pointerType === 'mouse' && (hovered = true);
+    const leave = () => (hovered = false);
+    el.addEventListener('pointerenter', enter);
+    el.addEventListener('pointerleave', leave);
+    const timer = window.setInterval(() => {
+      if (onScreen && !hovered && !document.hidden) setIndex((i) => (i + 1) % count);
+    }, ROTATE_MS);
+    return () => {
+      window.clearInterval(timer);
+      io?.disconnect();
+      el.removeEventListener('pointerenter', enter);
+      el.removeEventListener('pointerleave', leave);
+    };
+  }, [count]);
+
+  const shown = index % Math.max(1, count);
+  return (
+    <div ref={ref} className="absolute inset-0">
+      {photos.map((src, i) => (
+        <img
+          key={src}
+          {...(i === shown ? { 'data-vt-img': true } : {})}
+          src={src}
+          alt={i === 0 ? alt : ''}
+          aria-hidden={i !== shown}
+          loading={i === 0 ? undefined : 'lazy'}
+          className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-1000 group-hover:scale-[1.03] ${
+            i === shown ? 'opacity-100' : 'opacity-0'
+          }`}
+          onError={hideBrokenImage}
+        />
+      ))}
+      {count > 1 && (
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-3 z-[15] flex justify-center gap-1.5">
+          {photos.map((src, i) => (
+            <span key={src} className={`h-1.5 rounded-full transition-all duration-500 ${i === shown ? 'w-5 bg-chalk' : 'w-1.5 bg-white/45'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditionStage({ edition, product }: { edition: NewEdition; product?: Product }) {
   const brand = brandOf(product ?? { name: edition.title });
   const size = dimensionsOf(product ?? { name: edition.title }).replace(/\s*x\s*/i, ' × ');
@@ -108,13 +171,7 @@ function EditionStage({ edition, product }: { edition: NewEdition; product?: Pro
       <div className="absolute bottom-[14%] left-1/2 h-6 w-2/3 -translate-x-1/2 rounded-[100%] bg-black/70 blur-xl" />
 
       {product?.image ? (
-        <img
-          data-vt-img
-          src={product.image}
-          alt={product.name}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-          onError={hideBrokenImage}
-        />
+        <RotatingPhotos photos={[product.image, ...(product.gallery ?? [])].filter(Boolean)} alt={product.name} />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-silver">
           {brand && <BrandLogo brand={brand} className="h-14 w-14 opacity-70" />}
@@ -199,7 +256,7 @@ const PERKS = [
     icon: <path d="M2.5 6.5h19v11h-19zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM6 10v4M18 10v4" />,
   },
   {
-    title: 'Delivery 24h – 3 days',
+    title: 'Delivery 48h – 3 days',
     ar: 'التوصيل لكاع المغرب',
     icon: <path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7M6.5 19.3a1.8 1.8 0 100-3.6 1.8 1.8 0 000 3.6zM17 19.3a1.8 1.8 0 100-3.6 1.8 1.8 0 000 3.6z" />,
   },

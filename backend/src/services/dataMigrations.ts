@@ -146,6 +146,30 @@ const MIGRATIONS: DataMigration[] = [
       if (res.modifiedCount) console.log('✓ 2D G-Class now faces left');
     },
   },
+  {
+    // The 2D G-Class and the Audi R8 sat low / in a corner of their photos:
+    // crop each photo 4:3 around the car so it's in the middle of every card.
+    key: '2026-10-center-g-class-2d-and-r8',
+    run: async () => {
+      const crops: [string[], string][] = [
+        [
+          [
+            `${CLOUDINARY_BASE}/v1778027111/l7it/products/ksujr2m6aqnd4qfvnxp2.jpg`,
+            `${CLOUDINARY_BASE}/a_hflip/v1778027111/l7it/products/ksujr2m6aqnd4qfvnxp2.jpg`,
+          ],
+          `${CLOUDINARY_BASE}/a_hflip/c_crop,w_1170,h_878,x_0,y_555/q_auto,f_auto/v1778027111/l7it/products/ksujr2m6aqnd4qfvnxp2.jpg`,
+        ],
+        [
+          [`${CLOUDINARY_BASE}/v1777998718/l7it/products/auvis9cs40frhk8smdwc.jpg`],
+          `${CLOUDINARY_BASE}/c_crop,w_480,h_360,x_32,y_0/q_auto,f_auto/v1777998718/l7it/products/auvis9cs40frhk8smdwc.jpg`,
+        ],
+      ];
+      for (const [before, after] of crops) {
+        const res = await Product.updateOne({ image: { $in: before } }, { $set: { image: after } });
+        if (res.modifiedCount) console.log(`✓ Centred photo: ${after}`);
+      }
+    },
+  },
 ];
 
 export async function runDataMigrations(): Promise<void> {
