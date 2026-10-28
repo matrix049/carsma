@@ -1,19 +1,7 @@
 import { Request, Response } from 'express';
 import PageView from '../models/PageView';
-import Product from '../models/Product';
-import mongoose from 'mongoose';
 import AnalyticsCache from '../services/analyticsCache';
-
-// Valid page types enum
-const VALID_PAGE_TYPES = ['home', 'shop', 'product', 'contact', 'faq', 'cart', 'checkout', 'customize'] as const;
-type PageType = typeof VALID_PAGE_TYPES[number];
-
-// Interface for tracking request
-interface TrackPageViewRequest {
-  pageType: string;
-  productId?: string;
-  sessionId: string;
-}
+import { getOverview, RANGES, RangeKey } from '../services/overviewStats';
 
 // Interface for visitor statistics
 interface VisitorStats {
@@ -37,77 +25,6 @@ interface AnalyticsStatsResponse {
   visitorStats: VisitorStats;
   productStats: ProductStats[];
 }
-
-/**
- * Track a page view
- * POST /api/analytics/track
- */
-export const trackPageView = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { pageType, productId, sessionId }: TrackPageViewRequest = req.body;
-
-    // Validate required fields
-    if (!pageType || !sessionId) {
-      res.status(400).json({
-        success: false,
-        message: 'Missing required fields: pageType and sessionId are required'
-      });
-      return;
-    }
-
-    // Validate pageType enum
-    if (!VALID_PAGE_TYPES.includes(pageType as any)) {
-      res.status(400).json({
-        success: false,
-        message: `Invalid pageType. Must be one of: ${VALID_PAGE_TYPES.join(', ')}`
-      });
-      return;
-    }
-
-    // Validate productId if provided
-    if (productId && !mongoose.Types.ObjectId.isValid(productId)) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid productId format'
-      });
-      return;
-    }
-
-    // Validate sessionId length
-    if (sessionId.length > 100) {
-      res.status(400).json({
-        success: false,
-        message: 'SessionId too long (max 100 characters)'
-      });
-      return;
-    }
-
-    // Create page view record. The validation above guarantees pageType is in
-    // VALID_PAGE_TYPES, so the cast to the narrowed union is sound.
-    const pageViewData = {
-      pageType: pageType as PageType,
-      productId: productId ? new mongoose.Types.ObjectId(productId) : undefined,
-      sessionId,
-      userAgent: req.get('User-Agent')?.substring(0, 500), // Truncate to max length
-      ipAddress: req.ip || req.connection.remoteAddress
-    };
-
-    await PageView.create(pageViewData);
-
-    res.json({
-      success: true,
-      message: 'Page view tracked successfully'
-    });
-  } catch (error) {
-    console.error('Page view tracking error:', error);
-    
-    // Don't fail the request - analytics should be non-blocking
-    res.json({
-      success: false,
-      message: 'Tracking failed but request processed'
-    });
-  }
-};
 
 /**
  * Get visitor statistics
@@ -246,5 +163,19 @@ export const getAnalyticsStats = async (req: Request, res: Response): Promise<vo
       message: 'Failed to retrieve analytics data',
       error: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
+  }
+};
+/**
+ * Everything the admin dashboard shows for one period
+ * GET /api/analytics/overview?range=today|7d|30d|90d[&fresh=1]
+ */
+export const getOverviewStats = async (req: Request, res: Response): Promise<void> => {
+  const range = typeof req.query.range === 'string' && Object.prototype.hasOwnProperty.call(RANGES, req.query.range) ? (req.query.range as RangeKey) : '7d';
+  try {
+    const data = await getOverview(range, req.query.fresh === '1');
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Overview stats error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load the dashboard numbers' });
   }
 };

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '@/lib/apiServices';
 import { trackAddToCart } from '@/lib/metaPixel';
+import { trackEvent } from '@/lib/tracker';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -70,6 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     const sizeInfo = selectedSize ? ` (${sizeLabel || selectedSize})` : '';
     showToast(`Added ${product.name}${sizeInfo} to cart`);
+    trackEvent('add_to_cart', product._id);
     trackAddToCart({
       productId: product._id,
       name: product.name,

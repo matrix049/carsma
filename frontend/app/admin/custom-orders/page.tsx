@@ -1,110 +1,112 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
 import CustomOrderTable from '@/components/CustomOrderTable';
 import { fetchCustomOrders, CustomOrder } from '@/lib/apiServices';
 import { useAuth } from '@/contexts/AuthContext';
-import { motion } from 'framer-motion';
 import Loader from '@/components/Loader';
+
+type Filter = 'open' | 'pending' | 'contacted' | 'done' | 'all';
+
+const FILTERS: { key: Filter; label: string; match: (o: CustomOrder) => boolean }[] = [
+  { key: 'open', label: 'To handle', match: (o) => o.status === 'pending' || o.status === 'reviewed' },
+  { key: 'pending', label: 'New', match: (o) => o.status === 'pending' },
+  { key: 'contacted', label: 'Contacted', match: (o) => o.status === 'contacted' },
+  { key: 'done', label: 'Done', match: (o) => o.status === 'completed' || o.status === 'cancelled' },
+  { key: 'all', label: 'All', match: () => true },
+];
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function AdminCustomOrders() {
-  const [orders, setOrders] = useState<CustomOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<CustomOrder[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('open');
+  const [nonce, setNonce] = useState(0);
   const { logout } = useAuth();
 
-  const loadOrders = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const data = await fetchCustomOrders();
-      setOrders(data);
-      setError(null);
-    } catch (err: any) {
-      console.error('Failed to load custom orders:', err);
-      setError(err.message || 'Failed to load custom orders');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
+    fetchCustomOrders().then(
+      (data) => {
+        if (cancelled) return;
+        setOrders(data);
+        setError(null);
+      },
+      (err: unknown) => !cancelled && setError(err instanceof Error ? err.message : 'Failed to load custom orders')
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [nonce]);
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
-
-  const pendingRequests   = orders.filter((o) => o.status === 'pending').length;
-  const reviewedRequests  = orders.filter((o) => o.status === 'reviewed').length;
-  const contactedRequests = orders.filter((o) => o.status === 'contacted').length;
-  const completedRequests = orders.filter((o) => o.status === 'completed').length;
+  const reload = useCallback(() => setNonce((n) => n + 1), []);
+  const active = FILTERS.find((f) => f.key === filter)!;
+  const shown = orders?.filter(active.match) ?? [];
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-black text-white font-inter">
+      <div className="flex min-h-screen bg-asphalt text-chalk">
         <AdminSidebar onLogout={logout} />
 
-        <main className="min-w-0 flex-1 overflow-y-auto px-5 pb-6 pt-20 md:p-14">
-          {/* Header */}
-          <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 md:mb-8 lg:mb-16">
+        <main className="min-w-0 flex-1 px-4 pb-16 pt-20 sm:px-6 md:px-10 md:pt-10 lg:px-12">
+          <header className="mb-5 flex items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter font-jakarta uppercase leading-tight">
-                Custom <span className="text-zinc-800">Requests</span>
-              </h1>
-              <p className="text-zinc-500 text-xs font-black uppercase tracking-widest mt-2 md:mt-3 flex items-center gap-3">
-                <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                Personalized wall art design requests
-              </p>
+              <h1 className="font-display text-[28px] font-bold leading-tight tracking-tight text-chalk sm:text-4xl">Custom requests</h1>
+              <p className="mt-1 text-[13px] text-smoke">From the chat assistant and the custom order form</p>
             </div>
             <button
-              onClick={loadOrders}
-              className="self-start sm:self-auto h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-xl md:rounded-2xl bg-zinc-900 border border-zinc-900 text-zinc-500 hover:text-white hover:border-zinc-700 transition-all"
+              type="button"
+              onClick={reload}
+              aria-label="Refresh"
+              className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-carbon text-smoke ring-1 ring-white/[0.08] transition-colors hover:text-chalk"
             >
-              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </header>
 
-          {/* KPI mini-cards */}
-          {!isLoading && !error && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 lg:mb-12">
-              {[
-                { label: 'Pending',      count: pendingRequests,   color: 'amber' },
-                { label: 'Under Review', count: reviewedRequests,  color: 'blue' },
-                { label: 'Contacted',    count: contactedRequests, color: 'purple' },
-                { label: 'Completed',    count: completedRequests, color: 'emerald' },
-              ].map((k, idx) => (
-                <motion.div
-                  key={k.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.08 }}
-                  className="rounded-xl md:rounded-2xl lg:rounded-3xl border border-zinc-900 bg-zinc-900/30 p-4 md:p-5 lg:p-8"
-                >
-                  <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2 md:mb-3 lg:mb-4">
-                    {k.label}
-                  </p>
-                  <p className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter font-jakarta">{k.count}</p>
-                </motion.div>
-              ))}
+          {/* Filters */}
+          <div className="-mx-4 mb-5 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Filter requests">
+            <div className="flex w-max gap-2">
+              {FILTERS.map((f) => {
+                const count = orders?.filter(f.match).length ?? 0;
+                const on = f.key === filter;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setFilter(f.key)}
+                    className={`flex h-11 items-center gap-2 rounded-full px-4 text-[14px] font-semibold transition-colors ${
+                      on ? 'bg-chalk text-asphalt' : 'bg-carbon text-smoke ring-1 ring-white/[0.08] hover:text-chalk'
+                    }`}
+                  >
+                    {f.label}
+                    <span className={`rounded-full px-1.5 text-[12px] ${on ? 'bg-asphalt/10' : 'bg-white/[0.06]'}`}>{count}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* Error */}
           {error && (
-            <div className="mb-8 rounded-2xl border border-rose-900/50 bg-rose-950/20 p-6">
-              <p className="text-rose-400 text-sm font-bold">Error: {error}</p>
+            <div className="mb-5 rounded-2xl bg-rose-500/10 px-4 py-3 ring-1 ring-rose-500/20">
+              <p className="text-[14px] text-rose-300">Error: {error}</p>
             </div>
           )}
 
-          {/* Loading */}
-          {isLoading ? (
-            <div className="flex justify-center py-32">
-              <Loader size="lg" />
-            </div>
+          {!orders ? (
+            !error && (
+              <div className="flex justify-center py-32">
+                <Loader size="lg" />
+              </div>
+            )
           ) : (
-            <div className="rounded-xl md:rounded-[2rem] lg:rounded-[2.5rem] border border-zinc-900 bg-zinc-900/20 overflow-hidden shadow-2xl">
-              <CustomOrderTable orders={orders} onOrderUpdated={loadOrders} />
-            </div>
+            <CustomOrderTable orders={shown} onOrderUpdated={reload} />
           )}
         </main>
       </div>

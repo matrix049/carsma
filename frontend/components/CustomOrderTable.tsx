@@ -1,28 +1,41 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CustomOrder, updateCustomOrderStatus } from '@/lib/apiServices';
+import { CustomOrder, RequestBrief, updateCustomOrderStatus } from '@/lib/apiServices';
 import { motion } from 'framer-motion';
 import { ChatbotBadge, ChatTranscript } from '@/components/ChatTranscript';
+import { BriefView, ContactButtons, briefFromNotes, timeAgo } from '@/components/admin/RequestBrief';
 
 interface CustomOrderTableProps {
   orders: CustomOrder[];
   onOrderUpdated: () => void;
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  pending:   'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  reviewed:  'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  contacted: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  cancelled: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-};
+const STATUSES: { value: CustomOrder['status']; label: string; badge: string }[] = [
+  { value: 'pending', label: 'New', badge: 'bg-amber-500/10 text-amber-400 ring-amber-500/20' },
+  { value: 'reviewed', label: 'Reviewed', badge: 'bg-blue-500/10 text-blue-400 ring-blue-500/20' },
+  { value: 'contacted', label: 'Contacted', badge: 'bg-purple-500/10 text-purple-400 ring-purple-500/20' },
+  { value: 'completed', label: 'Completed', badge: 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' },
+  { value: 'cancelled', label: 'Cancelled', badge: 'bg-rose-500/10 text-rose-400 ring-rose-500/20' },
+];
+
+/** The essentials for every request: who, how to reach them, and exactly what they want. */
+function briefOf(order: CustomOrder): { brief: RequestBrief; note?: string } {
+  if (order.source === 'chatbot') {
+    const brief = order.brief ?? briefFromNotes(order.notes);
+    if (brief) return { brief };
+  }
+  const car = [order.carDetails.carName, order.carDetails.model !== order.carDetails.carName ? order.carDetails.model : '']
+    .filter(Boolean)
+    .join(' ');
+  const year = order.carDetails.year && order.carDetails.year !== '—' ? ` (${order.carDetails.year})` : '';
+  return { brief: { want: `Custom piece of ${car}${year}` }, note: order.notes };
+}
 
 export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrderTableProps) {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const handleStatusChange = async (requestId: string, e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as CustomOrder['status'];
+  const handleStatusChange = async (requestId: string, newStatus: CustomOrder['status']) => {
     setUpdatingId(requestId);
     try {
       await updateCustomOrderStatus(requestId, newStatus);
@@ -37,163 +50,81 @@ export default function CustomOrderTable({ orders, onOrderUpdated }: CustomOrder
 
   if (orders.length === 0) {
     return (
-      <div className="py-24 text-center">
-        <p className="text-zinc-600 text-sm font-black uppercase tracking-widest">No custom requests found.</p>
+      <div className="rounded-2xl bg-carbon py-20 text-center ring-1 ring-white/[0.08]">
+        <p className="text-[14px] text-smoke">No custom requests here.</p>
       </div>
     );
   }
 
   return (
-    <>
-      {/* ── Desktop table (lg+) ──────────────────────────────────────── */}
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-zinc-900 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-700">
-              <th className="px-8 py-7">Date</th>
-              <th className="px-8 py-7">Customer</th>
-              <th className="px-8 py-7">Car Details</th>
-              <th className="px-8 py-7">Notes</th>
-              <th className="px-8 py-7 text-center">Status / Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-900/60">
-            {orders.map((order, idx) => (
-              <motion.tr
-                key={order._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.03 }}
-                className="hover:bg-zinc-800/10 transition-colors align-top"
-              >
-                <td className="px-8 py-7 whitespace-nowrap">
-                  <p className="text-[10px] font-bold text-zinc-400">{new Date(order.createdAt).toLocaleDateString()}</p>
-                  <p className="text-[9px] text-zinc-700 mt-0.5">{new Date(order.createdAt).toLocaleTimeString()}</p>
-                </td>
-                <td className="px-8 py-7">
-                  <p className="text-[11px] font-black uppercase tracking-tight text-white">
-                    {[order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ')}
-                  </p>
-                  <p className="text-[10px] text-zinc-500 font-bold mt-1">{order.customer.phone}</p>
-                  {order.customer.email && (
-                    <p className="text-[9px] text-zinc-700 mt-0.5">{order.customer.email}</p>
-                  )}
-                  {order.source === 'chatbot' && <ChatbotBadge />}
-                </td>
-                <td className="px-8 py-7">
-                  <p className="text-[11px] font-black text-white truncate max-w-[150px]">{order.carDetails.carName}</p>
-                  {order.carDetails.model && order.carDetails.model !== order.carDetails.carName && (
-                    <p className="text-[10px] text-zinc-500 mt-1">{order.carDetails.model}</p>
-                  )}
-                  <span className="mt-2 inline-block rounded bg-zinc-800 px-2 py-0.5 text-[9px] font-black text-zinc-400">
-                    {order.carDetails.year}
-                  </span>
-                </td>
-                <td className="px-8 py-7">
-                  <p className="text-[10px] leading-relaxed max-w-xs whitespace-pre-wrap italic text-zinc-500">
-                    {order.notes || 'No notes provided.'}
-                  </p>
-                  <ChatTranscript transcript={order.transcript} />
-                </td>
-                <td className="px-8 py-7">
-                  <div className="flex flex-col items-center gap-3">
-                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${STATUS_BADGE[order.status] || STATUS_BADGE['pending']}`}>
-                      {order.status}
-                    </span>
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order._id, e)}
-                      disabled={updatingId === order._id}
-                      className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer ${updatingId === order._id ? 'opacity-40 cursor-not-allowed' : ''}`}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                    {updatingId === order._id && (
-                      <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
-                    )}
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Mobile / tablet cards (< lg) ─────────────────────────────── */}
-      <div className="lg:hidden divide-y divide-zinc-900/60">
-        {orders.map((order, idx) => (
-          <motion.div
+    <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+      {orders.map((order, idx) => {
+        const name = [order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ');
+        const { brief, note } = briefOf(order);
+        const status = STATUSES.find((s) => s.value === order.status) ?? STATUSES[0];
+        return (
+          <motion.article
             key={order._id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.04 }}
-            className="p-5"
+            transition={{ delay: Math.min(idx, 8) * 0.03 }}
+            className={`flex min-w-0 flex-col rounded-2xl bg-carbon p-4 ring-1 sm:p-5 ${order.status === 'pending' ? 'ring-amber-500/25' : 'ring-white/[0.08]'}`}
           >
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] font-bold text-zinc-500">
-                {new Date(order.createdAt).toLocaleDateString()}
-              </p>
-              <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${STATUS_BADGE[order.status] || STATUS_BADGE['pending']}`}>
-                {order.status}
-              </span>
+            {/* Who */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-[18px] font-semibold text-chalk">{name || 'No name'}</h3>
+                <p className="mt-0.5 text-[14px] text-silver-light" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {order.customer.phone}
+                </p>
+              </div>
+              <div className="flex flex-none flex-col items-end gap-1.5">
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${status.badge}`}>{status.label}</span>
+                <time dateTime={order.createdAt} title={new Date(order.createdAt).toLocaleString()} className="text-[12px] text-smoke">
+                  {timeAgo(order.createdAt)}
+                </time>
+              </div>
             </div>
-
-            {/* Customer */}
-            <p className="text-[13px] font-black uppercase tracking-tight text-white">
-              {[order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ')}
-            </p>
-            <p className="text-[11px] text-zinc-500 font-bold mt-0.5">{order.customer.phone}</p>
-            {order.customer.email && (
-              <p className="text-[10px] text-zinc-700 mt-0.5">{order.customer.email}</p>
-            )}
             {order.source === 'chatbot' && <ChatbotBadge />}
 
-            {/* Car */}
-            <div className="mt-3 pt-3 border-t border-zinc-900/60">
-              <p className="text-[11px] font-black text-white">{order.carDetails.carName}</p>
-              <div className="flex items-center gap-2 mt-1">
-                {order.carDetails.model && order.carDetails.model !== order.carDetails.carName && (
-                  <p className="text-[10px] text-zinc-500">{order.carDetails.model}</p>
-                )}
-                <span className="rounded bg-zinc-800 px-2 py-0.5 text-[9px] font-black text-zinc-400">
-                  {order.carDetails.year}
-                </span>
-              </div>
-              {order.notes && (
-                <p className="text-[10px] italic text-zinc-600 mt-2 leading-relaxed whitespace-pre-wrap">{order.notes}</p>
+            {/* What */}
+            <div className="mt-4 rounded-xl bg-white/[0.025] p-3.5 ring-1 ring-white/[0.05]">
+              <BriefView brief={brief} />
+              {note && (
+                <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-silver" dir="auto">
+                  <span className="font-semibold text-smoke">Note: </span>
+                  {note}
+                </p>
               )}
-              <ChatTranscript transcript={order.transcript} />
             </div>
 
-            {/* Status changer */}
-            <div className="mt-4 pt-4 border-t border-zinc-900/60 flex items-center justify-between gap-4">
-              <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Update Status</p>
-              <div className="flex flex-col items-end gap-1">
+            {/* Act */}
+            <div className="mt-4 space-y-2.5">
+              <ContactButtons phone={order.customer.phone} whatsappText={`Salam ${order.customer.firstName || ''}, L7IT hna 👋 Bkhosos talab dyalek: ${brief.want}`} />
+              <label className="relative block">
+                <span className="sr-only">Status</span>
                 <select
                   value={order.status}
-                  onChange={(e) => handleStatusChange(order._id, e)}
+                  onChange={(e) => handleStatusChange(order._id, e.target.value as CustomOrder['status'])}
                   disabled={updatingId === order._id}
-                  className={`bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-[11px] font-bold text-zinc-300 focus:outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer ${updatingId === order._id ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  className="h-11 w-full cursor-pointer appearance-none rounded-full bg-carbon-2 pl-4 pr-10 text-[14px] font-medium text-chalk ring-1 ring-white/10 focus:outline-none focus:ring-xenon/60 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="reviewed">Reviewed</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  {STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.value === 'pending' ? 'Status: New' : `Status: ${s.label}`}
+                    </option>
+                  ))}
                 </select>
-                {updatingId === order._id && (
-                  <span className="text-[9px] font-bold text-blue-500 animate-pulse">Saving…</span>
-                )}
-              </div>
+                <svg className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-smoke" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d={updatingId === order._id ? 'M12 4v4m0 8v4m8-8h-4M8 12H4' : 'M6 9l6 6 6-6'} />
+                </svg>
+              </label>
             </div>
-          </motion.div>
-        ))}
-      </div>
-    </>
+
+            <ChatTranscript transcript={order.transcript} />
+          </motion.article>
+        );
+      })}
+    </div>
   );
 }

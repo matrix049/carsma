@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { IRequestBrief, RequestBriefSchema } from './requestBrief';
 
 export interface ICustomOrder extends Document {
   customer: {
@@ -18,6 +19,8 @@ export interface ICustomOrder extends Document {
   source: 'form' | 'chatbot';
   /** Chat orders keep the whole conversation for the team. */
   transcript?: { role: 'user' | 'assistant'; text: string }[];
+  /** Chat requests: what the customer wants, in one line + key details. */
+  brief?: IRequestBrief;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,6 +95,10 @@ const CustomOrderSchema = new Schema<ICustomOrder>(
           text: { type: String, required: true, maxlength: 1200 }
         }
       ],
+      default: undefined
+    },
+    brief: {
+      type: RequestBriefSchema,
       default: undefined
     }
   },

@@ -181,6 +181,11 @@ body {
 }
 
 /* ── Surfaces ────────────────────────────────────────────────────────── */
+/* Phones: room for the fixed bottom tab bar (AdminSidebar) under every page. */
+@media (max-width: 767px) {
+  .admin-shell main { padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important; }
+}
+
 .admin-shell .bg-black { background-color: #0A0A0B !important; }
 .admin-shell .bg-zinc-950,
 .admin-shell .bg-\[\#0a0a0a\],

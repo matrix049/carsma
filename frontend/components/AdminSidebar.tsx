@@ -37,11 +37,14 @@ const NAV_ITEMS = [
     href: '/admin/contact-messages',
     icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
   },
-  {
-    label: 'Ledger',
-    href: '/admin/ledger',
-    icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-  },
+];
+
+// Phone bottom bar: the four pages used every day + "More" for the rest.
+const TAB_ITEMS = [
+  { label: 'Home', href: '/admin/dashboard', icon: NAV_ITEMS[0].icon },
+  { label: 'Orders', href: '/admin/orders', icon: NAV_ITEMS[3].icon },
+  { label: 'Requests', href: '/admin/custom-orders', icon: NAV_ITEMS[4].icon },
+  { label: 'Inbox', href: '/admin/contact-messages', icon: NAV_ITEMS[5].icon },
 ];
 
 function SidebarContent({ pathname, onLogout, onClose }: { pathname: string | null; onLogout: () => void; onClose?: () => void }) {
@@ -110,8 +113,8 @@ function SidebarContent({ pathname, onLogout, onClose }: { pathname: string | nu
             A
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-chalk">Amine</p>
-            <p className="text-xs text-smoke">Master Admin</p>
+            <p className="truncate text-sm font-semibold text-chalk">Admin</p>
+            <p className="text-xs text-smoke">L7IT team</p>
           </div>
           <button
             onClick={() => { onClose?.(); onLogout(); }}
@@ -136,12 +139,6 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  // Ensure component is mounted (for portal)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -195,8 +192,48 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         </button>
       </div>
 
+      {/* ── Mobile bottom tabs ───────────────────────── */}
+      <nav
+        aria-label="Admin shortcuts"
+        className="fixed inset-x-0 bottom-0 z-[70] border-t border-white/[0.08] bg-[#0E0F11]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+      >
+        <div className="grid grid-cols-5">
+          {TAB_ITEMS.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors ${active ? 'text-chalk' : 'text-smoke'}`}
+              >
+                <svg className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d={item.icon} />
+                </svg>
+                {item.label}
+                <span aria-hidden="true" className={`h-1 w-1 rounded-full ${active ? 'bg-xenon shadow-[0_0_8px_#8FCBFF]' : 'bg-transparent'}`} />
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              TAB_ITEMS.some((t) => t.href === pathname) ? 'text-smoke' : 'text-chalk'
+            }`}
+          >
+            <svg className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth="3" />
+            </svg>
+            More
+            <span aria-hidden="true" className="h-1 w-1" />
+          </button>
+        </div>
+      </nav>
+
       {/* ── Mobile drawer overlay ────────────────────── */}
-      {mobileOpen && mounted && createPortal(
+      {/* Only opened by a tap, so document.body exists. */}
+      {mobileOpen && createPortal(
         <div className="admin-shell fixed inset-0 z-[9999] flex md:hidden" style={{ background: 'transparent' }}>
           {/* Backdrop */}
           <div

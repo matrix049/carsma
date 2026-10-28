@@ -4,6 +4,7 @@ import CustomOrder from '../models/CustomOrder';
 import { notifyNewContactMessage, notifyNewCustomOrder } from '../services/notificationService';
 import { generate, GeminiContent, GeminiUnavailableError } from '../services/geminiClient';
 import { SHOP_FACTS, getCatalog, catalogText } from '../services/shopKnowledge';
+import { IRequestBrief } from '../models/requestBrief';
 
 type Role = 'user' | 'assistant';
 interface Turn {
@@ -145,27 +146,72 @@ export async function chat(req: Request, res: Response): Promise<void> {
   }
 }
 
-/** Short English notes for the team; falls back to the raw details when the AI is busy. */
-async function summarise(transcript: Turn[], details: string[]): Promise<string> {
+const BRIEF_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    want: { type: 'STRING' },
+    piece: { type: 'STRING' },
+    side: { type: 'STRING' },
+    style: { type: 'STRING' },
+    colour: { type: 'STRING' },
+    size: { type: 'STRING' },
+    price: { type: 'STRING' },
+    pending: { type: 'STRING' },
+  },
+  required: ['want'],
+};
+
+const BRIEF_KEYS = ['piece', 'side', 'style', 'colour', 'size', 'price', 'pending'] as const;
+const EMPTY_VALUE = /^(-|n\/?a|none|null|unknown|not (stated|mentioned|specified))\.?$/i;
+
+/**
+ * The card the team reads first: one English sentence saying exactly what the
+ * customer wants, plus the key details. Falls back to the customer's own
+ * recap when the AI is busy.
+ */
+async function makeBrief(kind: 'order' | 'question', transcript: Turn[], details: string[], item?: string): Promise<IRequestBrief> {
   const conversation = transcript.map((t) => `${t.role === 'user' ? 'Customer' : 'Assistant'}: ${t.text}`).join('\n');
+  const want =
+    kind === 'order'
+      ? '"want": ONE short sentence (max 25 words) saying exactly what the customer ordered, e.g. "3D piece of a black BMW M4 G82, side view, 120 x 35 cm." or "The G-Class AMG G63 3D edition from the catalogue (399 MAD)."'
+      : '"want": ONE short sentence (max 25 words) saying exactly what the customer asked or needs from the team.';
   try {
-    return await generate({
+    const raw = await generate({
       system:
-        'You write short hand-off notes for the L7IT team (automotive wall art shop). Read the conversation between a customer and the shop assistant. ' +
-        "Write in English, plain text, at most 8 lines, each starting with '- '. Cover what the customer wants (item, car make/model/year, side, 2D or 3D, colour, size) when mentioned, " +
-        'the questions the assistant could not answer, and what the customer is waiting for. Mention the language the customer used. Never invent details.',
+        'You write the request card for the L7IT team (a Moroccan shop selling automotive wall art pieces in 2D and 3D). Read the conversation between a customer and the shop assistant. ' +
+        'Write in English. Never invent anything that is not in the conversation.\n' +
+        `${want}\n` +
+        'Other fields, only when the conversation states them, otherwise an empty string: "piece" (car make/model/year, logo, or catalogue piece name), "side" (front, side or rear), ' +
+        '"style" (2D or 3D), "colour", "size", "price" (only a price the assistant quoted), "pending" (what the customer still waits for from the team, e.g. "Confirm if red is possible"). ' +
+        'Keep each field under 8 words.',
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${details.length ? `Request details:\n${details.join('\n')}\n\n` : ''}Conversation:\n${conversation}` }],
+          parts: [{ text: `${details.length ? `Customer's recap:\n${details.join('\n')}\n\n` : ''}Conversation:\n${conversation}` }],
         },
       ],
-      temperature: 0.2,
+      schema: BRIEF_SCHEMA,
+      temperature: 0.1,
       deadlineMs: 20_000,
     });
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const sentence = typeof parsed.want === 'string' ? parsed.want.trim() : '';
+    if (!sentence) throw new Error('empty brief');
+    const brief: IRequestBrief = { want: sentence.slice(0, 300) };
+    for (const key of BRIEF_KEYS) {
+      const value = typeof parsed[key] === 'string' ? (parsed[key] as string).trim() : '';
+      if (value && !EMPTY_VALUE.test(value)) brief[key] = value.slice(0, 300);
+    }
+    return brief;
   } catch {
-    return fallbackSummary(transcript, details);
+    return fallbackBrief(transcript, details, item);
   }
+}
+
+function fallbackBrief(transcript: Turn[], details: string[], item?: string): IRequestBrief {
+  const lastAsk = [...transcript].reverse().find((t) => t.role === 'user')?.text || '';
+  const want = (details.length ? details.join(' · ') : lastAsk || item || 'See the conversation').slice(0, 300);
+  return item ? { want, piece: item.slice(0, 300) } : { want };
 }
 
 function fallbackSummary(transcript: Turn[], details: string[]): string {
@@ -187,7 +233,7 @@ function readContact(body: any): { name: string; phone: string; error?: string }
 /**
  * Send a question to the team: saves a Contact Message (source "chatbot")
  * with the full transcript and pings the admin. The customer gets an
- * answer straight away; the AI summary is filled in afterwards.
+ * answer straight away; the English request card is filled in afterwards.
  * POST /api/chat/handoff   { name, phone, note?, language?, messages, details? }
  */
 export async function handoff(req: Request, res: Response): Promise<void> {
@@ -214,6 +260,7 @@ export async function handoff(req: Request, res: Response): Promise<void> {
       status: 'unread',
       source: 'chatbot',
       transcript,
+      brief: fallbackBrief(transcript, details),
     });
 
     res.status(201).json({ success: true, messageId: saved._id });
@@ -223,8 +270,8 @@ export async function handoff(req: Request, res: Response): Promise<void> {
       phone,
       messagePreview: `[Chatbot] ${quick.replace(/\s+/g, ' ').slice(0, 100)}`,
     }).catch(() => {});
-    const summary = await summarise(transcript, details);
-    await ContactMessage.updateOne({ _id: saved._id }, { message: compose(summary) }).catch(() => {});
+    const brief = await makeBrief('question', transcript, details);
+    await ContactMessage.updateOne({ _id: saved._id }, { brief }).catch(() => {});
   } catch (err: any) {
     console.error('Chat hand-off error:', err);
     if (res.headersSent) return;
@@ -239,7 +286,7 @@ export async function handoff(req: Request, res: Response): Promise<void> {
 /**
  * The customer confirmed an order in the chat: saves a Custom Order
  * (source "chatbot") with their recap and the conversation, and pings the
- * admin. Team notes in English are added in the background.
+ * admin. The English request card (brief) is filled in the background.
  * POST /api/chat/order   { name, phone, language, summary: string[], item?, messages }
  */
 export async function confirmOrder(req: Request, res: Response): Promise<void> {
@@ -259,26 +306,28 @@ export async function confirmOrder(req: Request, res: Response): Promise<void> {
   const everything = [item, ...summary, ...transcript.filter((t) => t.role === 'user').map((t) => t.text)].join(' ');
   const year = everything.match(/\b(19[5-9]\d|20[0-4]\d)\b/)?.[1] || '—';
   const language = LANGUAGE_NAMES[req.body?.language] || 'not chosen';
-  const recap = summary.map((l) => `• ${l}`).join('\n');
-  const compose = (teamNotes?: string) =>
-    [`Confirmed in the chat assistant · language: ${language}`, '', teamNotes ? `${teamNotes}\n\nCustomer's recap:` : "Customer's recap:", recap]
-      .join('\n')
-      .slice(0, 2000);
+  const notes = [`Confirmed in the chat assistant · language: ${language}`, '', "Customer's recap:", ...summary.map((l) => `• ${l}`)]
+    .join('\n')
+    .slice(0, 2000);
 
   try {
     const saved = await CustomOrder.create({
       customer: { firstName: name, lastName: '', phone },
       carDetails: { carName: item.slice(0, 120), model: '', year },
-      notes: compose(),
+      notes,
       source: 'chatbot',
       transcript,
+      brief: fallbackBrief(transcript, summary, item),
     });
 
     res.status(201).json({ success: true, orderId: saved._id });
 
     await notifyNewCustomOrder({ customerName: name, carName: `${item.slice(0, 60)} (chat)`, model: '', year }).catch(() => {});
-    const teamNotes = await summarise(transcript, summary);
-    await CustomOrder.updateOne({ _id: saved._id }, { notes: compose(teamNotes) }).catch(() => {});
+    const brief = await makeBrief('order', transcript, summary, item);
+    await CustomOrder.updateOne(
+      { _id: saved._id },
+      brief.piece ? { brief, 'carDetails.carName': brief.piece.slice(0, 120) } : { brief }
+    ).catch(() => {});
   } catch (err: any) {
     console.error('Chat order error:', err);
     if (res.headersSent) return;

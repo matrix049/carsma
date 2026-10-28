@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ConditionalShell from "@/components/ConditionalShell";
 import MetaPageTracker from "@/components/MetaPageTracker";
+import SiteTracker from "@/components/SiteTracker";
 import { LEGACY_POLYFILLS } from "@/lib/legacyPolyfills";
 
 const CLARITY_PROJECT_ID = "wkug7mu05f";
@@ -97,6 +98,7 @@ fbq('track', 'PageView');
           />
         </noscript>
         <MetaPageTracker />
+        <SiteTracker />
         <LanguageProvider>
           <AuthProvider>
             <CartProvider>

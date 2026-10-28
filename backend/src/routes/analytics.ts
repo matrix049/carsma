@@ -1,45 +1,36 @@
 import express from 'express';
-import { trackPageView, getAnalyticsStats } from '../controllers/analyticsController';
+import { getAnalyticsStats, getOverviewStats } from '../controllers/analyticsController';
+import { trackPageView, trackEvent } from '../controllers/trackingController';
 import { authenticateToken } from '../middleware/auth';
+import { rateLimit } from '../middleware/rateLimit';
 
 const router = express.Router();
 
-/**
- * Public endpoint for tracking page views
- * POST /api/analytics/track
- * 
- * Body: {
- *   pageType: string,
- *   productId?: string,
- *   sessionId: string
- * }
- */
-router.post('/track', trackPageView);
+// Beacons arrive as text/plain (see trackingController); JSON is parsed globally.
+const beaconBody = express.text({ type: 'text/plain', limit: '2kb' });
+const trackLimit = rateLimit({ windowMs: 60 * 1000, max: 120, message: 'Too many tracking calls' });
 
 /**
- * Protected endpoint for retrieving analytics statistics
+ * Public: a storefront page was opened
+ * POST /api/analytics/track  { pageType, productId?, sessionId, path?, device?, landing?, source? }
+ */
+router.post('/track', trackLimit, beaconBody, trackPageView);
+
+/**
+ * Public: a click or action on the storefront
+ * POST /api/analytics/event  { type, sessionId, productId?, page?, device? }
+ */
+router.post('/event', trackLimit, beaconBody, trackEvent);
+
+/**
+ * Admin: everything the dashboard shows for one period
+ * GET /api/analytics/overview?range=today|7d|30d|90d[&fresh=1]
+ */
+router.get('/overview', authenticateToken, getOverviewStats);
+
+/**
+ * Admin: legacy all-time visitor + product view counts
  * GET /api/analytics/stats
- * 
- * Requires: Admin authentication
- * 
- * Response: {
- *   success: boolean,
- *   data: {
- *     visitorStats: {
- *       totalVisits: number,
- *       last24Hours: number,
- *       last7Days: number
- *     },
- *     productStats: Array<{
- *       productId: string,
- *       productName: string,
- *       productImage: string,
- *       productCategory?: string,
- *       viewCount: number,
- *       percentage: number
- *     }>
- *   }
- * }
  */
 router.get('/stats', authenticateToken, getAnalyticsStats);
 

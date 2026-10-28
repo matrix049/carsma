@@ -9,6 +9,7 @@ import WhatsAppIcon from '@/components/WhatsAppIcon';
 import { hideBrokenImage } from '@/components/ProductCard';
 import { ChatReply, ChatTurn, fetchProducts, sendChatHandoff, sendChatMessage, sendChatOrder } from '@/lib/apiServices';
 import { whatsappLink, inputField } from '@/lib/uiStyles';
+import { trackEvent } from '@/lib/tracker';
 import {
   CHAT_LANGUAGES,
   CHIP_TOPICS,
@@ -337,6 +338,7 @@ export default function ChatBot({ inputId = 'chat-input' }: { inputId?: string }
   };
 
   const pickLanguage = (l: ChatLang) => {
+    trackEvent('chat_open');
     setLang(l);
     setMsgs([{ id: uid(), role: 'assistant', text: STRINGS[l].hello }]);
     setFlow(null);

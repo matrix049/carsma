@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { DEVICES, Device } from './SiteEvent';
 
 // Interface for PageView document
 export interface IPageView extends Document {
@@ -8,6 +9,11 @@ export interface IPageView extends Document {
   sessionId: string;
   userAgent?: string;
   ipAddress?: string;
+  /** Site-wide tracking (Oct 2026+): the path, the kind of screen, and for the first page of a visit where the visitor came from. */
+  path?: string;
+  device?: Device;
+  landing?: boolean;
+  source?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +51,11 @@ const PageViewSchema = new Schema<IPageView>({
   ipAddress: {
     type: String,
     maxlength: 45 // IPv6 max length
-  }
+  },
+  path: { type: String, maxlength: 200 },
+  device: { type: String, enum: DEVICES },
+  landing: { type: Boolean },
+  source: { type: String, maxlength: 60 }
 }, {
   timestamps: true
 });

@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 import { fetchProducts, peekProducts, Product } from '@/lib/apiServices';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import AnalyticsService from '@/lib/analyticsService';
 import { trackViewContent } from '@/lib/metaPixel';
 import { btnPrimary, btnGhostDark, kickerLabel, whatsappLink } from '@/lib/uiStyles';
 import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
@@ -135,15 +134,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     };
   }, [id]);
 
-  // Track each product view once (a cached render followed by the refresh
-  // is still one view).
+  // Meta pixel: each product view once (a cached render followed by the
+  // refresh is still one view). Our own view count comes from SiteTracker.
   useEffect(() => {
     if (!product || trackedRef.current === product._id) return;
     trackedRef.current = product._id;
-    AnalyticsService.trackProductView(product._id).catch((err: unknown) => {
-      // Analytics failures should not affect user experience
-      console.warn('Product view tracking failed:', err);
-    });
     trackViewContent({
       productId: product._id,
       name: product.name,

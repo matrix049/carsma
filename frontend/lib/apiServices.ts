@@ -101,6 +101,19 @@ export interface UpdateOrderStatusResponse {
   order: Order;
 }
 
+/** The short card the chat assistant writes for the team. */
+export interface RequestBrief {
+  want: string;
+  piece?: string;
+  side?: string;
+  style?: string;
+  colour?: string;
+  size?: string;
+  price?: string;
+  /** What the customer still waits for from the team. */
+  pending?: string;
+}
+
 export interface CustomOrder {
   _id: string;
   customer: {
@@ -119,6 +132,8 @@ export interface CustomOrder {
   /** "chatbot" when confirmed in the chat assistant. */
   source?: 'form' | 'chatbot';
   transcript?: ChatTurn[];
+  /** Chat requests: what the customer wants in one line + key details. */
+  brief?: RequestBrief;
   createdAt: string;
   updatedAt: string;
 }
@@ -137,12 +152,6 @@ export interface CreateCustomOrderRequest {
   notes?: string;
 }
 
-export interface DashboardStats {
-  totalRevenue: number;
-  orderCount: number;
-  pendingOrders: number;
-}
-
 export interface ContactMessage {
   _id: string;
   customer: {
@@ -156,6 +165,8 @@ export interface ContactMessage {
   /** "chatbot" for hand-offs from the chat assistant. Older records have none. */
   source?: 'form' | 'chatbot';
   transcript?: ChatTurn[];
+  /** Chat requests: what the customer wants in one line + key details. */
+  brief?: RequestBrief;
   createdAt: string;
   updatedAt: string;
 }
@@ -267,24 +278,6 @@ export async function fetchOrders(): Promise<Order[]> {
     true // Requires authentication
   );
   return response.orders;
-}
-
-/**
- * Fetch dashboard analytics/stats
- * @returns DashboardStats object
- */
-export async function fetchStats(): Promise<DashboardStats> {
-  const orders = await fetchOrders();
-  const totalRevenue = orders
-    .filter(o => o.status === 'confirmed' || o.status === 'delivered')
-    .reduce((acc, order) => acc + order.totalPrice, 0);
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  
-  return {
-    totalRevenue,
-    orderCount: orders.length,
-    pendingOrders
-  };
 }
 
 /**
@@ -586,72 +579,78 @@ export async function deleteProduct(productId: string): Promise<{ success: boole
 }
 
 // ============================================================================
-// Ledger / Bookkeeping (Admin only)
+// Dashboard numbers (Admin only)
 // ============================================================================
 
-export type LedgerStatus = 'payee' | 'annuler' | 'en_attente' | null;
-export type LedgerSource = 'manual' | 'whatsapp' | 'instagram' | 'website' | 'other';
+export type StatsRange = 'today' | '7d' | '30d' | '90d';
 
-export interface LedgerEntry {
+export interface Compare {
+  current: number;
+  previous: number;
+}
+
+export interface ProductPerformance {
   _id: string;
-  date: string;
-  cost: number;
-  commande: string;
-  city: string;
-  deliveryCost: number;
-  customerOwes: number;
-  status: LedgerStatus;
-  totalDhs: number | null;
-  apport: number;
-  source: LedgerSource;
-  notes: string;
-  /** Set when this row mirrors a website Order; null for manually-entered rows. */
-  orderRef?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  name: string;
+  image: string;
+  price: number;
+  category: string;
+  stockQuantity: number | null;
+  inStock: boolean;
+  views: number;
+  visitors: number;
+  clicks: number;
+  addToCart: number;
+  sold: number;
+  revenue: number;
 }
 
-export interface LedgerEntryInput {
-  date: string;
-  cost?: number;
-  commande?: string;
-  city?: string;
-  deliveryCost?: number;
-  customerOwes?: number;
-  status?: LedgerStatus;
-  totalDhs?: number | null;
-  apport?: number;
-  source?: LedgerSource;
-  notes?: string;
-  orderRef?: string | null;
+export interface Overview {
+  range: { key: StatsRange; days: number; from: string; to: string; bucket: 'hour' | 'day'; timeZone: string };
+  /** First page view of the site-wide tracker; before it only product views were counted. */
+  trackingSince: string | null;
+  kpis: {
+    revenue: Compare;
+    orders: Compare;
+    avgOrder: Compare;
+    visitors: Compare;
+    pageViews: Compare;
+    /** Orders ÷ visitors, in %. */
+    conversion: Compare;
+  };
+  /** One row per hour (today) or per day, oldest first, in Moroccan time. */
+  series: { key: string; orders: number; revenue: number; visitors: number; pageViews: number }[];
+  orderStatus: { pending: number; confirmed: number; delivered: number; cancelled: number };
+  pendingValue: number;
+  funnel: { visitors: number; viewedProduct: number; addedToCart: number; checkout: number; orders: number };
+  actions: {
+    productClicks: Compare;
+    addToCart: Compare;
+    whatsapp: Compare;
+    calls: Compare;
+    instagram: Compare;
+    chats: Compare;
+  };
+  requests: { chatOrders: number; chatQuestions: number; formRequests: number; formMessages: number };
+  devices: { device: string; visitors: number }[];
+  sources: { source: string; visits: number }[];
+  pages: { page: string; views: number; visitors: number }[];
+  cities: { city: string; orders: number }[];
+  products: ProductPerformance[];
+  inbox: {
+    pendingOrders: number;
+    newCustomOrders: number;
+    unreadMessages: number;
+    soldOut: number;
+    lowStock: { _id: string; name: string; stockQuantity: number }[];
+  };
 }
 
-export async function fetchLedger(): Promise<LedgerEntry[]> {
-  const res = await apiRequest<{ entries: LedgerEntry[] }>('/api/ledger', { method: 'GET' }, true);
-  return res.entries;
-}
-
-export async function createLedgerEntry(input: LedgerEntryInput): Promise<LedgerEntry> {
-  const res = await apiRequest<{ entry: LedgerEntry }>(
-    '/api/ledger',
-    { method: 'POST', body: JSON.stringify(input) },
+export async function fetchOverview(range: StatsRange, fresh = false): Promise<Overview> {
+  const res = await apiRequest<{ success: boolean; data: Overview }>(
+    `/api/analytics/overview?range=${range}${fresh ? '&fresh=1' : ''}`,
+    { method: 'GET' },
     true,
   );
-  return res.entry;
-}
-
-export async function updateLedgerEntry(
-  id: string,
-  patch: Partial<LedgerEntryInput>,
-): Promise<LedgerEntry> {
-  const res = await apiRequest<{ entry: LedgerEntry }>(
-    `/api/ledger/${id}`,
-    { method: 'PUT', body: JSON.stringify(patch) },
-    true,
-  );
-  return res.entry;
-}
-
-export async function deleteLedgerEntry(id: string): Promise<{ success: boolean }> {
-  return apiRequest<{ success: boolean }>(`/api/ledger/${id}`, { method: 'DELETE' }, true);
+  return res.data;
 }
