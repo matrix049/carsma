@@ -82,6 +82,8 @@ export default function CustomizePage() {
         notes: noteParts.join('\n'),
       });
       setSuccess(true);
+      // The form is long on phones: bring the confirmation into view.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setError(err.message || t('somethingWentWrong'));
     } finally {
@@ -146,7 +148,7 @@ export default function CustomizePage() {
               href={whatsappLink('Salam L7it, bghit lawha custom dyal tomobil dyali.')}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-silver transition-colors hover:text-chalk"
+              className="mt-10 inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-silver transition-colors hover:text-chalk"
             >
               <WhatsAppIcon className="h-4 w-4" />
               Prefer WhatsApp? Send us a photo

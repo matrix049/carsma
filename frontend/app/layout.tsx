@@ -9,6 +9,7 @@ import ConditionalShell from "@/components/ConditionalShell";
 import MetaPageTracker from "@/components/MetaPageTracker";
 import SiteTracker from "@/components/SiteTracker";
 import { LEGACY_POLYFILLS } from "@/lib/legacyPolyfills";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, INSTAGRAM_URL, KEYWORDS, SITE_NAME, SITE_URL, WHATSAPP_PHONE } from "@/lib/seo";
 
 const CLARITY_PROJECT_ID = "wkug7mu05f";
 const META_PIXEL_ID = "1634924527624582";
@@ -47,8 +48,42 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "L7it - الحيط",
-  description: "Automotive wall art for people who dream in horsepower. Made in Salé, delivered across Morocco.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: DEFAULT_TITLE, template: "%s · L7IT" },
+  description: DEFAULT_DESCRIPTION,
+  keywords: KEYWORDS,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "L7IT · الحيط",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: "/",
+    locale: "fr_MA",
+    alternateLocale: ["ar_MA", "en_US"],
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "L7IT car wall art on a wall" }],
+  },
+  twitter: { card: "summary_large_image", title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, images: ["/og.jpg"] },
+  robots: { index: true, follow: true },
+};
+
+/** Who we are, for Google: an online shop in Salé that ships across Morocco. */
+const ORGANIZATION_LD = {
+  "@context": "https://schema.org",
+  "@type": "Store",
+  name: SITE_NAME,
+  alternateName: "L7IT · الحيط",
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.svg`,
+  image: `${SITE_URL}/og.jpg`,
+  description: DEFAULT_DESCRIPTION,
+  telephone: WHATSAPP_PHONE,
+  address: { "@type": "PostalAddress", addressLocality: "Salé", addressCountry: "MA" },
+  areaServed: { "@type": "Country", name: "Morocco" },
+  paymentAccepted: "Cash on delivery",
+  currenciesAccepted: "MAD",
+  sameAs: [INSTAGRAM_URL],
 };
 
 export const viewport = {
@@ -97,6 +132,7 @@ fbq('track', 'PageView');
             alt=""
           />
         </noscript>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_LD) }} />
         <MetaPageTracker />
         <SiteTracker />
         <LanguageProvider>

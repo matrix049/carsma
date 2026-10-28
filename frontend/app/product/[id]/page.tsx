@@ -205,9 +205,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="mx-auto max-w-[1440px] px-5 pt-24 sm:px-6 md:pt-32 lg:px-10">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-smoke md:mb-10">
-          <Link href="/" className="hover:text-chalk">{t('home')}</Link>
+          <Link href="/" className="-my-3 py-3 hover:text-chalk">{t('home')}</Link>
           <span aria-hidden="true">/</span>
-          <Link href="/shop" className="hover:text-chalk">{t('shop')}</Link>
+          <Link href="/shop" className="-my-3 py-3 hover:text-chalk">{t('shop')}</Link>
           <span aria-hidden="true">/</span>
           <span className="text-silver">{product.name}</span>
         </nav>
@@ -359,13 +359,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <SpecTile label="Delivery" labelAr="التوصيل" value="48h – 3 days" />
               <SpecTile label="Mount" labelAr="التعليق" value="Double-sided tape" />
             </div>
-            {edition ? (
+            {edition && (
               <p className="mt-2.5 text-xs text-smoke">
                 One size only — the {edition.title} is made in {dimensionsLabel.replace(/\s*x\s*/i, ' × ')}, no other sizes.{' '}
                 <span className="font-ar">مقاس واحد فقط.</span>
               </p>
-            ) : (
-              <p className="mt-2.5 text-xs text-smoke">120 × 50 cm or a custom size? Message us before ordering.</p>
             )}
 
             {/* Quantity */}
