@@ -31,6 +31,7 @@ export default function AdminProductsPage() {
     category: '',
     inStock: true,
     dimensions: DEFAULT_DIMENSIONS,
+    stockQuantity: '',
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -80,6 +81,7 @@ export default function AdminProductsPage() {
         category: product.category,
         inStock: product.inStock,
         dimensions: product.dimensions || DEFAULT_DIMENSIONS,
+        stockQuantity: typeof product.stockQuantity === 'number' ? String(product.stockQuantity) : '',
       });
       setPreviewUrl(product.image);
     } else {
@@ -92,6 +94,7 @@ export default function AdminProductsPage() {
         category: '',
         inStock: true,
         dimensions: DEFAULT_DIMENSIONS,
+        stockQuantity: '',
       });
       setPreviewUrl('');
     }
@@ -112,6 +115,7 @@ export default function AdminProductsPage() {
       category: '',
       inStock: true,
       dimensions: DEFAULT_DIMENSIONS,
+      stockQuantity: '',
     });
   };
 
@@ -157,6 +161,8 @@ export default function AdminProductsPage() {
         category: formData.category.trim(),
         inStock: formData.inStock,
         dimensions: formData.dimensions.trim() || DEFAULT_DIMENSIONS,
+        // Empty = stock not tracked (made to order).
+        stockQuantity: formData.stockQuantity.trim() === '' ? null : Math.max(0, Math.floor(Number(formData.stockQuantity))),
       };
 
       if (editingProduct) {
@@ -432,6 +438,11 @@ export default function AdminProductsPage() {
                             <p className="text-[10px] md:text-xs text-zinc-700 font-bold mt-1">
                               {product.dimensions || '120cm x 35cm'}
                             </p>
+                            {typeof product.stockQuantity === 'number' && (
+                              <p className={`text-[10px] md:text-xs font-bold mt-1 ${product.stockQuantity > 0 ? 'text-zinc-400' : 'text-rose-400'}`}>
+                                {product.stockQuantity > 0 ? `${product.stockQuantity} pieces left` : 'Sold out (0 left)'}
+                              </p>
+                            )}
                           </div>
                           <div className={`h-2.5 w-2.5 md:h-3 md:w-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
                         </div>
@@ -537,7 +548,7 @@ export default function AdminProductsPage() {
                       />
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                         <span>Quick fill:</span>
-                        {['120cm x 35cm', '120cm x 50cm', '150cm x 40cm'].map((preset) => (
+                        {['120cm x 35cm', '120cm x 50cm', '120cm x 75cm', '150cm x 40cm'].map((preset) => (
                           <button
                             key={preset}
                             type="button"
@@ -632,6 +643,27 @@ export default function AdminProductsPage() {
                       />
                       <p className="text-xs text-zinc-600 mt-1.5">
                         Required. Keep it short — one or two sentences customers read before buying.
+                      </p>
+                    </div>
+
+                    {/* Pieces in stock — only for counted pieces like the 3D editions */}
+                    <div>
+                      <label className="block text-sm font-bold text-zinc-400 mb-2">
+                        Pieces in stock <span className="font-normal text-zinc-600">(optional)</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="stockQuantity"
+                        min={0}
+                        step={1}
+                        inputMode="numeric"
+                        value={formData.stockQuantity}
+                        onChange={handleInputChange}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-600 transition-all"
+                        placeholder="Leave empty if made to order"
+                      />
+                      <p className="text-xs text-zinc-600 mt-2">
+                        Shown as &ldquo;Only N left&rdquo;. At 0 the piece shows as sold out and can&apos;t be ordered. Leave empty for made-to-order pieces.
                       </p>
                     </div>
 

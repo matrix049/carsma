@@ -8,6 +8,7 @@ import { getPinnedIndex } from '@/lib/pinnedProducts';
 import { isNewEdition } from '@/lib/newEditions';
 import { dimensionsOf, parseDimensions } from '@/lib/dimensions';
 import { brandOf } from '@/lib/brands';
+import { isAvailable, piecesLeft } from '@/lib/stock';
 import TransitionLink from '@/components/TransitionLink';
 import BrandLogo from '@/components/BrandLogo';
 import Plate from '@/components/Plate';
@@ -36,6 +37,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const dimensions = dimensionsOf(product);
   const dims = parseDimensions(dimensions);
   const brand = brandOf(product);
+  const available = isAvailable(product);
+  const left = piecesLeft(product);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,7 +82,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
 
-            {!product.inStock && (
+            {available && left !== undefined && left <= 20 && (
+              <span className="absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-chalk backdrop-blur-md sm:bottom-3 sm:right-3">
+                {left} left
+              </span>
+            )}
+
+            {!available && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-asphalt/70 backdrop-blur-[2px]">
                 <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-chalk ring-1 ring-white/20">
                   {t('outOfStock')}
@@ -102,10 +111,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <button
         onClick={handleAddToCart}
-        disabled={!product.inStock}
+        disabled={!available}
         className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white/[0.04] px-3 py-2.5 text-[12px] font-semibold text-chalk ring-1 ring-inset ring-white/15 transition-colors duration-200 hover:bg-chalk hover:text-asphalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xenon disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/[0.04] disabled:hover:text-chalk"
       >
-        {product.inStock ? (
+        {available ? (
           <>
             <span className="whitespace-nowrap">{t('addToCart')}</span>
             <span className="hidden whitespace-nowrap font-ar text-[12px] font-normal opacity-70 sm:inline">· زيد للسلة</span>

@@ -134,6 +134,9 @@ const startServer = async () => {
       } catch (e) {
         console.error('⚠ Admin sync failed:', e);
       }
+      // One-time data changes (e.g. adding the 3D editions); each runs once.
+      const { runDataMigrations } = await import('./services/dataMigrations');
+      await runDataMigrations();
     })
     .catch((error) => {
       console.error('✗ MongoDB connection failed:', error.message);

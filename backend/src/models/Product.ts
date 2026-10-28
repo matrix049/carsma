@@ -13,6 +13,11 @@ export interface IProduct extends Document {
    * can override per product (e.g. larger format for the G-Class).
    */
   dimensions: string;
+  /**
+   * Pieces left, when the shop tracks it (e.g. the limited 3D editions).
+   * null/absent = not tracked. 0 = sold out.
+   */
+  stockQuantity?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +55,11 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
       trim: true,
       default: '120cm x 35cm'
+    },
+    stockQuantity: {
+      type: Number,
+      min: [0, 'Stock cannot be negative'],
+      default: null
     }
   },
   {

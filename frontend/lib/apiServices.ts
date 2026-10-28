@@ -22,6 +22,8 @@ export interface Product {
    * `120cm x 35cm` on the backend; admins can override per product.
    */
   dimensions?: string;
+  /** Pieces left when tracked (the limited 3D editions); null/absent = not tracked, 0 = sold out. */
+  stockQuantity?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -522,6 +524,7 @@ export async function createProduct(productData: {
   category: string;
   inStock?: boolean;
   dimensions?: string;
+  stockQuantity?: number | null;
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     '/api/products',
@@ -549,6 +552,7 @@ export async function updateProduct(productId: string, productData: {
   category: string;
   inStock?: boolean;
   dimensions?: string;
+  stockQuantity?: number | null;
 }): Promise<Product> {
   const response = await apiRequest<{ success: boolean; product: Product }>(
     `/api/products/${productId}`,

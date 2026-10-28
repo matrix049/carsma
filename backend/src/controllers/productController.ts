@@ -52,13 +52,22 @@ export async function getProductById(req: Request, res: Response): Promise<void>
 }
 
 /**
+ * "6" → 6, "" / null → null (stock not tracked). Anything else invalid → null.
+ */
+function parseStock(value: unknown): number | null {
+  if (value === null || value === '' || value === undefined) return null;
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+/**
  * Create new product
  * POST /api/products
  * Admin only
  */
 export async function createProduct(req: Request, res: Response): Promise<void> {
   try {
-    const { name, price, image, description, category, inStock, dimensions } = req.body;
+    const { name, price, image, description, category, inStock, dimensions, stockQuantity } = req.body;
 
     // Validate required fields
     if (!name || !price || !image || !category) {
@@ -79,7 +88,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       description: description?.trim() || '',
       category: category.trim(),
       inStock: inStock !== undefined ? Boolean(inStock) : true,
-      dimensions: trimmedDimensions || '120cm x 35cm'
+      dimensions: trimmedDimensions || '120cm x 35cm',
+      stockQuantity: parseStock(stockQuantity)
     });
 
     res.status(201).json({
@@ -104,7 +114,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, price, image, description, category, inStock, dimensions } = req.body;
+    const { name, price, image, description, category, inStock, dimensions, stockQuantity } = req.body;
 
     // Find and update product
     const product = await Product.findByIdAndUpdate(
@@ -118,7 +128,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
         ...(inStock !== undefined && { inStock: Boolean(inStock) }),
         ...(typeof dimensions === 'string' && dimensions.trim()
           ? { dimensions: dimensions.trim() }
-          : {})
+          : {}),
+        ...(stockQuantity !== undefined && { stockQuantity: parseStock(stockQuantity) })
       },
       { new: true, runValidators: true }
     );

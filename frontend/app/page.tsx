@@ -15,6 +15,8 @@ import { btnPrimary, btnGhostDark, kickerLabel, h2Display, whatsappLink } from '
 import { applyPin } from '@/lib/pinnedProducts';
 import { NEW_EDITIONS, NewEdition, matchEditions, isNewEdition } from '@/lib/newEditions';
 import { brandOf, findBrand } from '@/lib/brands';
+import { dimensionsOf } from '@/lib/dimensions';
+import { isAvailable, piecesLeft } from '@/lib/stock';
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -94,6 +96,9 @@ function BrandRail({ categories }: { categories: string[] }) {
 
 function EditionStage({ edition, product }: { edition: NewEdition; product?: Product }) {
   const brand = brandOf(product ?? { name: edition.title });
+  const size = dimensionsOf(product ?? { name: edition.title }).replace(/\s*x\s*/i, ' × ');
+  const available = isAvailable(product);
+  const left = piecesLeft(product);
 
   const stage = (
     <div className="relative aspect-[4/3] overflow-hidden bg-carbon-2">
@@ -121,9 +126,16 @@ function EditionStage({ edition, product }: { edition: NewEdition; product?: Pro
       {/* Car cover, pulled off as the panel scrolls in (scroll-driven, progressive) */}
       <div aria-hidden="true" className="sd-uncover absolute inset-0 z-10 bg-[linear-gradient(118deg,#1b1c20_0%,#34363c_22%,#1d1e22_40%,#44464d_58%,#202125_76%,#303237_100%)]" />
 
-      <span className="absolute left-3 top-3 z-20 rounded-full bg-chalk px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-asphalt">
-        {product ? 'New · 3D' : 'Coming soon · 3D'}
-      </span>
+      <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-1.5">
+        <span className="rounded-full bg-chalk px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-asphalt">
+          {product ? 'New · 3D' : 'Coming soon · 3D'}
+        </span>
+        {product && (
+          <span className="rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-chalk backdrop-blur-md">
+            {!available ? 'Sold out' : left !== undefined ? `Only ${left} left` : 'In stock'}
+          </span>
+        )}
+      </div>
     </div>
   );
 
@@ -136,18 +148,23 @@ function EditionStage({ edition, product }: { edition: NewEdition; product?: Pro
       ) : (
         stage
       )}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-        <div className="flex min-w-0 items-center gap-3">
-          {brand && <BrandLogo brand={brand} className="h-6 w-6 text-silver" />}
-          <h3 className="truncate font-display text-xl font-semibold uppercase text-chalk stretch-125 sm:text-2xl">
-            {product?.name ?? edition.title}
-          </h3>
+      <div className="flex flex-col gap-4 p-5 sm:p-6">
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-3">
+            {brand && <BrandLogo brand={brand} className="h-6 w-6 text-silver" />}
+            <h3 className="truncate font-display text-xl font-semibold uppercase text-chalk stretch-125 sm:text-2xl">
+              {product?.name ?? edition.title}
+            </h3>
+          </div>
+          <p className="mt-1.5 text-xs text-smoke">
+            {size} · one size only <span className="font-ar">· مقاس واحد</span>
+          </p>
         </div>
         {product ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
             <Plate size="md" left={product.price} letter="د.م" right="MAD" aria-label={`${product.price} MAD`} />
-            <TransitionLink href={`/product/${product._id}`} className={`${btnGhostDark} !px-5 !py-2.5`}>
-              View
+            <TransitionLink href={`/product/${product._id}`} className={`${available ? btnPrimary : btnGhostDark} !px-5 !py-2.5`}>
+              {available ? 'Order now' : 'View'}
               <Arrow />
             </TransitionLink>
           </div>
@@ -156,7 +173,7 @@ function EditionStage({ edition, product }: { edition: NewEdition; product?: Pro
             href={whatsappLink(`Salam L7it, bghit nreservi ${edition.title} mli tkhrej.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className={`${btnGhostDark} !px-5 !py-2.5`}
+            className={`${btnGhostDark} !px-5 !py-2.5 self-start`}
           >
             <WhatsAppIcon className="h-4 w-4" />
             Reserve <span className="font-ar text-sm normal-case tracking-normal opacity-80">· حجز</span>
@@ -243,13 +260,15 @@ export default function Home() {
             variants={{ show: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } } }}
             className="flex flex-1 flex-col items-center justify-center text-center"
           >
-            <motion.p
+            <motion.a
+              href="#new-drop"
               variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } } }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-silver ring-1 ring-inset ring-white/10 backdrop-blur-md"
+              className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-silver ring-1 ring-inset ring-white/10 backdrop-blur-md transition-colors hover:bg-white/[0.1] hover:text-chalk"
             >
               <span className="h-1 w-1 rounded-full bg-xenon shadow-[0_0_6px_#8FCBFF]" />
-              Automotive wall art
-            </motion.p>
+              New · 3D editions in stock
+              <span aria-hidden="true">↓</span>
+            </motion.a>
 
             <motion.h1
               variants={{
@@ -277,12 +296,12 @@ export default function Home() {
               variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } } }}
               className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row"
             >
-              <Link href="/shop" className={`${btnPrimary} w-full sm:w-auto`}>
-                Shop the collection
+              <a href="#new-drop" className={`${btnPrimary} w-full sm:w-auto`}>
+                Discover the 3D editions
                 <Arrow />
-              </Link>
-              <Link href="/customize" className={`${btnGhostDark} w-full sm:w-auto`}>
-                Custom build
+              </a>
+              <Link href="/shop" className={`${btnGhostDark} w-full sm:w-auto`}>
+                Shop the collection
               </Link>
             </motion.div>
           </motion.div>
@@ -295,6 +314,34 @@ export default function Home() {
           >
             <BrandRail categories={categories.length ? categories : FALLBACK_BRANDS} />
           </motion.div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────────
+       * NEW DROPS — G-Class 3D + 911 3D
+       * ───────────────────────────────────────────────────────────────── */}
+      <section id="new-drop" className="scroll-mt-20 px-5 pb-20 pt-16 sm:px-6 md:pb-28 md:pt-20 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <div className="sd-reveal flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className={kickerLabel}>
+                New drop · in stock <span className="font-ar normal-case tracking-normal">· جديد</span>
+              </p>
+              <h2 className={`${h2Display} mt-3 text-[clamp(2.2rem,6vw,4.5rem)] text-chalk`}>Now in 3D.</h2>
+            </div>
+            <p className="max-w-sm text-sm text-silver">
+              Real depth, real detail. Limited pieces, ready to ship.
+              <span className="mt-1 block font-ar text-smoke" dir="rtl">عمق حقيقي وتفاصيل بزاف — القطع محدودة.</span>
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6">
+            {NEW_EDITIONS.map((edition, i) => (
+              <div key={edition.key} className="sd-reveal">
+                <EditionStage edition={edition} product={editionProducts[i]} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -318,26 +365,6 @@ export default function Home() {
             </li>
           ))}
         </ul>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────────
-       * NEW DROPS — G-Class 3D + 911 3D
-       * ───────────────────────────────────────────────────────────────── */}
-      <section className="px-5 py-20 sm:px-6 md:py-28 lg:px-10">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="sd-reveal">
-            <p className={kickerLabel}>New drop</p>
-            <h2 className={`${h2Display} mt-3 text-[clamp(2.2rem,6vw,4.5rem)] text-chalk`}>Now in 3D.</h2>
-          </div>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6">
-            {NEW_EDITIONS.map((edition, i) => (
-              <div key={edition.key} className="sd-reveal">
-                <EditionStage edition={edition} product={editionProducts[i]} />
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────

@@ -1,12 +1,18 @@
+import { editionOf } from './newEditions';
+
 /**
  * Product dimensions come from the product itself, set per-product by admins
  * in /admin/products. Legacy products without the field fall back to the
- * catalogue standard.
+ * catalogue standard — except the 3D editions, which are made in one fixed
+ * size (lib/newEditions.ts) unless the admin typed a different one.
  */
 export const DEFAULT_DIMENSIONS = '120cm x 35cm';
 
-export function dimensionsOf(product: { dimensions?: string } | null | undefined): string {
-  return (product?.dimensions || '').trim() || DEFAULT_DIMENSIONS;
+export function dimensionsOf(product: { name?: string; dimensions?: string } | null | undefined): string {
+  const set = (product?.dimensions || '').trim();
+  const edition = editionOf(product?.name);
+  if (edition && (!set || set === DEFAULT_DIMENSIONS)) return edition.size;
+  return set || DEFAULT_DIMENSIONS;
 }
 
 /** "120cm x 35cm" → { w: 120, h: 35 } (null when the string can't be parsed). */

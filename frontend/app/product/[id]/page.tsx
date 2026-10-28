@@ -14,7 +14,8 @@ import ProductCard, { hideBrokenImage } from '@/components/ProductCard';
 import Plate from '@/components/Plate';
 import BrandLogo from '@/components/BrandLogo';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
-import { isNewEdition } from '@/lib/newEditions';
+import { editionOf, isNewEdition, twoDVersionOf } from '@/lib/newEditions';
+import { isAvailable, piecesLeft } from '@/lib/stock';
 import { getPinnedIndex } from '@/lib/pinnedProducts';
 import { dimensionsOf } from '@/lib/dimensions';
 import { brandOf } from '@/lib/brands';
@@ -82,10 +83,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [cached] = useState(() => {
     const list = peekProducts();
     const found = list?.find((p) => p._id === id) ?? null;
-    return { product: found, related: list && found ? relatedFor(list, found) : [] };
+    return {
+      product: found,
+      related: list && found ? relatedFor(list, found) : [],
+      twoD: list && found ? twoDVersionOf(list, found.name) : undefined,
+    };
   });
   const [product, setProduct] = useState<Product | null>(cached.product);
   const [related, setRelated] = useState<Product[]>(cached.related);
+  // For a 3D edition: the 2D version of the same car, offered as a lighter-budget option.
+  const [twoD, setTwoD] = useState<Product | undefined>(cached.twoD);
   const [isLoading, setIsLoading] = useState(!cached.product);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -107,6 +114,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (found) {
           setProduct(found);
           setRelated(relatedFor(products, found));
+          setTwoD(twoDVersionOf(products, found.name));
           setError(null);
         } else {
           setProduct(null);
@@ -186,6 +194,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     `${product.name} — automotive wall art, UV-printed on 3 mm Alucobond aluminium composite. Hand-finished in Salé, pre-drilled and ready to mount.`;
 
   const isNew = isNewEdition(product.name);
+  const edition = editionOf(product.name);
+  const available = isAvailable(product);
+  const left = piecesLeft(product);
   const pin = getPinnedIndex(product.name);
   const brand = brandOf(product);
 
@@ -265,6 +276,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <Plate size="lg" left={unitPrice} letter="د.م" right="MAD" aria-label={`${unitPrice} MAD`} />
               <span className="font-mono text-lg text-smoke line-through">{Math.ceil(product.price * 1.2)} MAD</span>
             </div>
+            {left !== undefined && (
+              <p
+                className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ring-inset ${
+                  left > 0 ? 'bg-white/[0.05] text-chalk ring-white/15' : 'bg-red-500/10 text-red-300 ring-red-400/30'
+                }`}
+              >
+                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${left > 0 ? 'bg-xenon shadow-[0_0_6px_#8FCBFF]' : 'bg-red-400'}`} />
+                {left > 0 ? (
+                  <>
+                    In stock · only {left} {left === 1 ? 'piece' : 'pieces'} left <span className="font-ar font-normal text-smoke">· بقاو غير {left}</span>
+                  </>
+                ) : (
+                  <>
+                    Sold out <span className="font-ar font-normal">· تباعو كاملين</span>
+                  </>
+                )}
+              </p>
+            )}
             <p className="mt-3 text-sm text-smoke">
               Pay cash on delivery · <span className="font-ar">الخلاص عند الاستلام</span>
             </p>
@@ -277,7 +306,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <SpecTile label="Delivery" labelAr="التوصيل" value="24h – 3 days" />
               <SpecTile label="Mount" labelAr="التعليق" value="Pre-drilled" />
             </div>
-            <p className="mt-2.5 text-xs text-smoke">120 × 50 cm or a custom size? Message us before ordering.</p>
+            {edition ? (
+              <p className="mt-2.5 text-xs text-smoke">
+                One size only — the {edition.title} is made in {dimensionsLabel.replace(/\s*x\s*/i, ' × ')}, no other sizes.{' '}
+                <span className="font-ar">مقاس واحد فقط.</span>
+              </p>
+            ) : (
+              <p className="mt-2.5 text-xs text-smoke">120 × 50 cm or a custom size? Message us before ordering.</p>
+            )}
 
             {/* Quantity */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -298,9 +334,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
+                  onClick={() => setQuantity((q) => (left !== undefined ? Math.min(left, q + 1) : q + 1))}
+                  disabled={left !== undefined && quantity >= left}
                   aria-label="Increase quantity"
-                  className="flex h-12 w-12 items-center justify-center rounded-full text-chalk transition-colors hover:bg-white/[0.06]"
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-chalk transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" d="M12 5v14M5 12h14" />
@@ -316,8 +353,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             {/* CTAs */}
             <div className="mt-6 space-y-3">
-              <button onClick={buyNow} disabled={!product.inStock} className={`${btnPrimary} w-full`}>
-                {product.inStock ? (
+              <button onClick={buyNow} disabled={!available} className={`${btnPrimary} w-full`}>
+                {available ? (
                   <>
                     Buy now <span className="font-ar text-sm normal-case tracking-normal opacity-70">· شري دابا</span>
                   </>
@@ -325,7 +362,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   t('unavailable')
                 )}
               </button>
-              <button onClick={addAll} disabled={!product.inStock} className={`${btnGhostDark} w-full`}>
+              <button onClick={addAll} disabled={!available} className={`${btnGhostDark} w-full`}>
                 {t('addToCart')} <span className="font-ar text-sm normal-case tracking-normal opacity-70">· زيد للسلة</span>
               </button>
               <a
@@ -338,6 +375,35 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 Order on WhatsApp <span className="font-ar text-smoke">· طلب فالواتساب</span>
               </a>
             </div>
+
+            {edition && twoD && (
+              <Link
+                href={`/product/${twoD._id}`}
+                className="group mt-5 flex items-center gap-4 rounded-2xl bg-carbon p-3 ring-1 ring-white/[0.08] transition-colors hover:ring-white/25"
+              >
+                <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-carbon-2 sm:h-20 sm:w-28">
+                  {twoD.image && (
+                    <img src={twoD.image} alt={twoD.name} loading="lazy" onError={hideBrokenImage} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-smoke">
+                    Lighter budget? <span className="font-ar normal-case tracking-normal">· بغيتي ثمن أقل؟</span>
+                  </p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-chalk">{twoD.name} · 2D</p>
+                  <p className="text-xs text-smoke">The same car in 2D — clean, elegant lines.</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <Plate size="sm" left={twoD.price} letter="د.م" right="MAD" aria-label={`${twoD.price} MAD`} />
+                    {product.price > twoD.price && (
+                      <span className="text-xs font-semibold text-xenon">{product.price - twoD.price} MAD less</span>
+                    )}
+                  </div>
+                </div>
+                <svg className="h-4 w-4 shrink-0 text-smoke transition-transform group-hover:translate-x-1 group-hover:text-chalk" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
+                </svg>
+              </Link>
+            )}
 
             <div className="mt-4">
               <Details title="Delivery & payment" titleAr="التوصيل والخلاص">
@@ -379,7 +445,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Mobile sticky buy bar */}
-      {product.inStock && (
+      {available && (
         <div
           className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-asphalt/90 px-4 pt-3 backdrop-blur-xl md:hidden"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}

@@ -19,6 +19,10 @@ PRODUCT
 - Colours: black and white are always possible. Any other colour must first be checked by the team; the team then replies. Never promise another colour.
 - Care: keep away from direct sun and moisture; wipe with a soft dry cloth.
 
+NEW 3D EDITIONS (the pieces we push first — in stock, ready to ship)
+- G-Class 3D: 120 x 75 cm. 911 3D: 120 x 50 cm. Each comes in that one size only: no bigger or smaller version. Stock is limited (see the catalogue line for the pieces left).
+- If a customer likes a 3D edition but finds it too expensive, suggest the 2D version of the same car from the catalogue (G Class AMG G63 for the G-Class, 911 GT3 RS for the 911): same car, a lighter budget. Show it with its product id.
+
 CUSTOM WORK
 - Yes, we make anything custom: any car, a motorbike, a plane, a logo, a brand, anything the customer wants.
 - To prepare a custom piece we need: what exactly (car make, model and year, or the logo/design), which side (front, side or rear), 2D or 3D, and the colour.
@@ -41,6 +45,7 @@ interface CatalogItem {
   image: string;
   dimensions: string;
   inStock: boolean;
+  stockQuantity: number | null;
 }
 
 const CATALOG_TTL_MS = 5 * 60 * 1000;
@@ -51,7 +56,7 @@ export async function getCatalog(): Promise<CatalogItem[]> {
   // Don't let a chat reply wait on Mongoose's command buffering while the DB is down.
   if (mongoose.connection.readyState !== 1) return cache?.items || [];
   try {
-    const docs = await Product.find({}, 'name category price image dimensions inStock').sort({ createdAt: -1 }).lean();
+    const docs = await Product.find({}, 'name category price image dimensions inStock stockQuantity').sort({ createdAt: -1 }).lean();
     const items = docs.map((d) => ({
       _id: String(d._id),
       name: d.name,
@@ -59,7 +64,8 @@ export async function getCatalog(): Promise<CatalogItem[]> {
       price: d.price,
       image: d.image,
       dimensions: d.dimensions || '120cm x 35cm',
-      inStock: d.inStock !== false,
+      inStock: d.inStock !== false && d.stockQuantity !== 0,
+      stockQuantity: typeof d.stockQuantity === 'number' ? d.stockQuantity : null,
     }));
     cache = { items, at: Date.now() };
     return items;
@@ -72,6 +78,9 @@ export async function getCatalog(): Promise<CatalogItem[]> {
 export function catalogText(items: CatalogItem[]): string {
   if (!items.length) return '(catalogue unavailable right now — point customers to the website)';
   return items
-    .map((p) => `- id:${p._id} | ${p.name} | brand: ${p.category} | ${p.price} MAD | ${p.dimensions} | ${p.inStock ? 'in stock' : 'out of stock'}`)
+    .map((p) => {
+      const stock = !p.inStock ? 'out of stock' : p.stockQuantity !== null ? `${p.stockQuantity} left` : 'in stock';
+      return `- id:${p._id} | ${p.name} | brand: ${p.category} | ${p.price} MAD | ${p.dimensions} | ${stock}`;
+    })
     .join('\n');
 }
