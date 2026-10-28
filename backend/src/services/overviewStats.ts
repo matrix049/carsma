@@ -325,11 +325,15 @@ async function buildOverview(key: RangeKey): Promise<Overview> {
     }
   }
   for (const o of live) {
+    // An offer (the 3D duo) is shared over the order's lines, so product
+    // revenue adds up to what was really paid.
+    const subtotal = (o.products || []).reduce((sum, l) => sum + (l.price || 0) * (l.quantity || 0), 0);
+    const share = subtotal > 0 && o.totalPrice < subtotal ? o.totalPrice / subtotal : 1;
     for (const line of o.products || []) {
       if (!line.productId) continue;
       const s = statOf(String(line.productId));
       s.sold += line.quantity || 0;
-      if (PAID.includes(o.status)) s.revenue += (line.price || 0) * (line.quantity || 0);
+      if (PAID.includes(o.status)) s.revenue += Math.round((line.price || 0) * (line.quantity || 0) * share);
     }
   }
   const productRows = products
