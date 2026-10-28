@@ -11,7 +11,8 @@ interface DataMigration {
   run: () => Promise<void>;
 }
 
-const CLOUDINARY = 'https://res.cloudinary.com/dwknjjv0b/image/upload/a_exif,c_limit,w_1600,q_auto,f_auto';
+const CLOUDINARY_BASE = 'https://res.cloudinary.com/dwknjjv0b/image/upload';
+const CLOUDINARY = `${CLOUDINARY_BASE}/a_exif,c_limit,w_1600,q_auto,f_auto`;
 
 /** The two 3D editions (sizes, prices and stock given by the shop, Oct 2026). */
 const EDITIONS = [
@@ -78,6 +79,31 @@ const MIGRATIONS: DataMigration[] = [
           product.gallery = gallery;
           await product.save();
           console.log(`✓ Added photos to ${product.name}`);
+        }
+      }
+    },
+  },
+  {
+    // 4th photo (LED gaming setup) for both, and the 911 main photo cropped so
+    // the piece sits in the middle. Skips anything the admin already changed.
+    key: '2026-10-3d-editions-gaming-and-centred-911',
+    run: async () => {
+      const additions: [RegExp, string, string[]][] = [
+        [EDITIONS[0].match, '/editions/g-class-3d-gaming.jpg', ['/editions/g-class-3d-size.jpg', '/editions/g-class-3d-room.jpg']],
+        [EDITIONS[1].match, '/editions/911-3d-gaming.jpg', ['/editions/911-3d-size.jpg', '/editions/911-3d-room.jpg']],
+      ];
+      for (const [match, gaming, previous] of additions) {
+        const product = await Product.findOne({ name: match });
+        if (!product) continue;
+        if (product.gallery.length === previous.length && product.gallery.every((u, i) => u === previous[i])) {
+          product.gallery = [...previous, gaming];
+        }
+        if (product.image === EDITIONS[1].product.image) {
+          product.image = `${CLOUDINARY_BASE}/a_exif/c_crop,w_2548,h_1911,x_476,y_1077/c_limit,w_1600/q_auto,f_auto/v1793147621/911_3D_tyxz7t.jpg`;
+        }
+        if (product.isModified()) {
+          await product.save();
+          console.log(`✓ Updated photos of ${product.name}`);
         }
       }
     },

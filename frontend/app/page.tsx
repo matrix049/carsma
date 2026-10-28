@@ -163,7 +163,10 @@ function EditionStage({ edition, product }: { edition: NewEdition; product?: Pro
         {product ? (
           <div className="flex items-center justify-between gap-3">
             <Plate size="md" left={product.price} letter="د.م" right="MAD" aria-label={`${product.price} MAD`} />
-            <TransitionLink href={`/product/${product._id}`} className={`${available ? btnPrimary : btnGhostDark} !px-5 !py-2.5`}>
+            <TransitionLink
+              href={`/product/${product._id}`}
+              className={`${available ? btnPrimary : btnGhostDark} !gap-1.5 !px-3.5 !py-2 !text-[10px] !tracking-[0.12em] sm:!gap-2.5 sm:!px-5 sm:!py-2.5 sm:!text-[12px] sm:!tracking-[0.16em]`}
+            >
               {available ? 'Order now' : 'View'}
               <Arrow />
             </TransitionLink>
