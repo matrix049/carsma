@@ -4,6 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 import { notifyNewOrder } from '../services/notificationService';
 import { clearOverviewCache } from '../services/overviewStats';
 import { duoDiscount, DUO_LABEL } from '../services/bundles';
+import { moveOrderStock, StockError, StockMove } from '../services/orderStock';
 
 /**
  * Create new order
@@ -185,6 +186,9 @@ export async function getOrders(req: AuthRequest, res: Response): Promise<void> 
  *
  * Only the fields present in the body are touched; missing fields stay
  * as they were.
+ *
+ * Confirming takes the order's pieces out of stock, and cancelling gives them
+ * back (see services/orderStock). 409 if stock can't cover it.
  */
 export async function updateOrder(req: AuthRequest, res: Response): Promise<void> {
   try {
@@ -267,17 +271,40 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    const order = await Order.findByIdAndUpdate(
-      id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    const filter: Record<string, unknown> = { _id: id };
+    let stock: StockMove | null = null;
+
+    if (status !== undefined || products !== undefined) {
+      const current = await Order.findById(id);
+      if (!current) {
+        res.status(404).json({
+          error: true,
+          message: 'Order not found'
+        });
+        return;
+      }
+      stock = await moveOrderStock(current, status ?? current.status, products ?? current.products);
+      updates.stockHeld = stock.held;
+      updates.stockTaken = stock.taken;
+      // Only saves if nobody changed the order meanwhile (a double click, a
+      // second admin), so its stock can't be moved twice.
+      filter.updatedAt = current.updatedAt;
+    }
+
+    let order;
+    try {
+      order = await Order.findOneAndUpdate(filter, updates, { new: true, runValidators: true });
+    } catch (error) {
+      await stock?.undo();
+      throw error;
+    }
     clearOverviewCache();
 
     if (!order) {
-      res.status(404).json({
+      await stock?.undo();
+      res.status(stock ? 409 : 404).json({
         error: true,
-        message: 'Order not found'
+        message: stock ? 'This order just changed. Refresh and try again.' : 'Order not found'
       });
       return;
     }
@@ -287,6 +314,14 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
       order
     });
   } catch (error: any) {
+    if (error instanceof StockError) {
+      res.status(409).json({
+        error: true,
+        message: error.message
+      });
+      return;
+    }
+
     console.error('Update order error:', error);
 
     if (error.name === 'CastError') {

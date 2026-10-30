@@ -177,8 +177,9 @@ export default function AdminOrdersPage() {
       setOrders((prev) =>
         prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
       );
-    } catch {
-      alert('Failed to update order status. Please try again.');
+    } catch (err: any) {
+      // The server explains stock problems ("Not enough stock for…").
+      alert(err?.message || 'Failed to update order status. Please try again.');
     } finally {
       setUpdatingId(null);
     }

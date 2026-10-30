@@ -302,9 +302,9 @@ export default function OrderTable({ orders, onOrderUpdated }: OrderTableProps) 
     try {
       await updateOrderStatus(orderId, newStatus);
       onOrderUpdated();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update order status:', error);
-      alert('Failed to update order status');
+      alert(error?.message || 'Failed to update order status');
     } finally {
       setUpdatingId(null);
     }

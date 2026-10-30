@@ -34,12 +34,141 @@ const FALLBACK_BRANDS = ['Porsche', 'Mercedes', 'BMW', 'Audi'];
  * Brand rail — emblems along the bottom of the hero, each one a filtered shop
  * --------------------------------------------------------------------------*/
 
-/** Each marquee copy holds at least this many logos, so it's wider than any screen. */
+/** Each copy of the row holds at least this many logos, so it's wider than any screen. */
 const RAIL_MIN_ITEMS = 14;
+/** Seconds each logo adds to one full loop of the slide. */
+const RAIL_SECONDS_PER_ITEM = 2.6;
+/** The slide picks up again this long after the visitor lets go. */
+const RAIL_RESUME_MS = 2500;
+/** A press has to move this far to be a drag; less is a tap on the logo. */
+const RAIL_DRAG_SLOP_PX = 6;
 
 function BrandRail({ categories }: { categories: string[] }) {
   const repeats = Math.max(1, Math.ceil(RAIL_MIN_ITEMS / categories.length));
   const row = Array.from({ length: repeats }, () => categories).flat();
+  const railRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // Slides by itself until the visitor takes over: drag with the mouse or swipe
+  // with a finger, and a flick keeps going for a moment. The track holds two
+  // identical copies and x wraps at one copy's width, so it never runs out.
+  useEffect(() => {
+    const rail = railRef.current;
+    const track = trackRef.current;
+    const copy = track?.firstElementChild;
+    if (!rail || !track || !copy) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    let x = 0;
+    let velocity = 0;
+    let pausedUntil = 0;
+    let hovered = false;
+    let focused = false;
+    let onScreen = !('IntersectionObserver' in window);
+    let pressed = false;
+    let dragged = false;
+    let pointerId = 0;
+    let startX = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let lastFrame = performance.now();
+    let raf = 0;
+
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(([e]) => (onScreen = e.isIntersecting)) : null;
+    io?.observe(rail);
+
+    const frame = (now: number) => {
+      const dt = Math.min(now - lastFrame, 50) / 1000;
+      lastFrame = now;
+      const width = copy.getBoundingClientRect().width;
+      if (width > 0) {
+        if (!pressed && onScreen) {
+          if (Math.abs(velocity) > 20) {
+            x += velocity * dt;
+            velocity *= Math.exp(-3.5 * dt);
+            pausedUntil = now + RAIL_RESUME_MS;
+          } else if (!hovered && !focused && now >= pausedUntil) {
+            x += (width / (row.length * RAIL_SECONDS_PER_ITEM)) * dt;
+          }
+        }
+        x = ((x % width) + width) % width;
+        track.style.transform = `translate3d(${-x}px,0,0)`;
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+
+    const press = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pressed = true;
+      dragged = false;
+      pointerId = e.pointerId;
+      startX = lastX = e.clientX;
+      lastTime = e.timeStamp;
+      velocity = 0;
+    };
+    const move = (e: PointerEvent) => {
+      if (!pressed || e.pointerId !== pointerId) return;
+      if (!dragged) {
+        if (Math.abs(e.clientX - startX) < RAIL_DRAG_SLOP_PX) return;
+        dragged = true;
+        rail.setPointerCapture(e.pointerId);
+      }
+      const dx = e.clientX - lastX;
+      x -= dx;
+      velocity = 0.7 * velocity + 0.3 * ((-dx * 1000) / Math.max(e.timeStamp - lastTime, 1));
+      lastX = e.clientX;
+      lastTime = e.timeStamp;
+    };
+    const release = (e: PointerEvent) => {
+      if (!pressed || e.pointerId !== pointerId) return;
+      pressed = false;
+      // Held still before letting go: that's a stop, not a flick.
+      if (e.timeStamp - lastTime > 100) velocity = 0;
+      pausedUntil = performance.now() + RAIL_RESUME_MS;
+    };
+    // Keeps the browser from dragging the link itself, selecting text, or
+    // focusing the logo (which would hold the slide paused).
+    const mouseDown = (e: MouseEvent) => e.preventDefault();
+    // Letting go after a drag must not open the logo it ended on.
+    const click = (e: MouseEvent) => {
+      if (!dragged) return;
+      dragged = false;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const enter = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') hovered = true;
+    };
+    const leave = () => (hovered = false);
+    const focusIn = () => (focused = true);
+    const focusOut = () => (focused = false);
+
+    rail.addEventListener('pointerdown', press);
+    rail.addEventListener('pointermove', move);
+    rail.addEventListener('pointerup', release);
+    rail.addEventListener('pointercancel', release);
+    rail.addEventListener('pointerenter', enter);
+    rail.addEventListener('pointerleave', leave);
+    rail.addEventListener('mousedown', mouseDown);
+    rail.addEventListener('click', click, true);
+    rail.addEventListener('focusin', focusIn);
+    rail.addEventListener('focusout', focusOut);
+    return () => {
+      cancelAnimationFrame(raf);
+      io?.disconnect();
+      rail.removeEventListener('pointerdown', press);
+      rail.removeEventListener('pointermove', move);
+      rail.removeEventListener('pointerup', release);
+      rail.removeEventListener('pointercancel', release);
+      rail.removeEventListener('pointerenter', enter);
+      rail.removeEventListener('pointerleave', leave);
+      rail.removeEventListener('mousedown', mouseDown);
+      rail.removeEventListener('click', click, true);
+      rail.removeEventListener('focusin', focusIn);
+      rail.removeEventListener('focusout', focusOut);
+    };
+  }, [row.length]);
 
   const item = (category: string, focusable: boolean) => {
     const brand = findBrand(category);
@@ -63,12 +192,12 @@ function BrandRail({ categories }: { categories: string[] }) {
         Shop by brand <span className="font-ar normal-case tracking-normal">· اختار الماركا</span>
       </p>
 
-      {/* Endless slide — two identical copies, the track moves by one copy. Pauses on hover/focus. */}
-      <div className="group/rail relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)] motion-reduce:hidden">
-        <div
-          className="flex w-max animate-marquee group-hover/rail:[animation-play-state:paused] group-focus-within/rail:[animation-play-state:paused]"
-          style={{ '--marquee-duration': `${row.length * 2.6}s` } as React.CSSProperties}
-        >
+      {/* Endless slide — two identical copies. Pauses on hover/focus; grab it to move it by hand. */}
+      <div
+        ref={railRef}
+        className="relative cursor-grab touch-pan-y select-none overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)] active:cursor-grabbing motion-reduce:hidden [&_a]:cursor-[inherit]"
+      >
+        <div ref={trackRef} className="flex w-max will-change-transform">
           {[0, 1].map((copy) => (
             <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-stretch gap-2 pr-2 sm:gap-4 sm:pr-4">
               {row.map((category, i) => (

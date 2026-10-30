@@ -32,8 +32,6 @@ module.exports = {
       },
       animation: {
         'scroll': 'scroll 40s linear infinite',
-        'marquee': 'marquee var(--marquee-duration, 30s) linear infinite',
-        'marquee-reverse': 'marquee var(--marquee-duration, 30s) linear infinite reverse',
         'pulse-led': 'pulse-led 1.2s ease-in-out infinite',
         'shimmer': 'shimmer 1.6s ease-in-out infinite',
       },
@@ -41,10 +39,6 @@ module.exports = {
         'scroll': {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
-        },
-        'marquee': {
-          '0%': { transform: 'translate3d(0,0,0)' },
-          '100%': { transform: 'translate3d(-50%,0,0)' },
         },
         'pulse-led': {
           '0%, 100%': { opacity: '1' },

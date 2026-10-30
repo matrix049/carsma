@@ -24,6 +24,10 @@ export interface IOrder extends Document {
   finish?: 'brilliant' | 'matte' | null;
   /** Offer applied to the order (e.g. the 3D duo), already taken off totalPrice. */
   discount?: { label: string; amount: number } | null;
+  /** True once confirming took this order's pieces out of stock. Older orders never did. */
+  stockHeld?: boolean;
+  /** The pieces actually taken, so they can be given back exactly. */
+  stockTaken?: Array<{ productId: mongoose.Types.ObjectId; quantity: number }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -101,6 +105,14 @@ const OrderSchema = new Schema<IOrder>(
     discount: {
       type: new Schema({ label: { type: String, trim: true }, amount: { type: Number, min: 0 } }, { _id: false }),
       default: null
+    },
+    stockHeld: {
+      type: Boolean,
+      default: false
+    },
+    stockTaken: {
+      type: [new Schema({ productId: { type: Schema.Types.ObjectId, ref: 'Product' }, quantity: { type: Number, min: 1 } }, { _id: false })],
+      default: []
     }
   },
   {

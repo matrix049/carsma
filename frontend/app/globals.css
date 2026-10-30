@@ -153,8 +153,6 @@ body {
 .fob-signal { animation: fob-signal 3.2s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee,
-  .animate-marquee-reverse,
   .animate-shimmer,
   .fob-signal { animation: none !important; }
   .led-sweep { animation-duration: 2.5s; }
