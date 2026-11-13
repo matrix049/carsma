@@ -16,11 +16,12 @@ export type { TransferDetails };
 export const PAYMENT_TRANSFER = 'bank_transfer';
 
 /**
- * Each bank's official logo file in public/banks/ (e.g. '/banks/cih.png').
- * Until one is set, the bank's name is shown instead.
+ * Each bank's official logo file in public/banks/, shown only to say which banks
+ * you can pay into (CIH: from cihbank.ma). Until one is set, the bank's name is
+ * shown instead.
  */
 export const BANK_LOGOS: Record<string, string> = {
-  'CIH Bank': '',
+  'CIH Bank': '/banks/cih.png',
   'Banque Populaire (BCP)': '',
 };
 

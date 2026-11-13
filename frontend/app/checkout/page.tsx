@@ -21,7 +21,7 @@ const PAYMENTS: { id: Payment; title: string; ar: string; note: string; noteAr: 
   {
     id: PAYMENT_TRANSFER,
     title: 'Instant bank transfer · −10%',
-    ar: 'تحويل فوري · −10%',
+    ar: 'تحويل فوري',
     note: 'Instant transfer only (virement instantané), then send us the screenshot on WhatsApp.',
     noteAr: 'غير التحويل الفوري، ومن بعد صيفط لينا السكرين ف واتساب',
   },
