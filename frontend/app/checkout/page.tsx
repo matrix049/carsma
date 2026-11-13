@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
-import { DUO_LABEL, DUO_LABEL_AR } from '@/lib/bundles';
+import { DUO_LABEL, DUO_LABEL_AR, TRANSFER_LABEL, TRANSFER_LABEL_AR, orderPricing } from '@/lib/bundles';
 import { motion } from 'framer-motion';
 import { btnPrimary, btnGhostDark, fieldLabel, inputField, kickerLabel, whatsappLink } from '@/lib/uiStyles';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
-import { PAYMENT_TRANSFER, formatRib, readyAccounts, transferEnabled, transferMessage } from '@/lib/bankTransfer';
+import { BANK_LOGOS, PAYMENT_TRANSFER, TransferDetails, loadTransferBanks, transferBanks, transferMessage } from '@/lib/bankTransfer';
 import Plate from '@/components/Plate';
 import { hideBrokenImage } from '@/components/ProductCard';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
@@ -20,29 +20,50 @@ const PAYMENTS: { id: Payment; title: string; ar: string; note: string; noteAr: 
   { id: 'cod', title: 'Cash on delivery', ar: 'الخلاص عند الاستلام', note: 'Pay in cash when it arrives.', noteAr: 'كتخلص فاش توصلك' },
   {
     id: PAYMENT_TRANSFER,
-    title: 'Bank transfer · CIH / BCP',
-    ar: 'تحويل بنكي',
-    note: 'Instant transfer, then send us the screenshot on WhatsApp.',
-    noteAr: 'تحويل فوري، ومن بعد صيفط لينا السكرين ف واتساب',
+    title: 'Instant bank transfer · −10%',
+    ar: 'تحويل فوري · −10%',
+    note: 'Instant transfer only (virement instantané), then send us the screenshot on WhatsApp.',
+    noteAr: 'غير التحويل الفوري، ومن بعد صيفط لينا السكرين ف واتساب',
   },
 ];
 
+/** The banks you can transfer to: their official logo when the file is set, their name until then. */
+function BankLogos({ banks, size = 'sm' }: { banks: string[]; size?: 'sm' | 'md' }) {
+  const height = size === 'md' ? 'h-9' : 'h-6';
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      {banks.map((bank) =>
+        BANK_LOGOS[bank] ? (
+          <span key={bank} className="inline-flex items-center rounded-md bg-white px-2 py-1">
+            <img src={BANK_LOGOS[bank]} alt={bank} className={`${height} w-auto object-contain`} />
+          </span>
+        ) : (
+          <span key={bank} className="inline-flex items-center rounded-md bg-white/[0.06] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-silver ring-1 ring-white/10">
+            {bank}
+          </span>
+        ),
+      )}
+    </span>
+  );
+}
+
 /** After a transfer order: what to pay, where, and the WhatsApp button for the screenshot. */
-function TransferSteps({ orderNumber, total }: { orderNumber?: number; total: number }) {
+function TransferSteps({ orderNumber, details }: { orderNumber?: number; details: TransferDetails }) {
+  const { amount: total, reference, beneficiary, accounts } = details;
   const [copied, setCopied] = useState<string | null>(null);
-  const copy = async (rib: string) => {
+  const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(rib.replace(/\D/g, ''));
-      setCopied(rib);
+      await navigator.clipboard.writeText(text);
+      setCopied(text);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      /* the RIB stays selectable to copy by hand */
+      /* the text stays selectable to copy by hand */
     }
   };
   const steps = [
     { en: `Make an instant transfer (virement instantané) of ${total} MAD to one of these accounts.`, ar: `دير تحويل فوري ديال ${total} درهم لواحد من هاد الحسابات.` },
-    { en: 'Take a screenshot of the transfer confirmation.', ar: 'خود سكرين ديال التحويل.' },
-    { en: 'Send it to us on WhatsApp — we ship as soon as we see it.', ar: 'صيفطو لينا ف واتساب، ونصيفطو ليك الطلب ديريكت.' },
+    { en: `Write ${reference} as the transfer reason (motif), so we can find your payment.`, ar: `كتب ${reference} ف سبب التحويل (motif)، باش نلقاو الخلاص ديالك.` },
+    { en: 'Take a screenshot of the transfer and send it to us on WhatsApp.', ar: 'خود سكرين ديال التحويل وصيفطو لينا ف واتساب.' },
   ];
 
   return (
@@ -56,6 +77,9 @@ function TransferSteps({ orderNumber, total }: { orderNumber?: number; total: nu
         </h1>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <Plate size="lg" left={total} letter="د.م" right="MAD" aria-label={`Amount to transfer: ${total} MAD`} />
+          <span className="text-sm font-semibold text-xenon">
+            10% off included <span className="font-ar">· التخفيض محسوب</span>
+          </span>
         </div>
 
         <ol className="mt-8 space-y-3">
@@ -70,26 +94,57 @@ function TransferSteps({ orderNumber, total }: { orderNumber?: number; total: nu
           ))}
         </ol>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {readyAccounts().map((a) => (
-            <div key={a.bank} className="rounded-2xl bg-carbon p-5 ring-1 ring-white/[0.08]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-silver">{a.bank}</p>
-              <p className="mt-2 text-sm text-smoke">{a.holder}</p>
-              <p className="mt-1 select-all font-mono text-[15px] font-semibold tracking-wide text-chalk">{formatRib(a.rib)}</p>
-              <button type="button" onClick={() => copy(a.rib)} className={`${btnGhostDark} mt-3 w-full`}>
-                {copied === a.rib ? 'Copied ✓ · تنسخ' : 'Copy RIB · نسخ'}
-              </button>
-            </div>
-          ))}
+        <div className="mt-6 rounded-2xl bg-carbon p-5 ring-1 ring-white/[0.08]">
+          <span className="block text-xs text-smoke">
+            Beneficiary name <span className="font-ar">· سمية المستفيد</span>
+          </span>
+          <span className="text-lg font-semibold text-chalk">{beneficiary}</span>
+          <span className="mt-1 block text-xs text-smoke">
+            Save us under this name in your bank app.
+            <span className="font-ar"> سجلنا بهاد السمية ف التطبيق ديال البنكة.</span>
+          </span>
         </div>
 
-        <a href={whatsappLink(transferMessage(orderNumber, total))} target="_blank" rel="noopener noreferrer" className={`${btnPrimary} mt-8 w-full`}>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {accounts.map((a) => {
+            const rib = a.rib.replace(/\D/g, '');
+            return (
+              <div key={a.bank} className="rounded-2xl bg-carbon p-5 ring-1 ring-white/[0.08]">
+                <BankLogos banks={[a.bank]} size="md" />
+                <p className="mt-3 text-xs text-smoke">RIB</p>
+                <p className="select-all font-mono text-[15px] font-semibold tracking-wide text-chalk">{a.rib}</p>
+                <button type="button" onClick={() => copy(rib)} className={`${btnGhostDark} mt-3 w-full`}>
+                  {copied === rib ? 'Copied ✓ · تنسخ' : 'Copy RIB · نسخ'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-carbon p-5 ring-1 ring-xenon/40">
+          <span>
+            <span className="block text-xs text-smoke">
+              Transfer reason (motif) <span className="font-ar">· سبب التحويل</span>
+            </span>
+            <span className="select-all font-mono text-lg font-semibold text-chalk">{reference}</span>
+          </span>
+          <button type="button" onClick={() => copy(reference)} className={btnGhostDark}>
+            {copied === reference ? 'Copied ✓ · تنسخ' : 'Copy · نسخ'}
+          </button>
+        </div>
+
+        <p className="mt-4 rounded-2xl bg-white/[0.03] p-4 text-xs leading-relaxed text-smoke">
+          Instant transfer only (virement instantané): that&apos;s what the 10% off is for. We ship as soon as it arrives.
+          <span className="mt-1 block font-ar">غير التحويل الفوري (virement instantané) اللي فيه التخفيض ديال 10%. كنصيفطو الطلب ملي يوصلنا التحويل.</span>
+        </p>
+
+        <a href={whatsappLink(transferMessage(reference, total))} target="_blank" rel="noopener noreferrer" className={`${btnPrimary} mt-8 w-full`}>
           <WhatsAppIcon className="h-5 w-5" />
           Send the screenshot <span className="font-ar text-sm normal-case tracking-normal opacity-70">· صيفط السكرين</span>
         </a>
         <p className="mt-4 text-center text-xs text-smoke">
-          Changed your mind? You can still pay cash on delivery, just tell us on WhatsApp.
-          <span className="mt-1 block font-ar">بدلتي رأيك؟ تقدر تخلص عند الاستلام، غير قولها لينا ف واتساب.</span>
+          Changed your mind? You can still pay cash on delivery at the full price, just tell us on WhatsApp.
+          <span className="mt-1 block font-ar">بدلتي رأيك؟ تقدر تخلص عند الاستلام بالثمن الكامل، غير قولها لينا ف واتساب.</span>
         </p>
         <div className="mt-8 text-center">
           <Link href="/" className="text-sm text-silver underline underline-offset-4 hover:text-chalk">{`Back home · الرئيسية`}</Link>
@@ -107,12 +162,18 @@ const FIELDS = [
 ] as const;
 
 export default function CheckoutPage() {
-  const { cart, calculateTotal, offer, clearCart, removeFromCart, updateQuantity } = useCart();
+  const { cart, clearCart, removeFromCart, updateQuantity } = useCart();
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [placed, setPlaced] = useState<{ orderNumber?: number; total: number; payment: Payment } | null>(null);
+  const [placed, setPlaced] = useState<{ orderNumber?: number; transfer?: TransferDetails } | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [payment, setPayment] = useState<Payment>('cod');
+  // Banks open for transfer, from the server (names only); empty = cash on delivery only.
+  const [banks, setBanks] = useState<string[]>(transferBanks());
+  useEffect(() => {
+    loadTransferBanks().then(setBanks);
+  }, []);
+  const transferOn = banks.length > 0;
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -128,9 +189,10 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const subtotal = Math.round(calculateTotal());
-  // The 3D duo offer comes off here; the server checks it again.
-  const finalTotal = subtotal - offer.amount;
+  // The 3D duo offer, and 10% off for an instant transfer, come off here; the server works it out again.
+  const pricing = orderPricing(cart, transferOn ? payment : 'cod');
+  const subtotal = Math.round(pricing.subtotal);
+  const finalTotal = Math.round(pricing.total);
 
   // Fire InitiateCheckout once per checkout-page load when there's a non-empty
   // cart. The ref prevents re-firing when the cart contents shift before the
@@ -175,7 +237,7 @@ export default function CheckoutPage() {
           quantity: item.quantity
         })),
         totalPrice: finalTotal,
-        paymentMethod: transferEnabled ? payment : 'cod'
+        paymentMethod: transferOn ? payment : 'cod'
       };
       const created = await createOrder(orderData);
       trackPurchase({
@@ -183,7 +245,7 @@ export default function CheckoutPage() {
         numItems: cart.reduce((n, item) => n + item.quantity, 0),
         value: finalTotal,
       });
-      setPlaced({ orderNumber: created.orderNumber, total: finalTotal, payment: orderData.paymentMethod as Payment });
+      setPlaced({ orderNumber: created.orderNumber, transfer: created.transfer });
       clearCart();
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -194,8 +256,8 @@ export default function CheckoutPage() {
     }
   };
 
-  if (placed?.payment === PAYMENT_TRANSFER) {
-    return <TransferSteps orderNumber={placed.orderNumber} total={placed.total} />;
+  if (placed?.transfer) {
+    return <TransferSteps orderNumber={placed.orderNumber} details={placed.transfer} />;
   }
 
   if (placed) {
@@ -235,7 +297,7 @@ export default function CheckoutPage() {
       <div className="mx-auto max-w-[1280px] px-5 sm:px-6 lg:px-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 md:mb-14">
           <p className={kickerLabel}>
-            {transferEnabled ? (
+            {transferOn ? (
               <>
                 Cash on delivery or bank transfer <span className="font-ar normal-case tracking-normal">· عند الاستلام ولا بالتحويل</span>
               </>
@@ -276,7 +338,7 @@ export default function CheckoutPage() {
               </form>
             </section>
 
-            {transferEnabled ? (
+            {transferOn ? (
               <fieldset className="rounded-3xl bg-carbon p-6 ring-1 ring-white/[0.08] sm:p-8">
                 <legend className="sr-only">Payment · الخلاص</legend>
                 <h2 className="mb-5 font-display text-lg font-semibold uppercase stretch-125">
@@ -304,6 +366,11 @@ export default function CheckoutPage() {
                         </span>
                         <span className="mt-1 block text-xs text-smoke">{p.note}</span>
                         <span className="mt-0.5 block font-ar text-xs text-smoke">{p.noteAr}</span>
+                        {p.id === PAYMENT_TRANSFER && (
+                          <span className="mt-2.5 block">
+                            <BankLogos banks={banks} />
+                          </span>
+                        )}
                       </span>
                     </label>
                   ))}
@@ -390,12 +457,20 @@ export default function CheckoutPage() {
                 <dt className="text-smoke">Subtotal</dt>
                 <dd className="text-chalk">{subtotal} MAD</dd>
               </div>
-              {offer.amount > 0 && (
+              {pricing.duo > 0 && (
                 <div className="flex justify-between">
                   <dt className="text-xenon">
                     {DUO_LABEL} <span className="font-ar">· {DUO_LABEL_AR}</span>
                   </dt>
-                  <dd className="font-semibold text-xenon">−{offer.amount} MAD</dd>
+                  <dd className="font-semibold text-xenon">−{pricing.duo} MAD</dd>
+                </div>
+              )}
+              {pricing.transfer > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-xenon">
+                    {TRANSFER_LABEL} <span className="font-ar">· {TRANSFER_LABEL_AR}</span>
+                  </dt>
+                  <dd className="font-semibold text-xenon">−{pricing.transfer} MAD</dd>
                 </div>
               )}
               <div className="flex justify-between">
@@ -424,7 +499,7 @@ export default function CheckoutPage() {
               )}
             </button>
             <p className="mt-4 text-center text-xs text-smoke">
-              {payment === PAYMENT_TRANSFER && transferEnabled ? (
+              {payment === PAYMENT_TRANSFER && transferOn ? (
                 <>
                   Next: the bank details to transfer to · <span className="font-ar">من بعد غادي تبان ليك معلومات الحساب</span>
                 </>

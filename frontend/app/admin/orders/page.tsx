@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
 import { fetchOrders, updateOrderStatus, updateOrder, resendWhatsApp, Order, OrderFinish } from '@/lib/apiServices';
-import { duoDiscount } from '@/lib/bundles';
+import { orderPricing } from '@/lib/bundles';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Loader from '@/components/Loader';
@@ -21,6 +21,7 @@ import {
   paymentLabel,
   whatsappGreeting,
   WhatsAppChip,
+  WhatsAppScreenshots,
 } from '@/components/OrderTable';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -98,6 +99,24 @@ export default function AdminOrdersPage() {
     setSelectedOrder(order);
     setDraftOrder({ ...order, products: order.products.map((p) => ({ ...p })) });
     setEditError(null);
+  };
+
+  // A transfer customer who pays on delivery after all: back to full price (no 10%).
+  const [switchingPayment, setSwitchingPayment] = useState(false);
+  const handleSwitchToCod = async () => {
+    if (!selectedOrder) return;
+    if (!confirm('Switch this order to cash on delivery? The 10% transfer discount comes off the total.')) return;
+    setSwitchingPayment(true);
+    try {
+      const updated = await updateOrder(selectedOrder._id, { paymentMethod: 'cod' });
+      setSelectedOrder(updated);
+      setDraftOrder((prev) => (prev ? { ...prev, paymentMethod: updated.paymentMethod } : prev));
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+    } catch (err: any) {
+      alert(err?.message || 'Failed to change the payment method.');
+    } finally {
+      setSwitchingPayment(false);
+    }
   };
 
   // WhatsApp confirmation: (re)send from the order sheet. Keeps unsaved item edits.
@@ -205,8 +224,8 @@ export default function AdminOrdersPage() {
   // ── Order editing (items + finish) ────────────────────────────────────────
   const draftTotal = useMemo(() => {
     if (!draftOrder) return 0;
-    // Same rule as the server: the 3D duo offer comes off complete pairs.
-    return draftOrder.products.reduce((sum, p) => sum + p.price * p.quantity, 0) - duoDiscount(draftOrder.products).amount;
+    // Same rule as the server: the 3D duo offer comes off complete pairs, then 10% if paid by transfer.
+    return orderPricing(draftOrder.products, draftOrder.paymentMethod).total;
   }, [draftOrder]);
 
   // Compare draft vs selected to know whether the Save button should appear.
@@ -773,6 +792,18 @@ export default function AdminOrdersPage() {
                         <dd className="mt-1 text-[15px] font-black text-white uppercase">
                           {paymentLabel(selectedOrder.paymentMethod)}
                         </dd>
+                        {selectedOrder.paymentMethod === 'bank_transfer' && (
+                          <dd className="mt-2">
+                            <button
+                              type="button"
+                              onClick={handleSwitchToCod}
+                              disabled={switchingPayment}
+                              className="rounded-lg border border-zinc-800 px-3 py-1.5 text-[12px] font-bold text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white disabled:opacity-50"
+                            >
+                              {switchingPayment ? 'Switching…' : 'Switch to cash on delivery (full price)'}
+                            </button>
+                          </dd>
+                        )}
                       </div>
                       <div>
                         <dt className={FIELD_LABEL}>WhatsApp confirmation</dt>
@@ -799,6 +830,9 @@ export default function AdminOrdersPage() {
                         {selectedOrder.whatsapp?.error && (
                           <dd className="mt-1.5 text-[12px] text-zinc-500 break-words">{selectedOrder.whatsapp.error}</dd>
                         )}
+                        <dd>
+                          <WhatsAppScreenshots key={selectedOrder._id} order={selectedOrder} />
+                        </dd>
                       </div>
                       <div>
                         <dt className={FIELD_LABEL}>Order date</dt>

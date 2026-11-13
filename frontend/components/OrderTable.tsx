@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Order, WhatsAppState, updateOrderStatus } from '@/lib/apiServices';
+import { Order, WhatsAppState, fetchWhatsAppMedia, updateOrderStatus } from '@/lib/apiServices';
 import { telHref, whatsappHref } from '@/lib/phone';
 
 // ── Shared order bits ────────────────────────────────────────────────────────
@@ -175,6 +175,7 @@ const WHATSAPP_CHIPS: Record<WhatsAppState, { label: string; style: string; titl
   read: { label: 'WA seen', style: WA_WAIT, title: 'They saw the message but have not answered yet' },
   confirmed: { label: '✓ Confirmed on WA', style: WA_GOOD, title: 'The customer confirmed on WhatsApp' },
   declined: { label: '✕ Cancelled on WA', style: WA_BAD, title: 'The customer cancelled on WhatsApp' },
+  paid: { label: 'Says paid · check bank', style: WA_LOOK, title: 'They say they transferred (or sent the screenshot): check the bank before shipping' },
   replied: { label: 'WA reply · read it', style: WA_LOOK, title: 'The customer wrote something: open the order to read it' },
   no_whatsapp: { label: 'No WhatsApp · call', style: WA_LOOK, title: 'This number has no WhatsApp: call them' },
   bad_number: { label: 'Bad number · call', style: WA_LOOK, title: 'The phone number looks wrong: call or check it' },
@@ -186,6 +187,58 @@ export function WhatsAppChip({ whatsapp }: { whatsapp?: Order['whatsapp'] }) {
   const chip = whatsapp ? WHATSAPP_CHIPS[whatsapp.state] : undefined;
   if (!chip) return null;
   return <span className={`${CHIP} ${chip.style}`} title={chip.title}>{chip.label}</span>;
+}
+
+/** Screenshots the customer sent on WhatsApp, loaded on demand (they need the admin login). */
+export function WhatsAppScreenshots({ order }: { order: Order }) {
+  const media = order.whatsapp?.media ?? [];
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => Object.values(urls).forEach((u) => URL.revokeObjectURL(u)), [urls]);
+
+  if (!media.length) return null;
+  const show = async (id: string) => {
+    setLoading(id);
+    setError(null);
+    try {
+      const blob = await fetchWhatsAppMedia(order._id, id);
+      setUrls((prev) => ({ ...prev, [id]: URL.createObjectURL(blob) }));
+    } catch (err: any) {
+      setError(err?.message || 'Could not load the screenshot.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2">
+      {media.map((m, i) => (
+        <div key={m.id}>
+          {urls[m.id] ? (
+            m.mime?.startsWith('image/') ? (
+              <a href={urls[m.id]} target="_blank" rel="noopener noreferrer">
+                <img src={urls[m.id]} alt={`Screenshot ${i + 1} from the customer`} className="max-h-80 rounded-lg ring-1 ring-white/10" />
+              </a>
+            ) : (
+              <a href={urls[m.id]} download className="text-[13px] font-semibold text-xenon underline">Download file {i + 1}</a>
+            )
+          ) : (
+            <button
+              type="button"
+              onClick={() => show(m.id)}
+              disabled={loading === m.id}
+              className="rounded-lg border border-zinc-800 px-3 py-1.5 text-[12px] font-bold text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white disabled:opacity-50"
+            >
+              {loading === m.id ? 'Loading…' : `📷 Show screenshot ${media.length > 1 ? i + 1 : ''}`}
+            </button>
+          )}
+        </div>
+      ))}
+      {error && <p className="text-[12px] text-rose-300">{error}</p>}
+    </div>
+  );
 }
 
 interface OrderCardProps {

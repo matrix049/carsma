@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import Order, { IOrder, WhatsAppState } from '../models/Order';
 import { sendNotification } from './notificationService';
+import { accountsLine, transferReference } from './bankTransfer';
 
 /**
  * Order confirmation on WhatsApp, through Meta's official Cloud API.
@@ -11,6 +12,12 @@ import { sendNotification } from './notificationService';
  * and shows on the order in the admin. Numbers without WhatsApp (landlines, or
  * Meta reporting "not on WhatsApp") are flagged so the team calls them instead.
  *
+ * Bank transfer orders get their own template instead: the total, the accounts
+ * (from the server's settings, see bankTransfer.ts), the order reference to put as
+ * the transfer reason, and "I paid" / "Cancel" / "Talk to someone" buttons.
+ * Screenshots sent back are kept on the order so the team can see them in the
+ * admin. Until that template exists, transfer orders get the normal confirmation.
+ *
  * Off until WHATSAPP_TOKEN and WHATSAPP_PHONE_NUMBER_ID are set.
  */
 
@@ -18,6 +25,7 @@ const config = () => ({
   token: process.env.WHATSAPP_TOKEN || '',
   phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
   template: process.env.WHATSAPP_TEMPLATE || 'order_confirmation',
+  transferTemplate: process.env.WHATSAPP_TEMPLATE_TRANSFER || 'order_transfer',
   language: process.env.WHATSAPP_TEMPLATE_LANG || 'ar',
   apiBase: (process.env.WHATSAPP_API_BASE || 'https://graph.facebook.com/v23.0').replace(/\/+$/, ''),
   verifyToken: process.env.WHATSAPP_VERIFY_TOKEN || '',
@@ -31,6 +39,12 @@ export const whatsappEnabled = () => {
 
 /** Meta's error when the number has no WhatsApp account. */
 const NOT_ON_WHATSAPP = 131026;
+/** Meta's error when the template doesn't exist (yet) in that language. */
+const NO_TEMPLATE = 132001;
+/** Screenshots kept per order. */
+const MAX_MEDIA = 5;
+
+const isTransfer = (order: IOrder) => order.paymentMethod === 'bank_transfer';
 /** Still waiting for the customer: later delivery/read receipts may move these forward. */
 const WAITING: WhatsAppState[] = ['sent', 'delivered', 'read'];
 const RECEIPT_ORDER: Partial<Record<WhatsAppState, number>> = { sent: 1, delivered: 2, read: 3 };
@@ -58,14 +72,16 @@ export function classifyPhone(phone: string): { kind: 'mobile' | 'landline' | 'i
 
 const YES = ['نعم', 'ايه', 'إيه', 'اه', 'آه', 'أكد', 'اكد', 'أكيد', 'اكيد', 'واخا', 'صافي', 'ok', 'okay', 'oui', 'yes', 'wakha', 'wah', 'ah', 'confirm', 'confirme', 'confirmé', 'safi'];
 const NO = ['لا', 'ألغي', 'الغي', 'إلغاء', 'الغاء', 'مابغيتش', 'no', 'non', 'la', 'annuler', 'annule', 'cancel', 'mabghitch'];
+const PAID = ['خلصت', 'خلصنا', 'حولت', 'payé', 'paye', 'payée', 'paid', 'khlst', 'khalast', 'khlast', 'khalst', 'tkhlst'];
 
-/** A typed reply that clearly says yes or no; anything else is left for the team to read. */
-export function readAnswer(text: string): 'confirmed' | 'declined' | null {
+/** A typed reply that clearly says yes, no or "I paid"; anything else is left for the team to read. */
+export function readAnswer(text: string): 'confirmed' | 'declined' | 'paid' | null {
   const t = (text || '').trim().toLowerCase();
   if (!t) return null;
   if (/^(✅|👍)/u.test(t)) return 'confirmed';
   if (/^(❌|👎)/u.test(t) || t.startsWith('ما بغيت')) return 'declined';
   const first = t.split(/[\s,.!?؟،]+/).find(Boolean) || '';
+  if (PAID.includes(first)) return 'paid';
   if (YES.includes(first)) return 'confirmed';
   if (NO.includes(first)) return 'declined';
   return null;
@@ -96,15 +112,16 @@ async function graph(body: Record<string, unknown>): Promise<any> {
 
 const sendText = (to: string, text: string) => graph({ to, type: 'text', text: { body: text } });
 
-const setWhatsApp = (orderId: IOrder['_id'], whatsapp: Record<string, unknown>) =>
-  Order.updateOne({ _id: orderId }, { $set: { whatsapp } });
+/** A fresh send replaces the old status, but screenshots already received stay. */
+const setWhatsApp = (order: IOrder, whatsapp: Record<string, unknown>) =>
+  Order.updateOne({ _id: order._id }, { $set: { whatsapp: { ...whatsapp, media: order.whatsapp?.media ?? [] } } });
 
 /** Sends the confirmation template for an order (also used to resend from the admin). */
 export async function sendOrderConfirmation(order: IOrder): Promise<void> {
   const at = new Date();
   const phone = classifyPhone(order.customer.phone);
   if (phone.kind !== 'mobile') {
-    await setWhatsApp(order._id, {
+    await setWhatsApp(order, {
       state: phone.kind === 'landline' ? 'no_whatsapp' : 'bad_number',
       to: phone.to ?? null,
       at,
@@ -115,34 +132,57 @@ export async function sendOrderConfirmation(order: IOrder): Promise<void> {
 
   const c = config();
   const id = order._id.toString();
+  // The order id rides on the buttons, so a tap always lands on the right order.
+  const buttons = (payloads: string[]) => payloads.map((p, i) => ({
+    type: 'button', sub_type: 'quick_reply', index: String(i), parameters: [{ type: 'payload', payload: `${p}:${id}` }],
+  }));
+  const body = (values: unknown[]) => ({ type: 'body', parameters: values.map((text) => ({ type: 'text', text: clean(text) })) });
+  const send = (name: string, components: unknown[]) =>
+    graph({ to: phone.to, type: 'template', template: { name, language: { code: c.language }, components } });
+  const confirmation = () => send(c.template, [
+    body([order.customer.firstName, itemsText(order), String(order.totalPrice), order.customer.address]),
+    ...buttons(['CONFIRM', 'CANCEL']),
+  ]);
+
   try {
-    const result = await graph({
-      to: phone.to,
-      type: 'template',
-      template: {
-        name: c.template,
-        language: { code: c.language },
-        components: [
-          {
-            type: 'body',
-            parameters: [order.customer.firstName, itemsText(order), String(order.totalPrice), order.customer.address]
-              .map((text) => ({ type: 'text', text: clean(text) })),
-          },
-          // The order id rides on the buttons, so a tap always lands on the right order.
-          { type: 'button', sub_type: 'quick_reply', index: '0', parameters: [{ type: 'payload', payload: `CONFIRM:${id}` }] },
-          { type: 'button', sub_type: 'quick_reply', index: '1', parameters: [{ type: 'payload', payload: `CANCEL:${id}` }] },
-        ],
-      },
-    });
-    await setWhatsApp(order._id, { state: 'sent', to: phone.to, messageId: result?.messages?.[0]?.id ?? null, at });
+    let template = c.template;
+    let result;
+    const accounts = accountsLine();
+    if (isTransfer(order) && accounts) {
+      try {
+        result = await send(c.transferTemplate, [
+          body([order.customer.firstName, String(order.totalPrice), accounts, transferReference(order.orderNumber)]),
+          ...buttons(['PAID', 'CANCEL', 'HUMAN']),
+        ]);
+        template = c.transferTemplate;
+      } catch (error: any) {
+        if (error?.code !== NO_TEMPLATE) throw error;
+        result = await confirmation(); // transfer template not created yet
+      }
+    } else {
+      result = await confirmation();
+    }
+    await setWhatsApp(order, { state: 'sent', to: phone.to, messageId: result?.messages?.[0]?.id ?? null, template, at });
   } catch (error: any) {
-    await setWhatsApp(order._id, {
+    await setWhatsApp(order, {
       state: error?.code === NOT_ON_WHATSAPP ? 'no_whatsapp' : 'failed',
       to: phone.to,
       at,
       error: String(error?.message || 'WhatsApp error').slice(0, 300),
     });
   }
+}
+
+/** A screenshot (or file) the customer sent, for the admin to look at. */
+export async function fetchMedia(mediaId: string): Promise<{ data: Buffer; mime: string }> {
+  const c = config();
+  const auth = { Authorization: `Bearer ${c.token}` };
+  const info = await fetch(`${c.apiBase}/${encodeURIComponent(mediaId)}`, { headers: auth, signal: AbortSignal.timeout(15000) });
+  const meta: any = await info.json().catch(() => ({}));
+  if (!info.ok || !meta?.url) throw new Error(meta?.error?.message || 'Media not found');
+  const file = await fetch(meta.url, { headers: auth, signal: AbortSignal.timeout(30000) });
+  if (!file.ok) throw new Error(`Media download failed (${file.status})`);
+  return { data: Buffer.from(await file.arrayBuffer()), mime: meta.mime_type || file.headers.get('content-type') || 'application/octet-stream' };
 }
 
 // ---------- webhook ----------
@@ -188,7 +228,10 @@ async function onMessage(message: any): Promise<void> {
   const from = String(message?.from || '');
   if (!from) return;
   const payload: string = message.button?.payload || message.interactive?.button_reply?.id || '';
-  const text: string = message.button?.text || message.interactive?.button_reply?.title || message.text?.body || '';
+  const file = message.image || message.document;
+  const text: string =
+    message.button?.text || message.interactive?.button_reply?.title || message.text?.body ||
+    (file ? `📷 ${file.caption || file.filename || 'Photo'}` : '');
   const [action, orderId] = payload.split(':');
 
   let order: IOrder | null = null;
@@ -198,13 +241,27 @@ async function onMessage(message: any): Promise<void> {
   if (!order?.whatsapp || order.whatsapp.to !== from) return;
 
   const before = order.whatsapp.state;
-  const answer = action === 'CONFIRM' ? 'confirmed' : action === 'CANCEL' ? 'declined' : readAnswer(text);
-  const state: WhatsAppState = answer || (WAITING.includes(before) || before === 'failed' ? 'replied' : before);
+  const transfer = isTransfer(order);
+  let answer: WhatsAppState | null =
+    action === 'CONFIRM' ? 'confirmed' : action === 'CANCEL' ? 'declined' : action === 'PAID' ? 'paid' : action === 'HUMAN' ? 'replied' : readAnswer(text);
+  if (file && transfer && before !== 'declined') answer = 'paid'; // a screenshot of the transfer
+  if (answer === 'paid' && !transfer) answer = 'replied'; // "I paid" means nothing on cash on delivery: let the team read it
+  const open = WAITING.includes(before) || before === 'failed' || before === 'replied';
+  const state: WhatsAppState = answer ?? (open ? 'replied' : before);
+  const reply = action === 'HUMAN' ? '💬 Wants to talk to someone' : clean(text).slice(0, 500);
 
-  await Order.updateOne({ _id: order._id }, {
-    $set: { 'whatsapp.state': state, 'whatsapp.reply': clean(text).slice(0, 500), 'whatsapp.repliedAt': new Date() },
-  });
-  if (state === before && state !== 'replied') return; // same answer again (or a repeat delivery from Meta)
+  const update: Record<string, unknown> = { 'whatsapp.state': state, 'whatsapp.reply': reply, 'whatsapp.repliedAt': new Date() };
+  const media = order.whatsapp.media ?? [];
+  const newFile = Boolean(file?.id) && !media.some((m) => m.id === String(file.id));
+  if (newFile) {
+    await Order.updateOne({ _id: order._id }, {
+      $push: { 'whatsapp.media': { $each: [{ id: String(file.id), mime: String(file.mime_type || ''), at: new Date() }], $slice: -MAX_MEDIA } },
+    });
+  }
+  await Order.updateOne({ _id: order._id }, { $set: update });
+  // Same answer again (or Meta repeating a delivery): nothing to say — unless it's the first screenshot.
+  const firstScreenshot = newFile && media.length === 0 && state === 'paid';
+  if (state === before && state !== 'replied' && !firstScreenshot) return;
 
   const name = order.customer.firstName;
   const adminUrl = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/admin/orders` : undefined;
@@ -213,14 +270,25 @@ async function onMessage(message: any): Promise<void> {
       await sendText(from, `شكرا ${name} 🙏 الطلب ديالك تأكد ✅ غادي نصيفطوه ليك، والموزع غادي يعيط ليك قبل ما يوصل، عافاك جاوبو 📞`);
     } else if (state === 'declined') {
       await sendText(from, `واخا ${name}، الطلب تلغى. إلا بدلتي رأيك ولا عندك شي سؤال، كتب لينا هنا 🙏`);
+    } else if (state === 'paid') {
+      await sendText(from, file
+        ? `توصلنا بالسكرين ✅ شكرا ${name}! غادي نتأكدو من التحويل ونصيفطو الطلب ديالك ف أقرب وقت.`
+        : `شكرا ${name} 🙏 عافاك صيفط لينا السكرين ديال التحويل هنا، باش نتأكدو منو ونصيفطو الطلب ديالك.`);
+    } else if (action === 'HUMAN') {
+      await sendText(from, `واخا ${name}، شي واحد من الفريق غادي يتواصل معاك دابا 🙏`);
     }
   } catch (error) {
     console.error('WhatsApp auto-reply failed:', (error as Error).message);
   }
-  const title = state === 'confirmed' ? '✅ تأكد ف واتساب' : state === 'declined' ? '❌ تلغى ف واتساب' : '💬 رد ف واتساب';
+  const title =
+    state === 'confirmed' ? '✅ تأكد ف واتساب'
+    : state === 'declined' ? '❌ تلغى ف واتساب'
+    : state === 'paid' ? (file ? '📷 صيفط السكرين ديال التحويل (شوف البنك)' : '💳 قال خلص (شوف البنك)')
+    : action === 'HUMAN' ? '🙋 بغا يهضر مع شي واحد'
+    : '💬 رد ف واتساب';
   await sendNotification({
     title,
-    message: `#${order.orderNumber} ${name}${state === 'replied' ? `: ${clean(text).slice(0, 200)}` : ''}`,
+    message: `#${order.orderNumber} ${name}${state === 'replied' && action !== 'HUMAN' ? `: ${clean(text).slice(0, 200)}` : ''}`,
     priority: 'high',
     tags: ['speech_balloon'],
     click: adminUrl,

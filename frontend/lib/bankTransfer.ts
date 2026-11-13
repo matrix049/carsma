@@ -1,42 +1,48 @@
 /**
- * Paying by instant bank transfer (virement instantané), next to cash on delivery.
- * The customer transfers, screenshots it and sends it on WhatsApp; the team checks it
- * before shipping.
+ * Paying by instant bank transfer (virement instantané) — 10% off — next to cash
+ * on delivery. The customer transfers, screenshots it and sends it on WhatsApp;
+ * the team checks the money arrived before shipping.
  *
- * Fill in each account exactly as on the RIB paper. The site offers transfer only once
- * an account has a holder name and a full 24-digit RIB, so empty ones stay hidden.
+ * The RIBs stay on the server (backend services/bankTransfer.ts): this site is only
+ * told which banks are open, and gets the accounts back in the response to a
+ * transfer order, so they're never in the site's code. Customers save the account
+ * under the brand name (e.g. "L7IT").
  */
-export interface BankAccount {
-  bank: string;
-  holder: string;
-  rib: string;
-}
+import { fetchPaymentOptions, TransferDetails } from './apiServices';
 
-export const BANK_ACCOUNTS: BankAccount[] = [
-  { bank: 'CIH Bank', holder: '', rib: '' },
-  { bank: 'Banque Populaire (BCP)', holder: '', rib: '' },
-];
+export type { TransferDetails };
 
 /** Stored on the order as its paymentMethod. */
 export const PAYMENT_TRANSFER = 'bank_transfer';
 
-const digits = (rib: string) => rib.replace(/\D/g, '');
+/**
+ * Each bank's official logo file in public/banks/ (e.g. '/banks/cih.png').
+ * Until one is set, the bank's name is shown instead.
+ */
+export const BANK_LOGOS: Record<string, string> = {
+  'CIH Bank': '',
+  'Banque Populaire (BCP)': '',
+};
 
-/** Accounts ready to show: a holder and a 24-digit RIB. */
-export function readyAccounts(accounts: BankAccount[] = BANK_ACCOUNTS): BankAccount[] {
-  return accounts.filter((a) => a.holder.trim() !== '' && digits(a.rib).length === 24);
-}
+let banks: string[] = [];
+let loading: Promise<string[]> | null = null;
 
-export const transferEnabled = readyAccounts().length > 0;
+/** Banks open for transfer, as last told by the server (empty: transfer isn't offered). */
+export const transferBanks = () => banks;
 
-/** "230780123456789012345678" → "230 780 1234567890123456 78" (bank, city, account, key). */
-export function formatRib(rib: string): string {
-  const d = digits(rib);
-  return d.length === 24 ? `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 22)} ${d.slice(22)}` : rib.trim();
+/** Asks the server once per page load; if it can't be reached, transfer just isn't offered. */
+export function loadTransferBanks(): Promise<string[]> {
+  if (!loading) {
+    // Started inside .then so even a call that throws straight away ends up in .catch.
+    loading = Promise.resolve()
+      .then(() => fetchPaymentOptions())
+      .then((options) => (banks = options?.transfer?.banks ?? []))
+      .catch(() => (banks = []));
+  }
+  return loading;
 }
 
 /** The WhatsApp message the customer sends along with the screenshot. */
-export function transferMessage(orderNumber: number | undefined, total: number): string {
-  const ref = orderNumber ? ` #${orderNumber}` : '';
-  return `Salam L7IT, hada screenshot dyal tahwil (virement) dyal commande${ref} — ${total} DH.`;
+export function transferMessage(reference: string, total: number): string {
+  return `Salam L7IT, hada screenshot dyal tahwil (virement) dyal commande ${reference} — ${total} DH.`;
 }

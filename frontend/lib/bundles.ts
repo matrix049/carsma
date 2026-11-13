@@ -24,6 +24,19 @@ export function duoDiscount(lines: Line[]): { pairs: number; amount: number } {
   return { pairs, amount: pairs * Math.max(0, together - DUO_PRICE) };
 }
 
+/** Paying by instant bank transfer takes 10% off what's left after the duo offer. */
+export const TRANSFER_DISCOUNT_RATE = 0.1;
+export const TRANSFER_LABEL = '10% instant transfer';
+export const TRANSFER_LABEL_AR = 'تخفيض 10% بالتحويل';
+
+/** What an order costs: items, minus the duo offer, minus 10% when paid by instant transfer. */
+export function orderPricing(lines: Line[], paymentMethod?: string) {
+  const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+  const duo = duoDiscount(lines).amount;
+  const transfer = paymentMethod === 'bank_transfer' ? Math.round((subtotal - duo) * TRANSFER_DISCOUNT_RATE) : 0;
+  return { subtotal, duo, transfer, total: subtotal - duo - transfer };
+}
+
 /** Full price of one of each edition, and what the duo saves on it. */
 export function duoPricing(editions: { price: number }[]): { full: number; saving: number } {
   const full = editions.reduce((sum, e) => sum + e.price, 0);

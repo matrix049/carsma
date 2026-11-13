@@ -117,6 +117,22 @@ export async function apiRequest<T>(
 }
 
 /**
+ * Authenticated GET for a file (e.g. a WhatsApp screenshot) instead of JSON.
+ * @throws ApiError on an HTTP error
+ */
+export async function apiBlob(endpoint: string): Promise<Blob> {
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new ApiError(data.message || `Request failed with status ${response.status}`, response.status);
+  }
+  return response.blob();
+}
+
+/**
  * Get authentication token from localStorage
  * @returns JWT token or null if not found
  */

@@ -3,7 +3,7 @@
  * Provides typed interfaces for all API endpoints
  */
 
-import { apiRequest } from './api';
+import { apiBlob, apiRequest } from './api';
 
 // ============================================================================
 // Type Definitions
@@ -49,7 +49,7 @@ export type OrderFinish = 'brilliant' | 'matte' | null;
 /** Where the WhatsApp confirmation stands (mirror of backend models/Order). */
 export type WhatsAppState =
   | 'sent' | 'delivered' | 'read'
-  | 'confirmed' | 'declined' | 'replied'
+  | 'confirmed' | 'declined' | 'paid' | 'replied'
   | 'no_whatsapp' | 'bad_number' | 'failed';
 
 export interface OrderWhatsApp {
@@ -60,6 +60,8 @@ export interface OrderWhatsApp {
   reply?: string;
   repliedAt?: string;
   error?: string;
+  /** Screenshots/files the customer sent back. */
+  media?: Array<{ id: string; mime?: string; at?: string }>;
 }
 
 export interface Order {
@@ -84,6 +86,8 @@ export interface UpdateOrderRequest {
   status?: Order['status'];
   finish?: OrderFinish;
   products?: OrderProduct[];
+  /** 'cod' | 'bank_transfer' — the server re-prices the order (10% off only by transfer). */
+  paymentMethod?: 'cod' | 'bank_transfer';
 }
 
 export interface CreateOrderRequest {
@@ -93,12 +97,35 @@ export interface CreateOrderRequest {
   paymentMethod?: string;
 }
 
+/** What a customer needs to pay one transfer order — only ever sent with that order. */
+export interface TransferDetails {
+  /** The name to save the account under in their bank app (the brand). */
+  beneficiary: string;
+  /** The transfer reason (motif), e.g. "L7IT-123". */
+  reference: string;
+  amount: number;
+  /** RIBs already grouped for reading ("230 780 … 78"). */
+  accounts: Array<{ bank: string; rib: string }>;
+}
+
 export interface CreateOrderResponse {
   success: boolean;
   orderId: string;
   /** The number the shop uses for the order (e.g. 123 for "#123"). */
   orderNumber?: number;
   message: string;
+  /** Present for a bank transfer order. */
+  transfer?: TransferDetails;
+}
+
+export interface PaymentOptions {
+  /** Banks open for instant transfer (names only); empty when transfer isn't offered. */
+  transfer: { banks: string[]; discountRate: number };
+}
+
+/** How customers can pay right now (public). */
+export async function fetchPaymentOptions(): Promise<PaymentOptions> {
+  return apiRequest<PaymentOptions>('/api/payment/options', { method: 'GET' }, false);
 }
 
 export interface AdminLoginRequest {
@@ -338,6 +365,11 @@ export async function updateOrderStatus(
   status: Order['status'],
 ): Promise<Order> {
   return updateOrder(orderId, { status });
+}
+
+/** A screenshot the customer sent on WhatsApp (admin only). */
+export function fetchWhatsAppMedia(orderId: string, mediaId: string): Promise<Blob> {
+  return apiBlob(`/api/orders/${orderId}/whatsapp/media/${encodeURIComponent(mediaId)}`);
 }
 
 /** (Re)send the WhatsApp confirmation to the customer (admin only). */

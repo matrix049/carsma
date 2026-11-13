@@ -1,4 +1,4 @@
-import { duoDiscount, duoPricing, DUO_PRICE } from './bundles';
+import { duoDiscount, duoPricing, orderPricing, DUO_PRICE } from './bundles';
 
 const g = { name: 'G-Class AMG G63 3D', price: 399 };
 const p = { name: '911 GT3 RS 3D', price: 349 };
@@ -23,5 +23,24 @@ describe('3D duo offer', () => {
 
   it('prices one of each', () => {
     expect(duoPricing([g, p])).toEqual({ full: 748, saving: 748 - DUO_PRICE });
+  });
+});
+
+describe('order pricing', () => {
+  const pack = [{ ...g, quantity: 1 }, { ...p, quantity: 1 }];
+
+  it('cash on delivery: duo offer only', () => {
+    expect(orderPricing(pack, 'cod')).toEqual({ subtotal: 748, duo: 49, transfer: 0, total: 699 });
+  });
+
+  it('instant transfer: 10% off what is left after the duo, in whole dirhams', () => {
+    expect(orderPricing(pack, 'bank_transfer')).toEqual({ subtotal: 748, duo: 49, transfer: 70, total: 629 });
+    expect(orderPricing([{ ...p, quantity: 1 }], 'bank_transfer').total).toBe(314);
+    expect(orderPricing([{ ...g, quantity: 1 }], 'bank_transfer').total).toBe(359);
+  });
+
+  it('no payment method or an old one: full price', () => {
+    expect(orderPricing([{ ...g, quantity: 1 }]).total).toBe(399);
+    expect(orderPricing([{ ...g, quantity: 1 }], 'Cash on Delivery').total).toBe(399);
   });
 });

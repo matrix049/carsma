@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createOrder, getOrders, updateOrder, resendWhatsApp } from '../controllers/orderController';
+import { createOrder, getOrders, updateOrder, resendWhatsApp, getWhatsAppMedia } from '../controllers/orderController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -15,5 +15,8 @@ router.put('/:id', authenticateToken, updateOrder);
 
 // POST /api/orders/:id/whatsapp - (Re)send the WhatsApp confirmation, admin only
 router.post('/:id/whatsapp', authenticateToken, resendWhatsApp);
+
+// GET /api/orders/:id/whatsapp/media/:mediaId - A screenshot the customer sent, admin only
+router.get('/:id/whatsapp/media/:mediaId', authenticateToken, getWhatsAppMedia);
 
 export default router;

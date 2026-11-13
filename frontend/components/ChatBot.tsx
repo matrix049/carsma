@@ -10,6 +10,7 @@ import { hideBrokenImage } from '@/components/ProductCard';
 import { ChatReply, ChatTurn, fetchProducts, sendChatHandoff, sendChatMessage, sendChatOrder } from '@/lib/apiServices';
 import { whatsappLink, inputField } from '@/lib/uiStyles';
 import { trackEvent } from '@/lib/tracker';
+import { loadTransferBanks } from '@/lib/bankTransfer';
 import {
   CHAT_LANGUAGES,
   CHIP_TOPICS,
@@ -97,6 +98,11 @@ export default function ChatBot({ inputId = 'chat-input' }: { inputId?: string }
   const [input, setInput] = useState('');
   const [pending, setPending] = useState(false);
   const [slow, setSlow] = useState(false);
+
+  // So the payment answer can mention bank transfer while it's open.
+  useEffect(() => {
+    loadTransferBanks();
+  }, []);
   const [panel, setPanel] = useState<Panel>(null);
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'error'>('idle');
   const [form, setForm] = useState({ name: '', phone: '' });

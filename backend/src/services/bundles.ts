@@ -24,3 +24,22 @@ export function duoDiscount(lines: Line[]): { pairs: number; amount: number } {
   const together = groups.reduce((sum, g) => sum + Math.min(...g.map((l) => Number(l.price) || 0)), 0);
   return { pairs, amount: pairs * Math.max(0, together - DUO_PRICE) };
 }
+
+/** Paying by instant bank transfer takes 10% off what's left after the duo offer. */
+export const TRANSFER_DISCOUNT_RATE = 0.1;
+export const TRANSFER_LABEL = '10% instant transfer';
+
+/** What an order costs: items, minus the duo offer, minus 10% when paid by instant transfer. */
+export function orderPricing(lines: Line[], paymentMethod?: string) {
+  const subtotal = lines.reduce((sum, l) => sum + (Number(l.price) || 0) * (Number(l.quantity) || 0), 0);
+  const duo = duoDiscount(lines).amount;
+  const transfer = paymentMethod === 'bank_transfer' ? Math.round((subtotal - duo) * TRANSFER_DISCOUNT_RATE) : 0;
+  const label = [duo ? DUO_LABEL : '', transfer ? TRANSFER_LABEL : ''].filter(Boolean).join(' + ');
+  return {
+    subtotal,
+    duo,
+    transfer,
+    total: subtotal - duo - transfer,
+    discount: duo + transfer > 0 ? { label, amount: duo + transfer } : null,
+  };
+}

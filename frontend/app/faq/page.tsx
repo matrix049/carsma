@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { btnPrimary, kickerLabel } from '@/lib/uiStyles';
-import { transferEnabled } from '@/lib/bankTransfer';
+import { loadTransferBanks, transferBanks } from '@/lib/bankTransfer';
 
 interface FAQItem {
   question: string;
@@ -14,6 +14,8 @@ interface FAQItem {
   answerAr: string;
   /** Optional button under the answer. */
   cta?: { label: string; labelAr: string; href: string };
+  /** The answer once bank transfer is open (banks = their names, from the server). */
+  withTransfer?: (banks: string) => { answer: string; answerAr: string };
 }
 
 const FAQS: FAQItem[] = [
@@ -65,13 +67,12 @@ const FAQS: FAQItem[] = [
     question: 'What payment methods do you accept?',
     questionAr: 'شنو هي طرق الخلاص؟',
     answer:
-      'Cash on delivery: you pay when your piece arrives, nothing before.' +
-      (transferEnabled ? ' If you prefer, pay by instant bank transfer (CIH or BCP) and send us the screenshot on WhatsApp.' : '') +
-      ' For a custom order we take a partial advance payment before we start working on it.',
-    answerAr:
-      'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل.' +
-      (transferEnabled ? ' ولا إلا بغيتي، خلص بتحويل بنكي فوري (CIH ولا BCP) وصيفط لينا السكرين ف واتساب.' : '') +
-      ' ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
+      'Cash on delivery: you pay when your piece arrives, nothing before. For a custom order we take a partial advance payment before we start working on it.',
+    answerAr: 'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
+    withTransfer: (banks) => ({
+      answer: `Cash on delivery: you pay when your piece arrives, nothing before. Or pay by instant bank transfer (${banks}) and get 10% off: send us the screenshot on WhatsApp. For a custom order we take a partial advance payment before we start working on it.`,
+      answerAr: `الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ولا خلص بتحويل بنكي فوري (${banks}) وخود تخفيض 10%: صيفط لينا السكرين ف واتساب. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.`,
+    }),
   },
   {
     question: 'What is your return policy?',
@@ -92,7 +93,13 @@ const FAQS: FAQItem[] = [
 export default function FAQPage() {
   const { language } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const faqs = FAQS;
+  const [banks, setBanks] = useState<string[]>(transferBanks());
+  useEffect(() => {
+    loadTransferBanks().then(setBanks);
+  }, []);
+  const faqs = banks.length
+    ? FAQS.map((faq) => (faq.withTransfer ? { ...faq, ...faq.withTransfer(banks.join(' / ')) } : faq))
+    : FAQS;
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);

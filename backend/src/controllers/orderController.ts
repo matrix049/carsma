@@ -3,9 +3,10 @@ import Order from '../models/Order';
 import { AuthRequest } from '../middleware/auth';
 import { notifyNewOrder } from '../services/notificationService';
 import { clearOverviewCache } from '../services/overviewStats';
-import { duoDiscount, DUO_LABEL } from '../services/bundles';
+import { orderPricing } from '../services/bundles';
+import { transferDetails, transferEnabled } from '../services/bankTransfer';
 import { moveOrderStock, StockError, StockMove } from '../services/orderStock';
-import { sendOrderConfirmation, whatsappEnabled } from '../services/whatsapp';
+import { fetchMedia, sendOrderConfirmation, whatsappEnabled } from '../services/whatsapp';
 
 /**
  * Create new order
@@ -57,13 +58,11 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
 
     console.log('✅ All validations passed, creating order...');
 
-    // The 3D duo offer is decided here, not trusted from the browser. A page
-    // that already took it off sends subtotal - offer; an older page sends
-    // the full subtotal, so take it off for them.
-    const duo = duoDiscount(products);
-    const subtotal = products.reduce((sum: number, p: any) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 0), 0);
-    let finalTotal = totalPrice;
-    if (duo.amount > 0 && Math.abs(totalPrice - subtotal) < 1) finalTotal = subtotal - duo.amount;
+    // The total is worked out here from the items, not trusted from the browser:
+    // the 3D duo offer, and 10% off when paying by instant bank transfer (only
+    // offered while the shop's accounts are set on the server).
+    const method = paymentMethod === 'bank_transfer' && !transferEnabled() ? 'cod' : paymentMethod;
+    const pricing = orderPricing(products, method);
 
     // Create new order in database
     const order = new Order({
@@ -74,9 +73,9 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
         address: customer.address
       },
       products,
-      totalPrice: finalTotal,
-      discount: duo.amount > 0 ? { label: DUO_LABEL, amount: duo.amount } : null,
-      paymentMethod: paymentMethod || 'Cash on Delivery',
+      totalPrice: pricing.total,
+      discount: pricing.discount,
+      paymentMethod: method || 'Cash on Delivery',
       status: 'pending'
     });
 
@@ -91,7 +90,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     console.log('📦 Phone:', customer.phone);
     console.log('📦 Total Price:', totalPrice, 'MAD');
     console.log('📦 Items Count:', products.length);
-    console.log('📦 Payment Method:', paymentMethod || 'Cash on Delivery');
+    console.log('📦 Payment Method:', order.paymentMethod);
     console.log('📦 ===== STARTING NOTIFICATION PROCESS =====');
 
     // Send notification to admin
@@ -106,7 +105,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
         orderId: order._id.toString(),
         customerName: `${customer.firstName} ${customer.lastName}`,
         customerPhone: customer.phone,
-        totalPrice,
+        totalPrice: pricing.total,
         itemCount: products.length,
         paymentMethod: order.paymentMethod,
       });
@@ -132,7 +131,9 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
       success: true,
       orderId: order._id.toString(),
       orderNumber: order.orderNumber,
-      message: 'Order created successfully'
+      message: 'Order created successfully',
+      // Only the customer who just ordered by transfer gets the accounts to pay into.
+      ...(order.paymentMethod === 'bank_transfer' ? { transfer: transferDetails(order) } : {})
     });
     console.log('✅ ===== ORDER CREATION FLOW COMPLETED =====');
   } catch (error: any) {
@@ -192,6 +193,8 @@ export async function getOrders(req: AuthRequest, res: Response): Promise<void> 
  *   - `products` : full replacement of the line items
  *                  (server recalculates `totalPrice` server-side so the
  *                  total can't drift out of sync with the items).
+ *   - `paymentMethod` : 'cod' | 'bank_transfer' (e.g. a customer who chose
+ *                  transfer pays on delivery after all: the 10% comes off).
  *
  * Only the fields present in the body are touched; missing fields stay
  * as they were.
@@ -202,9 +205,10 @@ export async function getOrders(req: AuthRequest, res: Response): Promise<void> 
 export async function updateOrder(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { status, finish, products } = req.body as {
+    const { status, finish, products, paymentMethod } = req.body as {
       status?: string;
       finish?: 'brilliant' | 'matte' | null;
+      paymentMethod?: string;
       products?: Array<{
         productId: string;
         name: string;
@@ -263,13 +267,17 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
         }
       }
       updates.products = products;
-      // Recalculate total so it can't drift from the items (offer included).
-      const duo = duoDiscount(products);
-      updates.totalPrice = products.reduce(
-        (sum, p) => sum + p.price * p.quantity,
-        0,
-      ) - duo.amount;
-      updates.discount = duo.amount > 0 ? { label: DUO_LABEL, amount: duo.amount } : null;
+    }
+
+    if (paymentMethod !== undefined) {
+      if (paymentMethod !== 'cod' && paymentMethod !== 'bank_transfer') {
+        res.status(400).json({
+          error: true,
+          message: 'Invalid payment method. Must be one of: cod, bank_transfer'
+        });
+        return;
+      }
+      updates.paymentMethod = paymentMethod;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -283,7 +291,7 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
     const filter: Record<string, unknown> = { _id: id };
     let stock: StockMove | null = null;
 
-    if (status !== undefined || products !== undefined) {
+    if (status !== undefined || products !== undefined || paymentMethod !== undefined) {
       const current = await Order.findById(id);
       if (!current) {
         res.status(404).json({
@@ -292,9 +300,18 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
         });
         return;
       }
-      stock = await moveOrderStock(current, status ?? current.status, products ?? current.products);
-      updates.stockHeld = stock.held;
-      updates.stockTaken = stock.taken;
+      if (products !== undefined || paymentMethod !== undefined) {
+        // Recalculate the total so it can't drift from the items or the way of
+        // paying (duo offer and transfer discount included).
+        const pricing = orderPricing(products ?? current.products, paymentMethod ?? current.paymentMethod);
+        updates.totalPrice = pricing.total;
+        updates.discount = pricing.discount;
+      }
+      if (status !== undefined || products !== undefined) {
+        stock = await moveOrderStock(current, status ?? current.status, products ?? current.products);
+        updates.stockHeld = stock.held;
+        updates.stockTaken = stock.taken;
+      }
       // Only saves if nobody changed the order meanwhile (a double click, a
       // second admin), so its stock can't be moved twice.
       filter.updatedAt = current.updatedAt;
@@ -311,9 +328,10 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
 
     if (!order) {
       await stock?.undo();
-      res.status(stock ? 409 : 404).json({
+      const changed = Boolean(filter.updatedAt); // it existed a moment ago
+      res.status(changed ? 409 : 404).json({
         error: true,
-        message: stock ? 'This order just changed. Refresh and try again.' : 'Order not found'
+        message: changed ? 'This order just changed. Refresh and try again.' : 'Order not found'
       });
       return;
     }
@@ -372,6 +390,31 @@ export async function resendWhatsApp(req: AuthRequest, res: Response): Promise<v
     }
     console.error('Resend WhatsApp error:', error);
     res.status(500).json({ error: true, message: 'Failed to send the WhatsApp message' });
+  }
+}
+
+/**
+ * A screenshot/file the customer sent on WhatsApp (admin only)
+ * GET /api/orders/:id/whatsapp/media/:mediaId
+ */
+export async function getWhatsAppMedia(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const order = await Order.findById(req.params.id, 'whatsapp.media');
+    const media = order?.whatsapp?.media?.find((m) => m.id === req.params.mediaId);
+    if (!media) {
+      res.status(404).json({ error: true, message: 'Screenshot not found' });
+      return;
+    }
+    const file = await fetchMedia(media.id);
+    res.set({ 'Content-Type': file.mime, 'Cache-Control': 'private, max-age=300' });
+    res.status(200).send(file.data);
+  } catch (error: any) {
+    if (error.name === 'CastError') {
+      res.status(400).json({ error: true, message: 'Invalid order ID' });
+      return;
+    }
+    console.error('WhatsApp media error:', error);
+    res.status(502).json({ error: true, message: 'Could not load the screenshot from WhatsApp' });
   }
 }
 

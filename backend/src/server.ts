@@ -19,6 +19,7 @@ import testRoutes from './routes/testRoutes';
 import analyticsRoutes from './routes/analytics';
 import chatRoutes from './routes/chat';
 import whatsappRoutes from './routes/whatsapp';
+import paymentRoutes from './routes/payment';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +80,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/admin', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/custom-orders', customOrderRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);

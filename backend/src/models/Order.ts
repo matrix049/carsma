@@ -3,22 +3,27 @@ import mongoose, { Schema, Document } from 'mongoose';
 /**
  * Where the WhatsApp confirmation stands (see services/whatsapp):
  * sent → delivered → read while waiting; then the customer's answer —
- * confirmed, declined, or replied (a message the team should read).
+ * confirmed, declined, paid (a transfer order: they say they paid or sent the
+ * screenshot), or replied (a message the team should read).
  * no_whatsapp / bad_number / failed: the team calls instead.
  */
 export type WhatsAppState =
   | 'sent' | 'delivered' | 'read'
-  | 'confirmed' | 'declined' | 'replied'
+  | 'confirmed' | 'declined' | 'paid' | 'replied'
   | 'no_whatsapp' | 'bad_number' | 'failed';
 
 export interface IOrderWhatsApp {
   state: WhatsAppState;
   to?: string | null;
   messageId?: string | null;
+  /** Which template went out (confirmation, or the bank transfer one). */
+  template?: string;
   at?: Date;
   reply?: string;
   repliedAt?: Date;
   error?: string;
+  /** Screenshots/files the customer sent back (Meta media ids). */
+  media?: Array<{ id: string; mime?: string; at?: Date }>;
 }
 
 export interface IOrder extends Document {
@@ -142,14 +147,16 @@ const OrderSchema = new Schema<IOrder>(
         {
           state: {
             type: String,
-            enum: ['sent', 'delivered', 'read', 'confirmed', 'declined', 'replied', 'no_whatsapp', 'bad_number', 'failed'],
+            enum: ['sent', 'delivered', 'read', 'confirmed', 'declined', 'paid', 'replied', 'no_whatsapp', 'bad_number', 'failed'],
           },
           to: { type: String, default: null },
           messageId: { type: String, default: null },
+          template: String,
           at: Date,
           reply: String,
           repliedAt: Date,
           error: String,
+          media: { type: [new Schema({ id: String, mime: String, at: Date }, { _id: false })], default: [] },
         },
         { _id: false }
       ),
