@@ -18,6 +18,7 @@ import adminToolsRoutes from './routes/admin-tools';
 import testRoutes from './routes/testRoutes';
 import analyticsRoutes from './routes/analytics';
 import chatRoutes from './routes/chat';
+import whatsappRoutes from './routes/whatsapp';
 
 // Load environment variables
 dotenv.config();
@@ -53,6 +54,9 @@ app.use(cors({
 }));
 
 // 3. JSON body parser
+// WhatsApp webhook reads its own raw body (to check Meta's signature), so it goes first.
+app.use('/api/whatsapp', whatsappRoutes);
+
 app.use(express.json());
 
 // 4. Request logging

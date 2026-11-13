@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Order, updateOrderStatus } from '@/lib/apiServices';
+import { Order, WhatsAppState, updateOrderStatus } from '@/lib/apiServices';
 import { telHref, whatsappHref } from '@/lib/phone';
 
 // ── Shared order bits ────────────────────────────────────────────────────────
@@ -39,8 +39,13 @@ export function parseAddress(address: string) {
 }
 
 export function paymentLabel(method: string) {
-  return method === 'cod' ? 'Cash on delivery' : (method || '').toUpperCase();
+  if (method === 'cod') return 'Cash on delivery';
+  if (method === 'bank_transfer') return 'Bank transfer';
+  return (method || '').toUpperCase();
 }
+
+/** Paid (or to be paid) by bank transfer: check the WhatsApp screenshot before shipping. */
+export const isTransfer = (method: string) => method === 'bank_transfer';
 
 /** "Today 14:32", "Yesterday 09:10", "28 Oct 14:32" — short enough for a card. */
 export function formatOrderDate(iso: string) {
@@ -160,6 +165,29 @@ export function ContactButtons({
 
 const CHIP = 'inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider';
 
+const WA_WAIT = 'border-white/10 bg-white/[0.04] text-silver';
+const WA_GOOD = 'border-emerald-500/25 bg-emerald-500/10 text-emerald-400';
+const WA_LOOK = 'border-amber-500/25 bg-amber-500/10 text-amber-300';
+const WA_BAD = 'border-rose-500/25 bg-rose-500/10 text-rose-300';
+const WHATSAPP_CHIPS: Record<WhatsAppState, { label: string; style: string; title: string }> = {
+  sent: { label: 'WA sent', style: WA_WAIT, title: 'Confirmation sent on WhatsApp, no answer yet' },
+  delivered: { label: 'WA delivered', style: WA_WAIT, title: 'Delivered to their WhatsApp, no answer yet' },
+  read: { label: 'WA seen', style: WA_WAIT, title: 'They saw the message but have not answered yet' },
+  confirmed: { label: '✓ Confirmed on WA', style: WA_GOOD, title: 'The customer confirmed on WhatsApp' },
+  declined: { label: '✕ Cancelled on WA', style: WA_BAD, title: 'The customer cancelled on WhatsApp' },
+  replied: { label: 'WA reply · read it', style: WA_LOOK, title: 'The customer wrote something: open the order to read it' },
+  no_whatsapp: { label: 'No WhatsApp · call', style: WA_LOOK, title: 'This number has no WhatsApp: call them' },
+  bad_number: { label: 'Bad number · call', style: WA_LOOK, title: 'The phone number looks wrong: call or check it' },
+  failed: { label: 'WA failed · call', style: WA_BAD, title: 'The WhatsApp message could not be sent: call them' },
+};
+
+/** Where the order's WhatsApp confirmation stands, at a glance. */
+export function WhatsAppChip({ whatsapp }: { whatsapp?: Order['whatsapp'] }) {
+  const chip = whatsapp ? WHATSAPP_CHIPS[whatsapp.state] : undefined;
+  if (!chip) return null;
+  return <span className={`${CHIP} ${chip.style}`} title={chip.title}>{chip.label}</span>;
+}
+
 interface OrderCardProps {
   order: Order;
   onStatusChange: (status: OrderStatus) => void;
@@ -232,14 +260,21 @@ export function OrderCard({ order, onStatusChange, updating = false, onOpen, ind
           )}
         </span>
         <span className="flex flex-wrap items-center justify-end gap-1.5">
+          <WhatsAppChip whatsapp={order.whatsapp} />
           {order.finish ? (
             <span className={`${CHIP} border-xenon/25 bg-xenon/10 text-xenon`}>{order.finish}</span>
           ) : askFinish ? (
             <span className={`${CHIP} border-amber-500/25 bg-amber-500/10 text-amber-300`}>No finish</span>
           ) : null}
-          <span className={`${CHIP} border-white/10 bg-white/[0.04] text-silver`}>
-            {order.paymentMethod === 'cod' ? 'COD' : paymentLabel(order.paymentMethod)}
-          </span>
+          {isTransfer(order.paymentMethod) ? (
+            <span className={`${CHIP} border-amber-500/25 bg-amber-500/10 text-amber-300`} title="Check the transfer screenshot on WhatsApp before shipping">
+              Virement · check WhatsApp
+            </span>
+          ) : (
+            <span className={`${CHIP} border-white/10 bg-white/[0.04] text-silver`}>
+              {order.paymentMethod === 'cod' ? 'COD' : paymentLabel(order.paymentMethod)}
+            </span>
+          )}
         </span>
       </span>
     </>

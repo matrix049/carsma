@@ -2,7 +2,10 @@
  * Thin wrapper around Meta Pixel's `fbq`. Safe to call from anywhere — if the
  * pixel hasn't loaded (SSR, ad-blocker), the call is a no-op.
  *
- * Currency is fixed to MAD since the storefront only ships in Morocco.
+ * Prices are in MAD, but Meta's pixel rejects MAD as a currency ("Parameter
+ * 'currency' is invalid"), which left every event without a value. So values go
+ * out in US dollars — the ad account's currency — at a fixed, approximate rate:
+ * close enough for Meta to tell a 699 DH order from a 249 DH one.
  */
 
 declare global {
@@ -11,7 +14,9 @@ declare global {
   }
 }
 
-const CURRENCY = 'MAD';
+const CURRENCY = 'USD';
+const MAD_PER_USD = 10;
+const toUsd = (mad: number) => Math.round((mad / MAD_PER_USD) * 100) / 100;
 
 type StandardEvent =
   | 'PageView'
@@ -39,7 +44,7 @@ export function trackViewContent(args: {
     content_name: args.name,
     content_category: args.category,
     content_type: 'product',
-    value: args.price,
+    value: toUsd(args.price),
     currency: CURRENCY,
   });
 }
@@ -54,7 +59,7 @@ export function trackAddToCart(args: {
     content_ids: [args.productId],
     content_name: args.name,
     content_type: 'product',
-    value: args.price * args.quantity,
+    value: toUsd(args.price * args.quantity),
     currency: CURRENCY,
     num_items: args.quantity,
   });
@@ -69,7 +74,7 @@ export function trackInitiateCheckout(args: {
     content_ids: args.productIds,
     content_type: 'product',
     num_items: args.numItems,
-    value: args.value,
+    value: toUsd(args.value),
     currency: CURRENCY,
   });
 }
@@ -83,7 +88,7 @@ export function trackPurchase(args: {
     content_ids: args.productIds,
     content_type: 'product',
     num_items: args.numItems,
-    value: args.value,
+    value: toUsd(args.value),
     currency: CURRENCY,
   });
 }

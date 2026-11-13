@@ -5,6 +5,7 @@ import { notifyNewOrder } from '../services/notificationService';
 import { clearOverviewCache } from '../services/overviewStats';
 import { duoDiscount, DUO_LABEL } from '../services/bundles';
 import { moveOrderStock, StockError, StockMove } from '../services/orderStock';
+import { sendOrderConfirmation, whatsappEnabled } from '../services/whatsapp';
 
 /**
  * Create new order
@@ -107,6 +108,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
         customerPhone: customer.phone,
         totalPrice,
         itemCount: products.length,
+        paymentMethod: order.paymentMethod,
       });
       console.log('✅ ===== NOTIFICATION PROCESS COMPLETED =====');
     } catch (notificationError) {
@@ -118,11 +120,18 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
       // Don't fail the order creation if notification fails
     }
 
+    // Ask the customer to confirm on WhatsApp — in the background, so the
+    // checkout answers right away and a WhatsApp hiccup never blocks an order.
+    if (whatsappEnabled()) {
+      sendOrderConfirmation(order).catch((err) => console.error('❌ WhatsApp confirmation failed:', err));
+    }
+
     console.log('📤 Sending success response to client...');
     // Return success response with orderId
     res.status(201).json({
       success: true,
       orderId: order._id.toString(),
+      orderNumber: order.orderNumber,
       message: 'Order created successfully'
     });
     console.log('✅ ===== ORDER CREATION FLOW COMPLETED =====');
@@ -336,6 +345,33 @@ export async function updateOrder(req: AuthRequest, res: Response): Promise<void
       error: true,
       message: 'Failed to update order'
     });
+  }
+}
+
+/**
+ * (Re)send the WhatsApp confirmation for an order (admin only)
+ * POST /api/orders/:id/whatsapp
+ */
+export async function resendWhatsApp(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    if (!whatsappEnabled()) {
+      res.status(400).json({ error: true, message: 'WhatsApp is not set up yet (WHATSAPP_TOKEN and WHATSAPP_PHONE_NUMBER_ID on the server).' });
+      return;
+    }
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404).json({ error: true, message: 'Order not found' });
+      return;
+    }
+    await sendOrderConfirmation(order);
+    res.status(200).json({ success: true, order: await Order.findById(order._id) });
+  } catch (error: any) {
+    if (error.name === 'CastError') {
+      res.status(400).json({ error: true, message: 'Invalid order ID' });
+      return;
+    }
+    console.error('Resend WhatsApp error:', error);
+    res.status(500).json({ error: true, message: 'Failed to send the WhatsApp message' });
   }
 }
 

@@ -46,6 +46,22 @@ export interface Customer {
 
 export type OrderFinish = 'brilliant' | 'matte' | null;
 
+/** Where the WhatsApp confirmation stands (mirror of backend models/Order). */
+export type WhatsAppState =
+  | 'sent' | 'delivered' | 'read'
+  | 'confirmed' | 'declined' | 'replied'
+  | 'no_whatsapp' | 'bad_number' | 'failed';
+
+export interface OrderWhatsApp {
+  state: WhatsAppState;
+  to?: string | null;
+  at?: string;
+  /** The customer's last message, as written. */
+  reply?: string;
+  repliedAt?: string;
+  error?: string;
+}
+
 export interface Order {
   _id: string;
   orderNumber: number;
@@ -58,6 +74,8 @@ export interface Order {
   finish?: OrderFinish;
   /** Offer already taken off totalPrice (e.g. the 3D duo). */
   discount?: OrderDiscount | null;
+  /** WhatsApp confirmation and the customer's answer; absent until one is sent. */
+  whatsapp?: OrderWhatsApp | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +96,8 @@ export interface CreateOrderRequest {
 export interface CreateOrderResponse {
   success: boolean;
   orderId: string;
+  /** The number the shop uses for the order (e.g. 123 for "#123"). */
+  orderNumber?: number;
   message: string;
 }
 
@@ -318,6 +338,16 @@ export async function updateOrderStatus(
   status: Order['status'],
 ): Promise<Order> {
   return updateOrder(orderId, { status });
+}
+
+/** (Re)send the WhatsApp confirmation to the customer (admin only). */
+export async function resendWhatsApp(orderId: string): Promise<Order> {
+  const response = await apiRequest<UpdateOrderStatusResponse>(
+    `/api/orders/${orderId}/whatsapp`,
+    { method: 'POST' },
+    true,
+  );
+  return response.order;
 }
 
 /**

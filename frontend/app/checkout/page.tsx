@@ -7,10 +7,97 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
 import { DUO_LABEL, DUO_LABEL_AR } from '@/lib/bundles';
 import { motion } from 'framer-motion';
-import { btnPrimary, fieldLabel, inputField, kickerLabel } from '@/lib/uiStyles';
+import { btnPrimary, btnGhostDark, fieldLabel, inputField, kickerLabel, whatsappLink } from '@/lib/uiStyles';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
+import { PAYMENT_TRANSFER, formatRib, readyAccounts, transferEnabled, transferMessage } from '@/lib/bankTransfer';
 import Plate from '@/components/Plate';
 import { hideBrokenImage } from '@/components/ProductCard';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
+
+type Payment = 'cod' | typeof PAYMENT_TRANSFER;
+
+const PAYMENTS: { id: Payment; title: string; ar: string; note: string; noteAr: string }[] = [
+  { id: 'cod', title: 'Cash on delivery', ar: 'الخلاص عند الاستلام', note: 'Pay in cash when it arrives.', noteAr: 'كتخلص فاش توصلك' },
+  {
+    id: PAYMENT_TRANSFER,
+    title: 'Bank transfer · CIH / BCP',
+    ar: 'تحويل بنكي',
+    note: 'Instant transfer, then send us the screenshot on WhatsApp.',
+    noteAr: 'تحويل فوري، ومن بعد صيفط لينا السكرين ف واتساب',
+  },
+];
+
+/** After a transfer order: what to pay, where, and the WhatsApp button for the screenshot. */
+function TransferSteps({ orderNumber, total }: { orderNumber?: number; total: number }) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = async (rib: string) => {
+    try {
+      await navigator.clipboard.writeText(rib.replace(/\D/g, ''));
+      setCopied(rib);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      /* the RIB stays selectable to copy by hand */
+    }
+  };
+  const steps = [
+    { en: `Make an instant transfer (virement instantané) of ${total} MAD to one of these accounts.`, ar: `دير تحويل فوري ديال ${total} درهم لواحد من هاد الحسابات.` },
+    { en: 'Take a screenshot of the transfer confirmation.', ar: 'خود سكرين ديال التحويل.' },
+    { en: 'Send it to us on WhatsApp — we ship as soon as we see it.', ar: 'صيفطو لينا ف واتساب، ونصيفطو ليك الطلب ديريكت.' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-asphalt px-5 pb-24 pt-28 text-chalk md:pt-36">
+      <div className="mx-auto max-w-2xl">
+        <p className={kickerLabel}>
+          Order {orderNumber ? `#${orderNumber}` : ''} received <span className="font-ar normal-case tracking-normal">· توصلنا بالطلب ديالك</span>
+        </p>
+        <h1 className="mt-3 font-display text-[clamp(2rem,6vw,3.5rem)] font-semibold uppercase leading-[0.95] stretch-125">
+          Pay by transfer
+        </h1>
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <Plate size="lg" left={total} letter="د.م" right="MAD" aria-label={`Amount to transfer: ${total} MAD`} />
+        </div>
+
+        <ol className="mt-8 space-y-3">
+          {steps.map((s, i) => (
+            <li key={i} className="flex gap-4 rounded-2xl bg-carbon p-4 ring-1 ring-white/[0.08]">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-chalk text-sm font-bold text-asphalt">{i + 1}</span>
+              <span className="text-sm">
+                {s.en}
+                <span className="mt-1 block font-ar text-smoke" dir="rtl">{s.ar}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {readyAccounts().map((a) => (
+            <div key={a.bank} className="rounded-2xl bg-carbon p-5 ring-1 ring-white/[0.08]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-silver">{a.bank}</p>
+              <p className="mt-2 text-sm text-smoke">{a.holder}</p>
+              <p className="mt-1 select-all font-mono text-[15px] font-semibold tracking-wide text-chalk">{formatRib(a.rib)}</p>
+              <button type="button" onClick={() => copy(a.rib)} className={`${btnGhostDark} mt-3 w-full`}>
+                {copied === a.rib ? 'Copied ✓ · تنسخ' : 'Copy RIB · نسخ'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <a href={whatsappLink(transferMessage(orderNumber, total))} target="_blank" rel="noopener noreferrer" className={`${btnPrimary} mt-8 w-full`}>
+          <WhatsAppIcon className="h-5 w-5" />
+          Send the screenshot <span className="font-ar text-sm normal-case tracking-normal opacity-70">· صيفط السكرين</span>
+        </a>
+        <p className="mt-4 text-center text-xs text-smoke">
+          Changed your mind? You can still pay cash on delivery, just tell us on WhatsApp.
+          <span className="mt-1 block font-ar">بدلتي رأيك؟ تقدر تخلص عند الاستلام، غير قولها لينا ف واتساب.</span>
+        </p>
+        <div className="mt-8 text-center">
+          <Link href="/" className="text-sm text-silver underline underline-offset-4 hover:text-chalk">{`Back home · الرئيسية`}</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const FIELDS = [
   { name: 'firstName', label: 'Full name', ar: 'الاسم الكامل', type: 'text', placeholder: 'Khalid Alami', autoComplete: 'name' },
@@ -23,8 +110,9 @@ export default function CheckoutPage() {
   const { cart, calculateTotal, offer, clearCart, removeFromCart, updateQuantity } = useCart();
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [placed, setPlaced] = useState<{ orderNumber?: number; total: number; payment: Payment } | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [payment, setPayment] = useState<Payment>('cod');
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -87,15 +175,15 @@ export default function CheckoutPage() {
           quantity: item.quantity
         })),
         totalPrice: finalTotal,
-        paymentMethod: 'cod'
+        paymentMethod: transferEnabled ? payment : 'cod'
       };
-      await createOrder(orderData);
+      const created = await createOrder(orderData);
       trackPurchase({
         productIds: cart.map((item) => item._id),
         numItems: cart.reduce((n, item) => n + item.quantity, 0),
         value: finalTotal,
       });
-      setSuccess(true);
+      setPlaced({ orderNumber: created.orderNumber, total: finalTotal, payment: orderData.paymentMethod as Payment });
       clearCart();
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -106,7 +194,11 @@ export default function CheckoutPage() {
     }
   };
 
-  if (success) {
+  if (placed?.payment === PAYMENT_TRANSFER) {
+    return <TransferSteps orderNumber={placed.orderNumber} total={placed.total} />;
+  }
+
+  if (placed) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-asphalt px-6 py-40 text-center">
         <motion.div
@@ -143,7 +235,15 @@ export default function CheckoutPage() {
       <div className="mx-auto max-w-[1280px] px-5 sm:px-6 lg:px-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 md:mb-14">
           <p className={kickerLabel}>
-            Cash on delivery <span className="font-ar normal-case tracking-normal">· الخلاص عند الاستلام</span>
+            {transferEnabled ? (
+              <>
+                Cash on delivery or bank transfer <span className="font-ar normal-case tracking-normal">· عند الاستلام ولا بالتحويل</span>
+              </>
+            ) : (
+              <>
+                Cash on delivery <span className="font-ar normal-case tracking-normal">· الخلاص عند الاستلام</span>
+              </>
+            )}
           </p>
           <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,5rem)] font-semibold uppercase leading-[0.95] stretch-125">
             Checkout
@@ -176,21 +276,56 @@ export default function CheckoutPage() {
               </form>
             </section>
 
-            <section className="flex items-center gap-5 rounded-3xl bg-carbon p-6 ring-1 ring-white/[0.08] sm:p-8">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-chalk text-asphalt">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="2.5" y="6" width="19" height="12" rx="1.5" />
-                  <circle cx="12" cy="12" r="2.5" />
-                  <path d="M6 10v4M18 10v4" />
-                </svg>
-              </span>
-              <div>
-                <h2 className="text-base font-semibold text-chalk">
-                  Pay when it arrives <span className="font-ar font-normal text-smoke">· حتى توصلك عاد خلص</span>
+            {transferEnabled ? (
+              <fieldset className="rounded-3xl bg-carbon p-6 ring-1 ring-white/[0.08] sm:p-8">
+                <legend className="sr-only">Payment · الخلاص</legend>
+                <h2 className="mb-5 font-display text-lg font-semibold uppercase stretch-125">
+                  Payment <span className="font-ar text-base font-normal normal-case text-smoke">· كيفاش غادي تخلص</span>
                 </h2>
-                <p className="mt-1 text-sm text-smoke">No upfront payment required.</p>
-              </div>
-            </section>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {PAYMENTS.map((p) => (
+                    <label
+                      key={p.id}
+                      className={`flex cursor-pointer gap-3 rounded-2xl p-4 ring-1 transition-colors ${
+                        payment === p.id ? 'bg-white/[0.06] ring-2 ring-xenon' : 'ring-white/[0.08] hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value={p.id}
+                        checked={payment === p.id}
+                        onChange={() => setPayment(p.id)}
+                        className="mt-1 h-4 w-4 accent-[#2563EB]"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-chalk">
+                          {p.title} <span className="font-ar font-normal text-smoke">· {p.ar}</span>
+                        </span>
+                        <span className="mt-1 block text-xs text-smoke">{p.note}</span>
+                        <span className="mt-0.5 block font-ar text-xs text-smoke">{p.noteAr}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : (
+              <section className="flex items-center gap-5 rounded-3xl bg-carbon p-6 ring-1 ring-white/[0.08] sm:p-8">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-chalk text-asphalt">
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="2.5" y="6" width="19" height="12" rx="1.5" />
+                    <circle cx="12" cy="12" r="2.5" />
+                    <path d="M6 10v4M18 10v4" />
+                  </svg>
+                </span>
+                <div>
+                  <h2 className="text-base font-semibold text-chalk">
+                    Pay when it arrives <span className="font-ar font-normal text-smoke">· حتى توصلك عاد خلص</span>
+                  </h2>
+                  <p className="mt-1 text-sm text-smoke">No upfront payment required.</p>
+                </div>
+              </section>
+            )}
           </motion.div>
 
           {/* Summary */}
@@ -289,7 +424,15 @@ export default function CheckoutPage() {
               )}
             </button>
             <p className="mt-4 text-center text-xs text-smoke">
-              Pay in cash when it arrives · <span className="font-ar">كتخلص فاش توصلك</span>
+              {payment === PAYMENT_TRANSFER && transferEnabled ? (
+                <>
+                  Next: the bank details to transfer to · <span className="font-ar">من بعد غادي تبان ليك معلومات الحساب</span>
+                </>
+              ) : (
+                <>
+                  Pay in cash when it arrives · <span className="font-ar">كتخلص فاش توصلك</span>
+                </>
+              )}
             </p>
           </motion.aside>
         </div>

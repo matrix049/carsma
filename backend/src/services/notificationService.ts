@@ -125,14 +125,18 @@ export async function notifyNewOrder(orderData: {
   customerPhone: string;
   totalPrice: number;
   itemCount: number;
+  paymentMethod?: string;
 }): Promise<void> {
-  const adminUrl = process.env.FRONTEND_URL 
+  const adminUrl = process.env.FRONTEND_URL
     ? `${process.env.FRONTEND_URL}/admin/orders`
     : undefined;
+  const transfer = orderData.paymentMethod === 'bank_transfer'
+    ? '💳 TA7WIL BANKI: tsna screenshot f WhatsApp 9bel ma tsifet\n'
+    : '';
 
   await sendNotification({
     title: '🛒 طلب جديد!',
-    message: `${orderData.customerName}\n${orderData.customerPhone}\n\nDKHOL L SITE W CONFIRMI M3AH`,
+    message: `${orderData.customerName}\n${orderData.customerPhone}\n${transfer}\nDKHOL L SITE W CONFIRMI M3AH`,
     priority: 'urgent',
     tags: ['shopping_cart', 'bell'],
     click: adminUrl,

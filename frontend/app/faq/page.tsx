@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { btnPrimary, kickerLabel } from '@/lib/uiStyles';
+import { transferEnabled } from '@/lib/bankTransfer';
 
 interface FAQItem {
   question: string;
@@ -64,8 +65,13 @@ const FAQS: FAQItem[] = [
     question: 'What payment methods do you accept?',
     questionAr: 'شنو هي طرق الخلاص؟',
     answer:
-      'Cash on delivery: you pay when your piece arrives, nothing before. For a custom order we take a partial advance payment before we start working on it.',
-    answerAr: 'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
+      'Cash on delivery: you pay when your piece arrives, nothing before.' +
+      (transferEnabled ? ' If you prefer, pay by instant bank transfer (CIH or BCP) and send us the screenshot on WhatsApp.' : '') +
+      ' For a custom order we take a partial advance payment before we start working on it.',
+    answerAr:
+      'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل.' +
+      (transferEnabled ? ' ولا إلا بغيتي، خلص بتحويل بنكي فوري (CIH ولا BCP) وصيفط لينا السكرين ف واتساب.' : '') +
+      ' ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
   },
   {
     question: 'What is your return policy?',

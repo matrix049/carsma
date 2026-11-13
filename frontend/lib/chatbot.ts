@@ -9,6 +9,16 @@
  * and is shown on the contact page.
  */
 import { brandOf, findBrand } from '@/lib/brands';
+import { transferEnabled } from '@/lib/bankTransfer';
+
+/** Added to the payment answer once the shop's bank accounts are filled in. */
+const TRANSFER = transferEnabled
+  ? {
+      ar: ' ولا تقدر تخلص بتحويل بنكي فوري (CIH ولا BCP) وتصيفط لينا السكرين ف واتساب.',
+      fr: ' Vous pouvez aussi payer par virement instantané (CIH ou BCP) et nous envoyer la capture sur WhatsApp.',
+      en: ' You can also pay by instant bank transfer (CIH or BCP) and send us the screenshot on WhatsApp.',
+    }
+  : { ar: '', fr: '', en: '' };
 
 export type ChatLang = 'darija' | 'fr' | 'en' | 'ar';
 
@@ -117,7 +127,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       price: 'القطع ديال الكاتالوغ ما بين {min} و {max} درهم، والثمن مكتوب على كل لوحة. الطلبات الخاصة كيتحدد ثمنها حسب التصميم، المقاس، و 2D ولا 3D.',
       priceNoInfo: 'الثمن مكتوب على كل لوحة ف الكاراج. الطلبات الخاصة كيتحدد ثمنها حسب التصميم، المقاس، و 2D ولا 3D.',
       delivery: 'كنوصلو لكاع مدن المغرب ف 48 ساعة حتى 3 أيام، والتوصيل فابور 🚚. كيوصلك رقم التتبع ملي تخرج الكوموند.',
-      payment: 'القطع ديال الكاتالوغ كتخلصها ملي توصلك، ما كتخلص والو قبل. القطع الخاصة لي ماكايناش ف الكاتالوغ كنطلبو فيها تسبيق جزئي (ماشي الثمن كامل).',
+      payment: `القطع ديال الكاتالوغ كتخلصها ملي توصلك، ما كتخلص والو قبل.${TRANSFER.ar} القطع الخاصة لي ماكايناش ف الكاتالوغ كنطلبو فيها تسبيق جزئي (ماشي الثمن كامل).`,
       size: 'المقاس ديال كل قطعة مكتوب ف الصفحة ديالها تحت الثمن. الإصدارات 3D عندها مقاس واحد: G-Class 3D ‏120×75 سم و 911 3D ‏120×50 سم. مصنوعة من Alucobond 3 مم بطباعة UV، وكتجي معاها سكوتش دوبل فاص باش تلصقها ف الحيط.',
       style: '2D تصميم نقي وأنيق بالخطوط الأساسية ديال الطوموبيل. 3D عامرة بالتفاصيل وفيها عمق حقيقي، كتبان قريبة بزاف للطوموبيل الحقيقية. بجوج كيجيو زوينين ف الحيط 😉',
       returns: 'الإرجاع مقبول غير إلا وصلاتك القطعة مهرسة بسبب التوصيل. صور الكولي فيديو قبل وملي كتحلو، حيت خاصنا هاد الدليل باش نبدلوها ليك.',
@@ -193,7 +203,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       price: 'Les pièces du catalogue sont entre {min} et {max} MAD, le prix est indiqué sur chaque pièce. Pour le sur-mesure, le prix dépend du design, de la taille et du 2D/3D.',
       priceNoInfo: 'Le prix est indiqué sur chaque pièce du Garage. Pour le sur-mesure, il dépend du design, de la taille et du 2D/3D.',
       delivery: 'Livraison dans toutes les villes du Maroc en 48 h à 3 jours, gratuite 🚚. Vous recevez un numéro de suivi à l’expédition.',
-      payment: 'Les pièces du catalogue se paient à la livraison, rien à payer avant. Pour le sur-mesure hors catalogue, on demande une avance partielle (pas le prix complet).',
+      payment: `Les pièces du catalogue se paient à la livraison, rien à payer avant.${TRANSFER.fr} Pour le sur-mesure hors catalogue, on demande une avance partielle (pas le prix complet).`,
       size: 'La taille de chaque pièce est indiquée sur sa page, sous le prix. Les éditions 3D ont une seule taille : G-Class 3D en 120 × 75 cm, 911 3D en 120 × 50 cm. Alucobond 3 mm imprimé UV, livré avec du scotch double face pour le fixer au mur.',
       style: 'Le 2D, c’est un design épuré et élégant avec les lignes essentielles de la voiture. Le 3D est riche en détails, avec un vrai relief — au plus proche de la vraie voiture. Les deux rendent superbement au mur 😉',
       returns: 'Un retour est accepté uniquement si la pièce arrive cassée à cause de la livraison. Filmez le colis avant et pendant l’ouverture : sans cette preuve, on ne peut pas la remplacer.',
@@ -269,7 +279,7 @@ export const STRINGS: Record<ChatLang, Strings> = {
       price: 'Catalogue pieces are {min}–{max} MAD; the price is on each piece. Custom work is priced on the design, size and 2D/3D.',
       priceNoInfo: 'The price is shown on each piece in the Garage. Custom work is priced on the design, size and 2D/3D.',
       delivery: 'We deliver to every city in Morocco in 48 hours to 3 days, free 🚚. You get a tracking number when it ships.',
-      payment: 'Catalogue pieces are paid cash on delivery — nothing upfront. Custom pieces outside the catalogue need a partial advance payment (not the full price).',
+      payment: `Catalogue pieces are paid cash on delivery — nothing upfront.${TRANSFER.en} Custom pieces outside the catalogue need a partial advance payment (not the full price).`,
       size: 'Each piece’s size is listed on its page, under the price. The 3D editions come in one size: G-Class 3D is 120 × 75 cm, 911 3D is 120 × 50 cm. 3 mm Alucobond with UV print, delivered with double-sided tape to stick it on the wall.',
       style: '2D is a clean, elegant design with the car’s essential lines. 3D is rich in detail with real depth — the closest to the real car. Both look great on the wall 😉',
       returns: 'We accept a return only if your piece arrives broken because of the delivery. Film the parcel before and while you open it — we need that proof to replace it.',

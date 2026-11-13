@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
-import { fetchOrders, updateOrderStatus, updateOrder, Order, OrderFinish } from '@/lib/apiServices';
+import { fetchOrders, updateOrderStatus, updateOrder, resendWhatsApp, Order, OrderFinish } from '@/lib/apiServices';
 import { duoDiscount } from '@/lib/bundles';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -20,6 +20,7 @@ import {
   parseAddress,
   paymentLabel,
   whatsappGreeting,
+  WhatsAppChip,
 } from '@/components/OrderTable';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -97,6 +98,22 @@ export default function AdminOrdersPage() {
     setSelectedOrder(order);
     setDraftOrder({ ...order, products: order.products.map((p) => ({ ...p })) });
     setEditError(null);
+  };
+
+  // WhatsApp confirmation: (re)send from the order sheet. Keeps unsaved item edits.
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const handleResendWhatsApp = async () => {
+    if (!selectedOrder) return;
+    setSendingWhatsApp(true);
+    try {
+      const updated = await resendWhatsApp(selectedOrder._id);
+      setSelectedOrder(updated);
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+    } catch (err: any) {
+      alert(err?.message || 'Failed to send the WhatsApp message.');
+    } finally {
+      setSendingWhatsApp(false);
+    }
   };
 
   // Sheet keyboard, scroll lock, focus and swipe-to-close. Keyed on the open
@@ -521,6 +538,16 @@ export default function AdminOrdersPage() {
                                     COD
                                   </span>
                                 )}
+                                {order.paymentMethod === 'bank_transfer' && (
+                                  <span className="ml-2 px-2 py-0.5 rounded bg-amber-500/15 text-[9px] font-black uppercase tracking-widest text-amber-300" title="Check the transfer screenshot on WhatsApp before shipping">
+                                    Virement
+                                  </span>
+                                )}
+                                {order.whatsapp && (
+                                  <span className="mt-2 block">
+                                    <WhatsAppChip whatsapp={order.whatsapp} />
+                                  </span>
+                                )}
                               </td>
                               <td className="px-5 py-6 xl:px-8 xl:py-7">
                                 <p className="text-[11px] font-bold text-zinc-400">
@@ -746,6 +773,32 @@ export default function AdminOrdersPage() {
                         <dd className="mt-1 text-[15px] font-black text-white uppercase">
                           {paymentLabel(selectedOrder.paymentMethod)}
                         </dd>
+                      </div>
+                      <div>
+                        <dt className={FIELD_LABEL}>WhatsApp confirmation</dt>
+                        <dd className="mt-1.5 flex flex-wrap items-center gap-2">
+                          {selectedOrder.whatsapp ? (
+                            <WhatsAppChip whatsapp={selectedOrder.whatsapp} />
+                          ) : (
+                            <span className="text-[13px] font-medium text-zinc-500">Not sent</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleResendWhatsApp}
+                            disabled={sendingWhatsApp}
+                            className="rounded-lg border border-zinc-800 px-3 py-1.5 text-[12px] font-bold text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white disabled:opacity-50"
+                          >
+                            {sendingWhatsApp ? 'Sending…' : selectedOrder.whatsapp ? 'Send again' : 'Send now'}
+                          </button>
+                        </dd>
+                        {selectedOrder.whatsapp?.reply && (
+                          <dd className="mt-2 rounded-lg bg-zinc-950 px-3 py-2 text-[14px] leading-relaxed text-zinc-200 break-words" dir="auto">
+                            “{selectedOrder.whatsapp.reply}”
+                          </dd>
+                        )}
+                        {selectedOrder.whatsapp?.error && (
+                          <dd className="mt-1.5 text-[12px] text-zinc-500 break-words">{selectedOrder.whatsapp.error}</dd>
+                        )}
                       </div>
                       <div>
                         <dt className={FIELD_LABEL}>Order date</dt>

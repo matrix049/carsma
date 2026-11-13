@@ -1,5 +1,26 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+/**
+ * Where the WhatsApp confirmation stands (see services/whatsapp):
+ * sent → delivered → read while waiting; then the customer's answer —
+ * confirmed, declined, or replied (a message the team should read).
+ * no_whatsapp / bad_number / failed: the team calls instead.
+ */
+export type WhatsAppState =
+  | 'sent' | 'delivered' | 'read'
+  | 'confirmed' | 'declined' | 'replied'
+  | 'no_whatsapp' | 'bad_number' | 'failed';
+
+export interface IOrderWhatsApp {
+  state: WhatsAppState;
+  to?: string | null;
+  messageId?: string | null;
+  at?: Date;
+  reply?: string;
+  repliedAt?: Date;
+  error?: string;
+}
+
 export interface IOrder extends Document {
   orderNumber: number;
   customer: {
@@ -28,6 +49,8 @@ export interface IOrder extends Document {
   stockHeld?: boolean;
   /** The pieces actually taken, so they can be given back exactly. */
   stockTaken?: Array<{ productId: mongoose.Types.ObjectId; quantity: number }>;
+  /** WhatsApp confirmation sent to the customer, and their answer. Null until one is sent. */
+  whatsapp?: IOrderWhatsApp | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -113,6 +136,24 @@ const OrderSchema = new Schema<IOrder>(
     stockTaken: {
       type: [new Schema({ productId: { type: Schema.Types.ObjectId, ref: 'Product' }, quantity: { type: Number, min: 1 } }, { _id: false })],
       default: []
+    },
+    whatsapp: {
+      type: new Schema(
+        {
+          state: {
+            type: String,
+            enum: ['sent', 'delivered', 'read', 'confirmed', 'declined', 'replied', 'no_whatsapp', 'bad_number', 'failed'],
+          },
+          to: { type: String, default: null },
+          messageId: { type: String, default: null },
+          at: Date,
+          reply: String,
+          repliedAt: Date,
+          error: String,
+        },
+        { _id: false }
+      ),
+      default: null
     }
   },
   {
@@ -137,6 +178,10 @@ OrderSchema.index({ createdAt: -1 });
 
 // Index for status filtering
 OrderSchema.index({ status: 1 });
+
+// WhatsApp webhook lookups: receipts by message id, replies by the customer's number
+OrderSchema.index({ 'whatsapp.messageId': 1 }, { sparse: true });
+OrderSchema.index({ 'whatsapp.to': 1, createdAt: -1 }, { sparse: true });
 
 const Order = mongoose.model<IOrder>('Order', OrderSchema);
 
