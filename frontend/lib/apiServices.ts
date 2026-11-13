@@ -86,7 +86,7 @@ export interface UpdateOrderRequest {
   status?: Order['status'];
   finish?: OrderFinish;
   products?: OrderProduct[];
-  /** 'cod' | 'bank_transfer' — the server re-prices the order (10% off only by transfer). */
+  /** 'cod' | 'bank_transfer' — the server re-prices the order (the transfer discount only by transfer). */
   paymentMethod?: 'cod' | 'bank_transfer';
 }
 

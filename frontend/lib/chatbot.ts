@@ -10,13 +10,14 @@
  */
 import { brandOf, findBrand } from '@/lib/brands';
 import { transferBanks } from '@/lib/bankTransfer';
+import { TRANSFER_DISCOUNT_PERCENT as OFF } from '@/lib/bundles';
 
 /** Added to the payment answer while bank transfer is open ({banks} = their names, from the server). */
 const TRANSFER_NOTE: Record<string, string> = {
-  darija: 'ولا تقدر تخلص بتحويل بنكي فوري ({banks}) وتاخد تخفيض 10%، وتصيفط لينا السكرين ف واتساب.',
-  ar: 'ويمكنكم أيضا الدفع بتحويل بنكي فوري ({banks}) مع تخفيض 10%، ثم إرسال صورة التحويل عبر واتساب.',
-  fr: 'Vous pouvez aussi payer par virement instantané ({banks}) avec 10% de remise, et nous envoyer la capture sur WhatsApp.',
-  en: 'You can also pay by instant bank transfer ({banks}) for 10% off, and send us the screenshot on WhatsApp.',
+  darija: `ولا تقدر تخلص بتحويل بنكي فوري ({banks}) وتاخد تخفيض ${OFF}%، وتصيفط لينا السكرين ف واتساب.`,
+  ar: `ويمكنكم أيضا الدفع بتحويل بنكي فوري ({banks}) مع تخفيض ${OFF}%، ثم إرسال صورة التحويل عبر واتساب.`,
+  fr: `Vous pouvez aussi payer par virement instantané ({banks}) avec ${OFF}% de remise, et nous envoyer la capture sur WhatsApp.`,
+  en: `You can also pay by instant bank transfer ({banks}) for ${OFF}% off, and send us the screenshot on WhatsApp.`,
 };
 
 export type ChatLang = 'darija' | 'fr' | 'en' | 'ar';

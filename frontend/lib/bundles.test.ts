@@ -33,10 +33,10 @@ describe('order pricing', () => {
     expect(orderPricing(pack, 'cod')).toEqual({ subtotal: 748, duo: 49, transfer: 0, total: 699 });
   });
 
-  it('instant transfer: 10% off what is left after the duo, in whole dirhams', () => {
-    expect(orderPricing(pack, 'bank_transfer')).toEqual({ subtotal: 748, duo: 49, transfer: 70, total: 629 });
-    expect(orderPricing([{ ...p, quantity: 1 }], 'bank_transfer').total).toBe(314);
-    expect(orderPricing([{ ...g, quantity: 1 }], 'bank_transfer').total).toBe(359);
+  it('instant transfer: 5% off what is left after the duo, in whole dirhams', () => {
+    expect(orderPricing(pack, 'bank_transfer')).toEqual({ subtotal: 748, duo: 49, transfer: 35, total: 664 });
+    expect(orderPricing([{ ...p, quantity: 1 }], 'bank_transfer').total).toBe(332);
+    expect(orderPricing([{ ...g, quantity: 1 }], 'bank_transfer').total).toBe(379);
   });
 
   it('no payment method or an old one: full price', () => {

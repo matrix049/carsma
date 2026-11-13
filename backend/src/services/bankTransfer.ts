@@ -1,5 +1,5 @@
 /**
- * Instant bank transfer (10% off, see bundles.ts).
+ * Instant bank transfer (a discount, see TRANSFER_DISCOUNT_PERCENT in bundles.ts).
  *
  * The RIBs live only in the server's environment (Railway variables), never in
  * the website's code or the repository: the website is only told which banks

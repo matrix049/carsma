@@ -1,5 +1,5 @@
 /**
- * Paying by instant bank transfer (virement instantané) — 10% off — next to cash
+ * Paying by instant bank transfer (virement instantané), with a discount, next to cash
  * on delivery. The customer transfers, screenshots it and sends it on WhatsApp;
  * the team checks the money arrived before shipping.
  *
@@ -17,12 +17,12 @@ export const PAYMENT_TRANSFER = 'bank_transfer';
 
 /**
  * Each bank's official logo file in public/banks/, shown only to say which banks
- * you can pay into (CIH: from cihbank.ma). Until one is set, the bank's name is
- * shown instead.
+ * you can pay into (CIH: from cihbank.ma; Banque Populaire: from the shop, white
+ * margins trimmed). Until one is set, the bank's name is shown instead.
  */
 export const BANK_LOGOS: Record<string, string> = {
   'CIH Bank': '/banks/cih.png',
-  'Banque Populaire (BCP)': '',
+  'Banque Populaire (BCP)': '/banks/bcp.png',
 };
 
 let banks: string[] = [];

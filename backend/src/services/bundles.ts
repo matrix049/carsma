@@ -25,11 +25,12 @@ export function duoDiscount(lines: Line[]): { pairs: number; amount: number } {
   return { pairs, amount: pairs * Math.max(0, together - DUO_PRICE) };
 }
 
-/** Paying by instant bank transfer takes 10% off what's left after the duo offer. */
-export const TRANSFER_DISCOUNT_RATE = 0.1;
-export const TRANSFER_LABEL = '10% instant transfer';
+/** Paying by instant bank transfer takes this much off what's left after the duo offer. */
+export const TRANSFER_DISCOUNT_PERCENT = 5;
+export const TRANSFER_DISCOUNT_RATE = TRANSFER_DISCOUNT_PERCENT / 100;
+export const TRANSFER_LABEL = `${TRANSFER_DISCOUNT_PERCENT}% instant transfer`;
 
-/** What an order costs: items, minus the duo offer, minus 10% when paid by instant transfer. */
+/** What an order costs: items, minus the duo offer, minus the transfer discount when paid by instant transfer. */
 export function orderPricing(lines: Line[], paymentMethod?: string) {
   const subtotal = lines.reduce((sum, l) => sum + (Number(l.price) || 0) * (Number(l.quantity) || 0), 0);
   const duo = duoDiscount(lines).amount;

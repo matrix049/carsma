@@ -101,11 +101,11 @@ export default function AdminOrdersPage() {
     setEditError(null);
   };
 
-  // A transfer customer who pays on delivery after all: back to full price (no 10%).
+  // A transfer customer who pays on delivery after all: back to full price (no transfer discount).
   const [switchingPayment, setSwitchingPayment] = useState(false);
   const handleSwitchToCod = async () => {
     if (!selectedOrder) return;
-    if (!confirm('Switch this order to cash on delivery? The 10% transfer discount comes off the total.')) return;
+    if (!confirm('Switch this order to cash on delivery? The transfer discount comes off the total.')) return;
     setSwitchingPayment(true);
     try {
       const updated = await updateOrder(selectedOrder._id, { paymentMethod: 'cod' });
@@ -224,7 +224,7 @@ export default function AdminOrdersPage() {
   // ── Order editing (items + finish) ────────────────────────────────────────
   const draftTotal = useMemo(() => {
     if (!draftOrder) return 0;
-    // Same rule as the server: the 3D duo offer comes off complete pairs, then 10% if paid by transfer.
+    // Same rule as the server: the 3D duo offer comes off complete pairs, then the transfer discount if paid by transfer.
     return orderPricing(draftOrder.products, draftOrder.paymentMethod).total;
   }, [draftOrder]);
 

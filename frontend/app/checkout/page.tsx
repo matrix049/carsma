@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createOrder, Customer } from '@/lib/apiServices';
-import { DUO_LABEL, DUO_LABEL_AR, TRANSFER_LABEL, TRANSFER_LABEL_AR, orderPricing } from '@/lib/bundles';
+import { DUO_LABEL, DUO_LABEL_AR, TRANSFER_DISCOUNT_PERCENT as OFF, TRANSFER_LABEL, TRANSFER_LABEL_AR, orderPricing } from '@/lib/bundles';
 import { motion } from 'framer-motion';
 import { btnPrimary, btnGhostDark, fieldLabel, inputField, kickerLabel, whatsappLink } from '@/lib/uiStyles';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
@@ -20,7 +20,7 @@ const PAYMENTS: { id: Payment; title: string; ar: string; note: string; noteAr: 
   { id: 'cod', title: 'Cash on delivery', ar: 'الخلاص عند الاستلام', note: 'Pay in cash when it arrives.', noteAr: 'كتخلص فاش توصلك' },
   {
     id: PAYMENT_TRANSFER,
-    title: 'Instant bank transfer · −10%',
+    title: `Instant bank transfer · −${OFF}%`,
     ar: 'تحويل فوري',
     note: 'Instant transfer only (virement instantané), then send us the screenshot on WhatsApp.',
     noteAr: 'غير التحويل الفوري، ومن بعد صيفط لينا السكرين ف واتساب',
@@ -78,7 +78,7 @@ function TransferSteps({ orderNumber, details }: { orderNumber?: number; details
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <Plate size="lg" left={total} letter="د.م" right="MAD" aria-label={`Amount to transfer: ${total} MAD`} />
           <span className="text-sm font-semibold text-xenon">
-            10% off included <span className="font-ar">· التخفيض محسوب</span>
+            {OFF}% off included <span className="font-ar">· التخفيض محسوب</span>
           </span>
         </div>
 
@@ -134,8 +134,8 @@ function TransferSteps({ orderNumber, details }: { orderNumber?: number; details
         </div>
 
         <p className="mt-4 rounded-2xl bg-white/[0.03] p-4 text-xs leading-relaxed text-smoke">
-          Instant transfer only (virement instantané): that&apos;s what the 10% off is for. We ship as soon as it arrives.
-          <span className="mt-1 block font-ar">غير التحويل الفوري (virement instantané) اللي فيه التخفيض ديال 10%. كنصيفطو الطلب ملي يوصلنا التحويل.</span>
+          Instant transfer only (virement instantané): that&apos;s what the {OFF}% off is for. We ship as soon as it arrives.
+          <span className="mt-1 block font-ar">غير التحويل الفوري (virement instantané) اللي فيه التخفيض ديال {OFF}%. كنصيفطو الطلب ملي يوصلنا التحويل.</span>
         </p>
 
         <a href={whatsappLink(transferMessage(reference, total))} target="_blank" rel="noopener noreferrer" className={`${btnPrimary} mt-8 w-full`}>
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // The 3D duo offer, and 10% off for an instant transfer, come off here; the server works it out again.
+  // The 3D duo offer, and the instant transfer discount, come off here; the server works it out again.
   const pricing = orderPricing(cart, transferOn ? payment : 'cod');
   const subtotal = Math.round(pricing.subtotal);
   const finalTotal = Math.round(pricing.total);

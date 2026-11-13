@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { btnPrimary, kickerLabel } from '@/lib/uiStyles';
 import { loadTransferBanks, transferBanks } from '@/lib/bankTransfer';
+import { TRANSFER_DISCOUNT_PERCENT } from '@/lib/bundles';
 
 interface FAQItem {
   question: string;
@@ -70,8 +71,8 @@ const FAQS: FAQItem[] = [
       'Cash on delivery: you pay when your piece arrives, nothing before. For a custom order we take a partial advance payment before we start working on it.',
     answerAr: 'الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.',
     withTransfer: (banks) => ({
-      answer: `Cash on delivery: you pay when your piece arrives, nothing before. Or pay by instant bank transfer (${banks}) and get 10% off: send us the screenshot on WhatsApp. For a custom order we take a partial advance payment before we start working on it.`,
-      answerAr: `الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ولا خلص بتحويل بنكي فوري (${banks}) وخود تخفيض 10%: صيفط لينا السكرين ف واتساب. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.`,
+      answer: `Cash on delivery: you pay when your piece arrives, nothing before. Or pay by instant bank transfer (${banks}) and get ${TRANSFER_DISCOUNT_PERCENT}% off: send us the screenshot on WhatsApp. For a custom order we take a partial advance payment before we start working on it.`,
+      answerAr: `الخلاص عند الاستلام: كتخلص ملي توصلك القطعة، ما كتخلص والو قبل. ولا خلص بتحويل بنكي فوري (${banks}) وخود تخفيض ${TRANSFER_DISCOUNT_PERCENT}%: صيفط لينا السكرين ف واتساب. ف الطلبات الخاصة كناخدو تسبيق جزئي قبل ما نبداو الخدمة.`,
     }),
   },
   {

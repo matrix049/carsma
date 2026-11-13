@@ -59,7 +59,7 @@ export async function createOrder(req: AuthRequest, res: Response): Promise<void
     console.log('✅ All validations passed, creating order...');
 
     // The total is worked out here from the items, not trusted from the browser:
-    // the 3D duo offer, and 10% off when paying by instant bank transfer (only
+    // the 3D duo offer, and the discount for paying by instant bank transfer (only
     // offered while the shop's accounts are set on the server).
     const method = paymentMethod === 'bank_transfer' && !transferEnabled() ? 'cod' : paymentMethod;
     const pricing = orderPricing(products, method);
@@ -194,7 +194,7 @@ export async function getOrders(req: AuthRequest, res: Response): Promise<void> 
  *                  (server recalculates `totalPrice` server-side so the
  *                  total can't drift out of sync with the items).
  *   - `paymentMethod` : 'cod' | 'bank_transfer' (e.g. a customer who chose
- *                  transfer pays on delivery after all: the 10% comes off).
+ *                  transfer pays on delivery after all: the transfer discount comes off).
  *
  * Only the fields present in the body are touched; missing fields stay
  * as they were.
